@@ -6,9 +6,15 @@
 
 ### First Time Installation
 
+
+
+**Step 0: Cleanup**
+sudo rm -rf /home/pi/RadarProject
+
+
 **Step 1: Clone this repository**
 ```bash
-git clone https://github.com/Harkerfield/ScienceProjectRadar.git /home/pi/RadarProject
+sudo git clone https://github.com/Harkerfield/ScienceProjectRadar.git /home/pi/RadarProject
 cd /home/pi/RadarProject
 ```
 

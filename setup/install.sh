@@ -57,7 +57,6 @@ cd "$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController"
     echo "  Server dependencies..."
     cd server
     sudo npm install -q 2>&1 | grep -v "^npm WARN" || true
-    sudo npm run build -q 2>&1 | grep -v "^npm WARN" || true
     cd ..
 
     echo "  Client dependencies..."
