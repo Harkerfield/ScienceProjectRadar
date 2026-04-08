@@ -26,7 +26,7 @@ sudo apt-get install -y -qq \
     curl \
     wget \
     build-essential \
-    nodejs npm \
+    nodejs \
     python3 python3-pip \
     chromium \
     xserver-xorg xinit x11-xserver-utils \
