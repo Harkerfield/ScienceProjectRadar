@@ -50,7 +50,7 @@ while true; do
             echo -e "\n${GREEN}Starting services...${NC}"
             sudo systemctl start radar-server radar-client
             echo -e "${GREEN}✓ Started${NC}"
-            echo -e "Access at: http://localhost:3000"
+            echo -e "Access at: http://localhost:3000 or http://$(hostname -I | awk '{print $1}'):3000"
             read -p "Press Enter to continue"
             ;;
         3)

@@ -11,12 +11,16 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;36m'
 NC='\033[0m'
 
-PROJECT_DIR="/home/pi/RadarProject"
+# Auto-detect the actual user (when running with sudo)
+ACTUAL_USER="${SUDO_USER:-$(whoami)}"
+PROJECT_DIR="/home/$ACTUAL_USER/RadarProject"
 GIT_URL="https://github.com/Harkerfield/ScienceProjectRadar.git"
 
 echo -e "\n${BLUE}╔═══════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║   RADAR APPLICATION - INSTALLATION SCRIPT        ║${NC}"
 echo -e "${BLUE}╚═══════════════════════════════════════════════════╝${NC}\n"
+echo -e "${YELLOW}Detected user: $ACTUAL_USER${NC}"
+echo -e "${YELLOW}Project directory: $PROJECT_DIR${NC}\n"
 
 # Step 1: Install system prerequisites
 echo -e "${YELLOW}[1/6] Installing system prerequisites...${NC}"
@@ -58,18 +62,18 @@ echo -e "\n${YELLOW}[3/6] Installing Node.js dependencies...${NC}"
 
 cd "$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController"
 
-# Make sure pi user owns the project directory
-sudo chown -R pi:pi "$PROJECT_DIR"
+# Make sure project user owns the project directory
+sudo chown -R $ACTUAL_USER:$ACTUAL_USER "$PROJECT_DIR"
 
 echo "  Server dependencies..."
 cd server
-su - pi -c "cd $PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/server && npm install -q 2>&1 | grep -v '^npm WARN' || true"
+su - $ACTUAL_USER -c "cd $PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/server && npm install -q 2>&1 | grep -v '^npm WARN' || true"
 cd ..
 
 echo "  Client dependencies..."
 cd client
-su - pi -c "cd $PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/client && npm install -q 2>&1 | grep -v '^npm WARN' || true"
-su - pi -c "cd $PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/client && npm run build 2>&1 | grep -v '^npm WARN' || true"
+su - $ACTUAL_USER -c "cd $PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/client && npm install -q 2>&1 | grep -v '^npm WARN' || true"
+su - $ACTUAL_USER -c "cd $PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/client && npm run build 2>&1 | grep -v '^npm WARN' || true"
 cd ..
 
 echo -e "${GREEN}✓ Node dependencies installed${NC}"
@@ -123,7 +127,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=pi
+User=$ACTUAL_USER
 WorkingDirectory=$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController
 ExecStart=/usr/bin/npm run server:start
 Restart=always
@@ -146,9 +150,9 @@ Wants=radar-server.service
 
 [Service]
 Type=simple
-User=pi
+User=$ACTUAL_USER
 Environment="DISPLAY=:0"
-Environment="XAUTHORITY=/home/pi/.Xauthority"
+Environment="XAUTHORITY=/home/$ACTUAL_USER/.Xauthority"
 ExecStart=/bin/bash $PROJECT_DIR/setup/start-client.sh
 Restart=always
 RestartSec=5
