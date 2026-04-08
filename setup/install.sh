@@ -40,7 +40,7 @@ echo -e "\n${YELLOW}[2/6] Downloading project from GitHub...${NC}"
 if [ -d "$PROJECT_DIR" ]; then
     echo "  Directory exists, updating..."
     cd "$PROJECT_DIR"
-    git pull origin main -q
+    git pull
 else
     echo "  Cloning from GitHub..."
     git clone "$GIT_URL" "$PROJECT_DIR"
