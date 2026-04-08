@@ -49,6 +49,8 @@ if [ -d "$PROJECT_DIR" ]; then
     git checkout -f
     git reset --hard @{u}
     git clean -fd
+    git pull
+    
 else
     echo "  Cloning from GitHub..."
     git clone "$GIT_URL" "$PROJECT_DIR"
