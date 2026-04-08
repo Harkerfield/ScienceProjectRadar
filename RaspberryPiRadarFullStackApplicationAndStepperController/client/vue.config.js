@@ -1,11 +1,13 @@
 module.exports = {
   productionSourceMap: false,
+  css: {
+    extract: {
+      ignoreOrder: true
+    }
+  },
   configureWebpack: {
     optimization: {
-      minimize: true,
-      minimizer: [
-        new (require('terser-webpack-plugin'))()
-      ]
+      minimize: false
     }
   }
 }

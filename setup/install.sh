@@ -58,17 +58,16 @@ echo -e "\n${YELLOW}[3/6] Installing Node.js dependencies...${NC}"
 
 cd "$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController"
 
-    echo "  Server dependencies..."
-    cd server
-    sudo npm install -q 2>&1 | grep -v "^npm WARN" || true
-    cd ..
+echo "  Server dependencies..."
+cd server
+sudo npm install -q 2>&1 | grep -v "^npm WARN" || true
+cd ..
 
-    echo "  Client dependencies..."
-    cd client
-    sudo npm install -q 2>&1 | grep -v "^npm WARN" || true
-    sudo npm run build -q 2>&1 | grep -v "^npm WARN" || true
-    cd ..
-fi
+echo "  Client dependencies..."
+cd client
+sudo npm install -q 2>&1 | grep -v "^npm WARN" || true
+sudo npm run build 2>&1 | grep -v "^npm WARN" || true
+cd ..
 
 echo -e "${GREEN}✓ Node dependencies installed${NC}"
 
