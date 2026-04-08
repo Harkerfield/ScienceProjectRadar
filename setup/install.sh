@@ -40,9 +40,10 @@ echo -e "\n${YELLOW}[2/6] Downloading project from GitHub...${NC}"
 if [ -d "$PROJECT_DIR" ]; then
     echo "  Directory exists, updating..."
     cd "$PROJECT_DIR"
-    # Reset to master and force pull
-    git fetch origin master
-    git reset --hard origin/master
+    # Force fetch and reset to latest
+    git fetch origin --all
+    git reset --hard HEAD
+    git pull --force
     git clean -fd
 else
     echo "  Cloning from GitHub..."
