@@ -16,7 +16,6 @@ uart_test = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))
 utime.sleep_ms(100)
 
 DEVICE_NAME = "RADAR"
-DEVICE_ADDR = 0x20
 
 def send_command(cmd, args=""):
     """Send command to radar and get response"""
@@ -144,6 +143,25 @@ def run_test_sequence():
     if response:
         display_radar_status(response)
 
+def run_continuous_loop():
+    """Run continuous sensor monitoring loop"""
+    iteration = 0
+    
+    while True:
+        iteration += 1
+        print(f"\n{'='*60}")
+        print(f"CONTINUOUS MONITORING - Iteration {iteration}")
+        print(f"{'='*60}")
+        
+        # Run READ command continuously
+        response = send_command("READ")
+        if response:
+            display_radar_status(response)
+        
+        # Wait before next read
+        print("Waiting 2 seconds for next read... (Press Ctrl+C to stop)")
+        utime.sleep_ms(2000)
+
 def run_interactive_mode():
     """Interactive command testing"""
     print("\n" + "=" * 60)
@@ -211,24 +229,54 @@ def run_interactive_mode():
         except Exception as e:
             print(f"Error: {e}")
 
-# Main
+# Main - Continuous Testing Loop
 print("\nRadar Pico Firmware Test")
 print(f"Device: {DEVICE_NAME}")
-print(f"Address: 0x{DEVICE_ADDR:02x}")
 print(f"UART Baud Rate: 115200")
 print()
 
-# Run automatic test sequence
-print("Running automatic test sequence...")
-run_test_sequence()
+try:
+    # Show menu
+    print("=" * 60)
+    print("TEST MODE SELECTION")
+    print("=" * 60)
+    print("1. One-time test sequence (all 7 tests once)")
+    print("2. Continuous READ loop (stream sensor data forever)")
+    print("3. Interactive command mode")
+    print("=" * 60)
+    print("\nDefault: Press Enter for Continuous Loop")
+    print()
+    
+    try:
+        mode = input("Select mode (1/2/3) [default=2]: ").strip()
+        if not mode:
+            mode = "2"
+    except:
+        mode = "2"
+    
+    if mode == "1":
+        print("\nRunning one-time test sequence...")
+        run_test_sequence()
+        print("\n" + "=" * 60)
+        print("Test sequence completed!")
+        print("=" * 60)
+    
+    elif mode == "2":
+        print("\nStarting continuous loop...")
+        print("This will keep running until you press Ctrl+C")
+        print()
+        run_continuous_loop()
+    
+    elif mode == "3":
+        print("\nEntering interactive mode...")
+        run_interactive_mode()
+    
+    else:
+        print(f"Invalid mode '{mode}'. Running continuous loop by default...")
+        print()
+        run_continuous_loop()
 
-print("\n" + "=" * 60)
-print("Automatic test completed!")
-print("=" * 60)
-
-# Option to enter interactive mode
-print("\nTest complete. Radar sensor is responding correctly.")
-print("You can now:")
-print("  - Send commands via UART to change sensor values")
-print("  - Monitor responses to verify functionality")
-print("  - Test integration with Node.js controller")
+except KeyboardInterrupt:
+    print("\n\n" + "=" * 60)
+    print("Test interrupted by user (Ctrl+C)")
+    print("=" * 60)

@@ -171,3 +171,9 @@ test-results/
 *.exe binary
 *.so binary
 *.dylib binary
+
+# MicroPython lock files
+*.micropico
+
+# Documentation and reports
+*.pdf

@@ -2,9 +2,17 @@
 # NOTE: This code runs on Raspberry Pi Pico only, not on standard Python
 # Requires MicroPython firmware installed on Pico
 # UART Slave (on shared UART1 bus with device addressing)
+# 
 # Command Format: RADAR:COMMAND[:ARGS]
 # Response Format: RADAR:STATUS[:DATA]
-# Commands: PING, STATUS, WHOAMI, READ
+#
+# Available Commands:
+#   PING              - Alive check (responds with address)
+#   WHOAMI            - Device identification
+#   STATUS            - Get current sensor readings
+#   READ              - Get current sensor readings (alias for STATUS)
+#   SET_RANGE:<cm>    - Set distance reading (0-500 cm)
+#   SET_VELOCITY:<m/s>- Set velocity reading (0.0-50.0 m/s)
 
 from machine import UART, Pin
 import utime
@@ -34,15 +42,20 @@ led.on()
 print("[INIT] LED turned ON")
 
 # ============================================================
+# PIN DEFINITIONS
+# ============================================================
+UART_TX_PIN = 4
+UART_RX_PIN = 5
+
+# ============================================================
 # UART CONFIGURATION
 # ============================================================
 # UART1: Slave communication bus (shared with SERVO and STEPPER)
-uart_slaves = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))
-print("[STARTUP] UART slave initialized (TX=GPIO4, RX=GPIO5)")
+uart_slaves = UART(1, baudrate=115200, tx=Pin(UART_TX_PIN), rx=Pin(UART_RX_PIN))
+print(f"[STARTUP] UART slave initialized (TX=GPIO{UART_TX_PIN}, RX=GPIO{UART_RX_PIN})")
 
 # ============ DEVICE IDENTIFICATION ============
 DEVICE_NAME = "RADAR"
-DEVICE_ADDR = 0x20     # Virtual device address for UART bus
 
 # Sensor simulation data
 radar_range = 123      # Distance in cm
@@ -109,7 +122,7 @@ def process_uart_command(cmd_text):
         
         # ========== STANDARD COMMANDS ==========
         if cmd == "PING":
-            send_uart_response(f"OK:msg=alive:addr=0x{DEVICE_ADDR:02x}")
+            send_uart_response(f"OK:msg=alive")
         
         elif cmd == "WHOAMI":
             send_uart_response(f"OK:device=RADAR:type=distance_sensor")
@@ -138,7 +151,8 @@ def process_uart_command(cmd_text):
             # Command format: RADAR:SET_RANGE:value
             global radar_range
             try:
-                radar_range = int(args) if args else radar_range
+                if args:
+                    radar_range = int(args)
                 send_uart_response(f"OK:range_set:value={radar_range}")
             except:
                 send_uart_response(f"ERROR:invalid_range")
@@ -147,7 +161,8 @@ def process_uart_command(cmd_text):
             # Command format: RADAR:SET_VELOCITY:value
             global radar_velocity
             try:
-                radar_velocity = float(args) if args else radar_velocity
+                if args:
+                    radar_velocity = float(args)
                 send_uart_response(f"OK:velocity_set:value={radar_velocity:.1f}")
             except:
                 send_uart_response(f"ERROR:invalid_velocity")
@@ -186,9 +201,9 @@ def process_usb_command(line):
         elif cmd == 'STATUS':
             return json_response("ok", msg="operational", range=radar_range, vel=radar_velocity)
         elif cmd == 'PING':
-            return json_response("ok", msg="alive", addr=DEVICE_ADDR)
+            return json_response("ok", msg="alive")
         elif cmd == 'WHOAMI':
-            return json_response("ok", device="radar", addr=DEVICE_ADDR, type="distance_sensor")
+            return json_response("ok", device="radar", type="distance_sensor")
         elif cmd == 'HELP':
             return "Commands: RANGE:<cm>|VEL:<m/s>|READ|STATUS|PING|WHOAMI|HELP"
         else:
@@ -196,29 +211,44 @@ def process_usb_command(line):
     except Exception as e:
         return json_response("error", msg="command_error")
 
-print("=" * 50)
+print("=" * 70)
 print("Radar Pico Firmware Loaded Successfully!")
-print("=" * 50)
+print("=" * 70)
 print(f"[READY] Radar UART Slave ({DEVICE_NAME}) initialized")
+print(f"[PINS] UART TX=GPIO{UART_TX_PIN}, RX=GPIO{UART_RX_PIN}")
 print("[LED] Status indicator enabled on pin 25")
 print("[UART] Listening for commands from Master Pico on UART1")
-print("=" * 50)
+print("=" * 70)
 print()
 print("UART Protocol (shared bus with STEPPER and SERVO):")
 print("  Format: RADAR:COMMAND[:ARGS]")
 print("  Response: RADAR:STATUS[:DATA]")
 print()
 print("Available Commands:")
-print("  PING           - Alive check")
-print("  STATUS         - Get radar status (range, velocity, confidence, movement)")
-print("  WHOAMI         - Device identification")
-print("  READ           - Read current radar values")
+print()
+print("  Read Commands:")
+print("    PING           - Alive check, returns device address")
+print("    WHOAMI         - Device identification (name, type)")
+print("    STATUS         - Get radar status (range, velocity, confidence, movement)")
+print("    READ           - Read current radar values")
+print()
+print("  Write Commands:")
+print("    SET_RANGE:<cm> - Set distance reading (e.g., SET_RANGE:250)")
+print("    SET_VELOCITY:<m/s> - Set velocity reading (e.g., SET_VELOCITY:8.5)")
+print()
+print("Response Fields:")
+print("    range          - Distance in centimeters (0-500)")
+print("    velocity       - Speed in m/s (0.0-50.0)")
+print("    confidence     - Signal confidence 0-100%")
+print("    movement       - Movement detected (0 or 1)")
 print()
 print("Examples:")
 print("  RADAR:PING")
 print("  RADAR:READ")
 print("  RADAR:STATUS")
-print("=" * 50)
+print("  RADAR:SET_RANGE:300")
+print("  RADAR:SET_VELOCITY:6.2")
+print("=" * 70)
 print()
 
 # Main loop
