@@ -9,6 +9,9 @@ BLUE='\033[0;36m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# Handle Ctrl+C gracefully
+trap 'echo -e "\n${GREEN}Exiting...${NC}\n"; exit 0' INT TERM
+
 show_menu() {
     clear
     echo -e "\n${BLUE}╔═════════════════════════════════════════╗${NC}"
@@ -44,20 +47,20 @@ while true; do
         1)
             clear
             sudo bash setup/install.sh
-            read -p "Press Enter to continue"
+            read -p $'\nPress Enter to return to menu...' dummy
             ;;
         2)
             echo -e "\n${GREEN}Starting services...${NC}"
             sudo systemctl start radar-server radar-client
             echo -e "${GREEN}✓ Started${NC}"
             echo -e "Access at: http://localhost:3000 or http://$(hostname -I | awk '{print $1}'):3000"
-            read -p "Press Enter to continue"
+            read -p $'\nPress Enter to return to menu...' dummy
             ;;
         3)
             echo -e "\n${YELLOW}Stopping services...${NC}"
             sudo systemctl stop radar-server radar-client
             echo -e "${GREEN}✓ Stopped${NC}"
-            read -p "Press Enter to continue"
+            read -p $'\nPress Enter to return to menu...' dummy
             ;;
         4)
             clear
@@ -66,13 +69,14 @@ while true; do
             echo ""
             echo -e "${BLUE}Client Status:${NC}"
             sudo systemctl status radar-client --no-pager || true
-            read -p "Press Enter to continue"
+            echo ""
+            read -p "Press Enter to return to menu: " dummy
             ;;
         5)
             clear
             echo -e "\n${BLUE}Recent Logs (Ctrl+C to exit):${NC}\n"
             sudo journalctl -u radar-server -n 30 --no-pager
-            read -p "Press Enter to continue"
+            read -p $'\nPress Enter to return to menu...' dummy
             ;;
         6)
             echo -e "\n${GREEN}Goodbye!${NC}\n"
