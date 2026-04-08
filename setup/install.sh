@@ -28,7 +28,7 @@ sudo apt-get install -y -qq \
     build-essential \
     nodejs npm \
     python3 python3-pip \
-    chromium-browser \
+    chromium \
     xserver-xorg xinit x11-xserver-utils \
     unclutter
 
