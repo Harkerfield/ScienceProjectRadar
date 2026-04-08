@@ -1,0 +1,173 @@
+# Dependencies
+node_modules/
+npm-debug.log
+npm-debug.log.*
+yarn-error.log
+yarn-debug.log
+
+# # Environment variables
+# .env
+# .env.local
+# .env.*.local
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Vue specific
+client/dist/
+client/node_modules/
+
+# Logs
+logs/
+*.log
+lerna-debug.log*
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.fleet
+*.iml
+.gradle/
+.classpath
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+*.pem
+*.key
+
+# Runtime data
+.nyc_output/
+coverage/
+*.lcov
+
+# Packages
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+
+# macOS
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+.Trash-*
+
+# Windows
+*.lnk
+$RECYCLE.BIN/
+
+# Testing
+.coverage
+.pytest_cache/
+jest_0/
+test-results/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Misc
+*.seed
+*.pid.lock
+
+# Serial port lock files (MicroPython development)
+.env.local.pyc
+*.pyc
+
+# Auto detect text files and normalize line endings to LF
+* text=auto
+
+# Shell scripts (MUST be LF for Raspberry Pi)
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Python files (typically LF)
+*.py text eol=lf
+*.pyw text eol=lf
+
+# MicroPython config
+.micropico text eol=lf
+
+# JavaScript/Node.js (usually LF)
+*.js text eol=lf
+*.json text eol=lf
+*.vue text eol=lf
+
+# Markdown
+*.md text eol=lf
+*.markdown text eol=lf
+
+# Git files
+.gitattributes text eol=lf
+.gitignore text eol=lf
+
+# Windows-specific
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files
+*.pyc binary
+*.pyo binary
+*.pyd binary
+*.node binary
+*.jar binary
+*.dll binary
+*.exe binary
+*.so binary
+*.dylib binary

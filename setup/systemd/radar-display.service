@@ -1,0 +1,22 @@
+[Unit]
+Description=X11 Display Server
+Documentation=https://github.com/yourusername/radar-project
+Before=radar-kiosk.service
+
+[Service]
+Type=forking
+User=pi
+Group=pi
+ExecStart=/usr/bin/startx
+
+# Restart policy
+Restart=on-failure
+RestartSec=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=radar-display
+
+[Install]
+WantedBy=graphical.target
