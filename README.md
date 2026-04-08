@@ -1,54 +1,195 @@
 # 🚀 Radar Application
 
-**Get started in 30 seconds!**
+**Linux/Raspberry Pi Only**
 
 ## ⚡ Quick Start
 
-### 🪟 Windows Users
-```powershell
-# Run the setup wizard:
-.\setup-windows.ps1
+### First Time Installation
 
-# OR use batch version:
-setup-windows.bat
+**Step 1: Clone this repository**
+```bash
+git clone https://github.com/Harkerfield/ScienceProjectRadar.git /home/pi/RadarProject
+cd /home/pi/RadarProject
 ```
 
-### 🍓 Raspberry Pi Users
-```bash
-# Run the setup wizard:
-bash setup-linux.sh
 
-# OR direct setup:
-sudo bash setup/linux/app-setup.sh && sudo reboot
+**Step 2: Run the setup script**
+```bash
+bash setup/start.sh
+# Choose option 1: INSTALL
 ```
 
-### 🐧 Linux Users  
-```bash
-# Run the setup wizard:
-bash setup-linux.sh
+Takes ~15-25 minutes. Downloads everything from GitHub and configures for auto-start.
 
-# OR direct setup:
-bash setup/linux/app-setup.sh
+### After Installation - That's It!
+Just reboot and everything starts automatically:
+
+```bash
+sudo reboot
 ```
 
 ---
 
-## 📋 What These Scripts Do
+## 🎯 What Auto-Starts On Boot
 
-### `setup-windows.ps1` / `setup-windows.bat` 
-Interactive menu to:
-- ✅ **SETUP** - Install dependencies (first time only)
-- 🚀 **START** - Launch servers and open dashboard
-- 📊 **STATUS** - Check if everything is running
-- 🛑 **STOP** - Stop all servers
+When you power on the Raspberry Pi, these start automatically:
 
-### `setup-linux.sh`
-Interactive menu for Linux/Pi with:
-- ✅ **SETUP** - Install and configure (auto-detects Pi vs Linux)
-- 🚀 **START** - Launch dashboard
-- 📊 **STATUS** - Check services
-- 🛑 **STOP** - Stop servers
-- 📋 **LOGS** - View application logs
+✅ **Update Checker** (runs first)
+   - Checks GitHub for new code
+   - Auto-installs updates if internet available
+   - Restarts server if updates found
+
+✅ **Server** (Node.js on port 3000)
+   - Serves API and dashboard
+   - Communicates with Pico via UART
+   - Accessible from other computers
+
+✅ **Client** (Chromium Kiosk)
+   - Displays fullscreen on HDMI
+   - Connects to server automatically
+   - Still accessible from network
+
+**No manual steps needed - it all just works!**
+
+---
+
+## 🌐 Access Dashboard
+
+### Local (on Pi)
+Chromium displays automatically on HDMI monitor in fullscreen
+
+### From Other Computers (Ethernet or WiFi)
+```
+http://raspberrypi.local:3000
+http://192.168.x.x:3000
+```
+
+---
+
+## 🎯 Common Tasks
+
+### Check if Running
+```bash
+bash setup/start.sh
+# Choose option 4: STATUS
+```
+
+### View Logs (Any service)
+```bash
+bash setup/start.sh
+# Choose option 5: LOGS
+
+# Or manually:
+sudo journalctl -u radar-server -f         # Server logs
+sudo journalctl -u radar-client -f         # Client logs
+sudo journalctl -u radar-update-check -f   # Update check logs
+```
+
+### Stop Everything
+```bash
+bash setup/start.sh
+# Choose option 3: STOP
+
+# Or manually:
+sudo systemctl stop radar-server radar-client
+```
+
+### Restart Services
+```bash
+# Restart everything
+sudo systemctl restart radar-server radar-client
+
+# Or just server (client auto-restarts after)
+sudo systemctl restart radar-server
+```
+
+### Manual Service Control
+```bash
+# Start
+sudo systemctl start radar-server radar-client
+
+# Stop
+sudo systemctl stop radar-server radar-client
+
+# Check if auto-start is enabled
+sudo systemctl is-enabled radar-server   # Should show "enabled"
+
+# Check status
+sudo systemctl status radar-server
+sudo systemctl status radar-client
+sudo systemctl status radar-update-check
+```
+
+### Update Code Manually
+Auto-update runs on every boot. To update now:
+```bash
+cd /home/pi/RadarProject
+git pull origin main
+sudo systemctl restart radar-server
+```
+
+---
+
+## 🔧 Technical Details
+
+| Component | Port | Status | Auto-Start |
+|-----------|------|--------|-----------|
+| **Server** | 3000 | Node.js backend | ✅ Yes |
+| **Client** | 3000 | Chromium kiosk | ✅ Yes |
+| **Update Check** | — | Git auto-update | ✅ Yes |
+| **UART** | /dev/ttyAMA0 | Pico comm | ✅ Configured |
+
+---
+
+## 📁 Setup Files
+
+All scripts in `setup/`:
+
+```
+setup/start.sh          ← Run anytime for menu
+setup/install.sh        ← Run once (during install)
+setup/check-updates.sh  ← Auto-runs on boot
+setup/start-client.sh   ← Auto-runs by systemd
+```
+
+For more info: `cat setup/README.md`
+
+---
+
+## 📚 Full Documentation
+
+- [setup/README.md](setup/README.md) - Setup & troubleshooting
+- [setup/docs/DEPLOYMENT.md](setup/docs/DEPLOYMENT.md) - Remote Pi deployment
+
+---
+
+## ✨ Quick Reference
+
+```bash
+# First time only
+bash setup/start.sh && choose 1
+
+# After that, just reboot
+sudo reboot
+
+# Or start manually
+sudo systemctl start radar-server radar-client
+
+# Check what's running
+bash setup/start.sh && choose 4
+
+# View logs
+bash setup/start.sh && choose 5
+```
+
+---
+
+**Version:** 2.0  
+**Platform:** Linux (Raspberry Pi)  
+**Auto-Start:** ✅ Yes  
+**Status:** ✅ Production Ready
+
+🎉 **Auto-starts on boot - no daily setup needed!**
 
 ---
 
@@ -107,7 +248,129 @@ bash setup-linux.sh
 
 ---
 
-## 📚 Full Documentation
+## � Deploy to Raspberry Pi
+
+Want to deploy to a **physical Raspberry Pi**? Use our automated deployment script!
+
+### Prerequisites
+- **Raspberry Pi** with Raspberry Pi OS installed
+- **SSH enabled** on the Pi (enabled by default)
+- **Network connection** between your computer and Pi
+- **Windows/Linux/Mac** with SSH client (usually pre-installed)
+
+### Step 1: Transfer Project to Pi
+
+**From Windows (PowerShell):**
+```powershell
+# Navigate to the project root
+cd F:\RadarProject
+
+# Run the deployment script
+.\setup\deployment\deploy-to-pi.ps1 -PiHost raspberrypi.local -PiUser pi
+
+# Follow the prompts:
+# - Choose deployment method (1 for Git clone, 2 for local copy)
+# - Wait for files to copy
+# - Wait for setup to complete
+```
+
+**From Linux/Mac (Bash):**
+```bash
+# Navigate to the project root
+cd /path/to/RadarProject
+
+# Make script executable
+chmod +x setup/deployment/deploy-to-pi.sh
+
+# Run the deployment script
+./setup/deployment/deploy-to-pi.sh -h raspberrypi.local -u pi
+
+# Follow the prompts:
+# - Choose deployment method (1 for Git clone, 2 for local copy)
+# - Wait for files to copy
+# - Wait for setup to complete
+```
+
+### Step 2: After Deployment Completes
+
+The script will:
+1. ✅ Copy all project files to Pi
+2. ✅ Install Node.js and dependencies
+3. ✅ Enable UART for Pico communication
+4. ✅ Create systemd service for auto-start
+5. ✅ Print access instructions
+
+### Step 3: Start the Application
+
+After deployment:
+
+```bash
+# SSH into the Pi (from your computer)
+ssh pi@raspberrypi.local
+
+# On the Pi - start the application
+sudo systemctl start radar-app
+
+# Check if it's running
+sudo systemctl status radar-app
+
+# View logs (live)
+sudo journalctl -u radar-app -f
+```
+
+**If UART configuration was needed**, reboot the Pi:
+```bash
+sudo reboot
+```
+
+### Access the Dashboard
+
+Once running, open your browser and go to:
+```
+http://raspberrypi.local:3000
+```
+
+Or use the Pi's IP address if hostname doesn't resolve:
+```
+http://192.168.x.x:3000
+```
+
+### Advanced Options
+
+**Custom Pi hostname or user:**
+```bash
+./setup/deployment/deploy-to-pi.sh -h pi.yourdomain.com -u myuser
+```
+
+**Custom project directory on Pi:**
+```bash
+./setup/deployment/deploy-to-pi.sh -d /opt/radar-project
+```
+
+**View deployment logs:**
+```bash
+# On Pi - tail the service logs
+sudo journalctl -u radar-app -f --lines=100
+
+# On Pi - view full logs
+sudo systemctl status radar-app
+```
+
+**Stop/restart service:**
+```bash
+# Stop
+sudo systemctl stop radar-app
+
+# Restart
+sudo systemctl restart radar-app
+
+# Check status
+sudo systemctl status radar-app
+```
+
+---
+
+## �📚 Full Documentation
 
 All detailed documentation is in the `setup/docs/` folder:
 
