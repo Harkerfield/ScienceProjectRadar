@@ -177,6 +177,8 @@ const actions = {
         title: 'Rotation Started',
         message: `Motor rotating ${stepperDirection}`
       }, { root: true })
+
+      return response.data
     } catch (error) {
       commit('SET_STATUS', { motorState: 'error' })
       commit('ADD_HISTORY_ENTRY', {
@@ -258,6 +260,8 @@ const actions = {
         title: 'Home Calibrated',
         message: 'Motor home position calibrated'
       }, { root: true })
+
+      return data
     } catch (error) {
       commit('SET_STATUS', { motorState: 'error' })
       commit('ADD_HISTORY_ENTRY', {

@@ -52,16 +52,22 @@
         <h2>Connection Status</h2>
         <div class="connections">
           <div class="connection-item">
-            <span class="connection-name">Pico Connection:</span>
-            <span class="connection-status" :class="{ connected: picoConnected }">
+            <span class="connection-name">WebSocket (Server):</span>
+            <span class="connection-badge" :class="{ connected: websocketConnected }">
+              <span class="status-dot" :class="{ connected: websocketConnected }"></span>
+              {{ websocketConnected ? 'Connected' : 'Disconnected' }}
+            </span>
+          </div>
+          <div class="connection-item">
+            <span class="connection-name">Pico Master (UART):</span>
+            <span class="connection-badge" :class="{ connected: picoConnected }">
+              <span class="status-dot" :class="{ connected: picoConnected }"></span>
               {{ picoConnected ? 'Connected' : 'Disconnected' }}
             </span>
           </div>
           <div class="connection-item">
-            <span class="connection-name">WebSocket:</span>
-            <span class="connection-status" :class="{ connected: socketConnected }">
-              {{ socketConnected ? 'Connected' : 'Disconnected' }}
-            </span>
+            <span class="connection-name">Overall Status:</span>
+            <span class="connection-text">{{ overallStatus }}</span>
           </div>
         </div>
       </div>
@@ -103,9 +109,31 @@ export default {
       'isOnline'
     ]),
     ...mapGetters('connection', [
-      'picoConnected',
-      'socketConnected'
+      'isConnected',
+      'connectionStatusText',
+      'websocketStatusText',
+      'picoStatusText'
     ]),
+
+    websocketConnected() {
+      return this.$store.state.connection.websocketStatus === 'connected'
+    },
+
+    picoConnected() {
+      return this.$store.state.connection.picoConnected
+    },
+
+    overallStatus() {
+      if (this.websocketConnected && this.picoConnected) {
+        return 'All systems operational'
+      } else if (this.websocketConnected) {
+        return 'Server connected, waiting for Pico'
+      } else if (this.picoConnected) {
+        return 'Pico connected, server disconnected'
+      } else {
+        return 'System offline'
+      }
+    },
 
     systemStatusClass() {
       return {
@@ -256,7 +284,22 @@ export default {
   align-items: center;
 }
 
-.connection-status {
+.connection-name {
+  font-weight: 500;
+  color: #333;
+  min-width: 180px;
+}
+
+.connection-text {
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.connection-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 8px;
   border-radius: 4px;
   background: #f44336;
@@ -264,8 +307,21 @@ export default {
   font-size: 12px;
 }
 
-.connection-status.connected {
+.connection-badge.connected {
   background: #4caf50;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ccc;
+  display: inline-block;
+}
+
+.status-dot.connected {
+  background-color: #fff;
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.2);
 }
 
 .error-list {

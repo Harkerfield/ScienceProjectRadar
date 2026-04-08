@@ -2,6 +2,8 @@ import socketService from '../../services/socketService'
 
 const state = {
   connectionStatus: 'disconnected', // 'connected', 'connecting', 'disconnected', 'error'
+  websocketStatus: 'disconnected', // WebSocket (server) status
+  picoConnected: false, // Pico master device status
   lastConnected: null,
   reconnectAttempts: 0,
   maxReconnectAttempts: 5
@@ -18,16 +20,35 @@ const getters = {
     case 'error': return 'Connection Error'
     default: return 'Unknown'
     }
-  }
+  },
+  websocketStatusText: state => {
+    switch (state.websocketStatus) {
+    case 'connected': return 'Connected'
+    case 'connecting': return 'Connecting...'
+    case 'disconnected': return 'Disconnected'
+    case 'error': return 'Connection Error'
+    default: return 'Unknown'
+    }
+  },
+  picoStatusText: state => state.picoConnected ? 'Connected' : 'Disconnected'
 }
 
 const mutations = {
   SET_CONNECTION_STATUS(state, status) {
     state.connectionStatus = status
+    state.websocketStatus = status
     if (status === 'connected') {
       state.lastConnected = new Date().toISOString()
       state.reconnectAttempts = 0
     }
+  },
+
+  SET_WEBSOCKET_STATUS(state, status) {
+    state.websocketStatus = status
+  },
+
+  SET_PICO_CONNECTED(state, connected) {
+    state.picoConnected = connected
   },
 
   INCREMENT_RECONNECT_ATTEMPTS(state) {
@@ -125,6 +146,18 @@ const actions = {
     socketService.on('radar:scanStopped', (data) => {
       dispatch('radar/handleScanStopped', data, { root: true })
     })
+
+    // System status to track Pico connection
+    socketService.on('system:status', (data) => {
+      if (data.pico) {
+        const picoConnected = data.pico.status !== 'unavailable' && data.pico.initialized
+        commit('SET_PICO_CONNECTED', picoConnected)
+      }
+    })
+  },
+
+  setConnected({ commit }, isConnected) {
+    commit('SET_CONNECTION_STATUS', isConnected ? 'connected' : 'disconnected')
   },
 
   async attemptReconnection({ state, commit, dispatch }) {

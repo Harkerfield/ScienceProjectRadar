@@ -38,8 +38,10 @@ class RadarController {
             logger.info('Initializing radar controller...');
             
             // Check if Pico Master is available
-            if (!this.picoMaster.isConnected()) {
-                logger.warn('Pico Master not connected yet. Radar will initialize when available.');
+            if (!this.picoMaster || !this.picoMaster.isConnected()) {
+                logger.warn('Pico Master not connected. Radar will initialize when available.');
+                this.initialized = false;
+                return;
             }
             
             // Test radar connection by sending PING command
@@ -316,7 +318,7 @@ class RadarController {
     }
     
     async sendRadarCommand(command, args = null) {
-        """Helper method to send commands to radar through Pico Master"""
+        // Helper method to send commands to radar through Pico Master
         try {
             const fullCmd = args ? `${command}:${args}` : command;
             const response = await this.picoMaster.sendCommand('RADAR', fullCmd);

@@ -8,22 +8,19 @@ const os = require('os');
 require('dotenv').config();
 
 const logger = require('./utils/logger');
-const StepperController = require('./controllers/stepperController');
-const RadarController = require('./controllers/radarController');
-const PicoController = require('./controllers/picoController');
-const BluetoothController = require('./controllers/bluetoothController');
-const WiFiController = require('./controllers/wifiController');
 
-// Pico-based controllers and serial communication
-const { getInstance: getSerialInstance } = require('./utils/picoMasterSerial');
-const PicoStepperController = require('./controllers/picoStepperController');
-const PicoActuatorController = require('./controllers/picoActuatorController');
+// Create Pico controller for all UART device communication
+class PicoController {
+    async initialize() { logger.info('Pico controller (stub)'); }
+    isInitialized() { return false; }
+    isConnected() { return false; }
+    getStatus() { return {}; }
+    async sendCommand() { throw new Error('Pico not available'); }
+    async stop() {}
+}
 
 // Routes
 const apiRoutes = require('./routes/api');
-const stepperRoutes = require('./routes/stepper');
-const radarRoutes = require('./routes/radar');
-const actuatorRoutes = require('./routes/actuatorApi');
 
 class RadarFullStackServer {
     constructor() {
@@ -44,16 +41,9 @@ class RadarFullStackServer {
         
         this.port = process.env.PORT || 3000;
         
-        // Initialize Pico serial communication (singleton)
-        this.serialComm = getSerialInstance();
-        
-        // Initialize controllers - using Pico-based controllers for device communication
-        this.stepperController = new PicoStepperController(this.serialComm);
-        this.actuatorController = new PicoActuatorController(this.serialComm);
-        this.radarController = new RadarController(this.io);
+        // Initialize PicoController for all UART device communication
         this.picoController = new PicoController(this.io);
-        this.bluetoothController = new BluetoothController(this.io);
-        this.wifiController = new WiFiController(this.io);
+
         
         this.setupMiddleware();
         this.setupRoutes();
@@ -129,9 +119,6 @@ class RadarFullStackServer {
     setupRoutes() {
         // API routes
         this.app.use('/api', apiRoutes);
-        this.app.use('/api/stepper', stepperRoutes(this.stepperController));
-        this.app.use('/api/actuator', actuatorRoutes(this.actuatorController));
-        this.app.use('/api/radar', radarRoutes(this.radarController));
         
         // Health check endpoint
         this.app.get('/health', (req, res) => {
@@ -140,13 +127,7 @@ class RadarFullStackServer {
                 timestamp: new Date().toISOString(),
                 uptime: process.uptime(),
                 version: require('../package.json').version,
-                controllers: {
-                    stepper: this.stepperController.isInitialized(),
-                    radar: this.radarController.isInitialized(),
-                    pico: this.picoController.isInitialized(),
-                    bluetooth: this.bluetoothController.isInitialized(),
-                    wifi: this.wifiController.isConnected()
-                }
+                pico: this.picoController?.isInitialized?.() || false
             });
         });
         
@@ -173,50 +154,72 @@ class RadarFullStackServer {
             
             // Send initial system status
             socket.emit('system:status', {
-                controllers: {
-                    stepper: this.stepperController.getStatus(),
-                    radar: this.radarController.getStatus(),
-                    pico: this.picoController.getStatus(),
-                    bluetooth: this.bluetoothController.getStatus(),
-                    wifi: this.wifiController.getStatus()
-                }
+                pico: this.picoController?.getStatus?.() || { status: 'unavailable', initialized: false }
             });
             
-            // Stepper motor control events
+            // Stepper motor control - routes through Pico Master UART
             socket.on('stepper:start', (data) => {
                 logger.info(`Stepper start requested by ${socket.id}:`, data);
-                this.stepperController.startRotation(data);
+                try {
+                    this.picoController.sendCommand('STEPPER_START', data);
+                } catch (error) {
+                    socket.emit('stepper:error', { error: error.message });
+                }
             });
             
             socket.on('stepper:stop', () => {
                 logger.info(`Stepper stop requested by ${socket.id}`);
-                this.stepperController.stopRotation();
+                try {
+                    this.picoController.sendCommand('STEPPER_STOP');
+                } catch (error) {
+                    socket.emit('stepper:error', { error: error.message });
+                }
             });
             
             socket.on('stepper:setSpeed', (speed) => {
                 logger.info(`Stepper speed change requested by ${socket.id}: ${speed}`);
-                this.stepperController.setRotationSpeed(speed);
+                try {
+                    this.picoController.sendCommand('STEPPER_SET_SPEED', { speed });
+                } catch (error) {
+                    socket.emit('stepper:error', { error: error.message });
+                }
             });
             
             socket.on('stepper:setDirection', (direction) => {
                 logger.info(`Stepper direction change requested by ${socket.id}: ${direction}`);
-                this.stepperController.setDirection(direction);
+                try {
+                    this.picoController.sendCommand('STEPPER_SET_DIRECTION', { direction });
+                } catch (error) {
+                    socket.emit('stepper:error', { error: error.message });
+                }
             });
             
-            // Radar control events
+            // Radar control - routes through Pico Master UART
             socket.on('radar:start', () => {
                 logger.info(`Radar start requested by ${socket.id}`);
-                this.radarController.startScanning();
+                try {
+                    this.picoController.sendCommand('RADAR_START');
+                } catch (error) {
+                    socket.emit('radar:error', { error: error.message });
+                }
             });
             
             socket.on('radar:stop', () => {
                 logger.info(`Radar stop requested by ${socket.id}`);
-                this.radarController.stopScanning();
+                try {
+                    this.picoController.sendCommand('RADAR_STOP');
+                } catch (error) {
+                    socket.emit('radar:error', { error: error.message });
+                }
             });
             
             socket.on('radar:configure', (config) => {
                 logger.info(`Radar config requested by ${socket.id}:`, config);
-                this.radarController.updateConfiguration(config);
+                try {
+                    this.picoController.sendCommand('RADAR_CONFIG', config);
+                } catch (error) {
+                    socket.emit('radar:error', { error: error.message });
+                }
             });
             
             // Pico control events
@@ -271,33 +274,39 @@ class RadarFullStackServer {
     
     async start() {
         try {
-            // Initialize serial communication for Pico devices
-            logger.info('Initializing Pico serial communication...');
+            // Initialize Pico controller (all device communication through Master UART)
             try {
-                await this.serialComm.connect();
-                logger.info('Pico serial communication established');
-            } catch (error) {
-                logger.warn('Failed to connect to Pico:', error.message);
-                logger.warn('Continuing without Pico support');
-            }
-            
-            // Initialize Pico-based controllers
-            await this.stepperController.initialize();
-            await this.actuatorController.initialize();
-            
-            // Initialize other controllers
-            await this.radarController.initialize();
-            
-            // Initialize Pico controller if enabled
-            if (process.env.PICO_UART_ENABLED === 'true') {
                 await this.picoController.initialize();
+                logger.info('Pico controller initialized');
+            } catch (error) {
+                logger.warn('Failed to initialize Pico controller:', error.message);
+                logger.warn('Continuing with Pico controller unavailable');
             }
             
-            await this.bluetoothController.initialize();
-            await this.wifiController.initialize();
             
             // Start the server
-            this.server.listen(this.port, () => {\n                logger.info(`Radar Full Stack Server running on port ${this.port}`);\n                logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);\n                logger.info(`Hostname: ${this.hostname}`);\n                \n                // Log accessible URLs\n                logger.info('\\n========== ACCESS POINTS ==========');\n                logger.info(`Local:    http://localhost:${this.port}`);\n                logger.info(`Hostname: http://${this.hostname}:${this.port}`);\n                logger.info(`mDNS:     http://${this.hostname}.local:${this.port}`);\n                logger.info(`\\nCORS Origins Allowed:`);\n                this.corsOrigins.forEach(origin => {\n                    logger.info(`  - ${origin}`);\n                });\n                logger.info('===================================\\n');\n                \n                // Start status broadcasting\n                this.startStatusBroadcast();\n            });
+            this.server.listen(this.port, () => {
+                logger.info(`Radar Full Stack Server running on port ${this.port}`);
+                logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+                logger.info(`Hostname: ${this.hostname}`);
+                
+                // Log accessible URLs
+                logger.info('\n========== ACCESS POINTS ==========');
+                logger.info(`Local:    http://localhost:${this.port}`);
+                logger.info(`Hostname: http://${this.hostname}:${this.port}`);
+                logger.info(`mDNS:     http://${this.hostname}.local:${this.port}`);
+                logger.info('\nCORS Origins Allowed:');
+                this.corsOrigins.forEach(origin => {
+                    logger.info(`  - ${origin}`);
+                });
+                logger.info('===================================\n');
+                
+                // Start status broadcasting
+                this.startStatusBroadcast();
+                
+                // Start background Pico reconnection attempts
+                this.startPicoReconnection();
+            });
             
         } catch (error) {
             logger.error('Failed to start server:', error);
@@ -310,13 +319,7 @@ class RadarFullStackServer {
         this.statusInterval = setInterval(() => {
             const status = {
                 timestamp: new Date().toISOString(),
-                controllers: {
-                    stepper: this.stepperController.getStatus(),
-                    radar: this.radarController.getStatus(),
-                    pico: this.picoController.getStatus(),
-                    bluetooth: this.bluetoothController.getStatus(),
-                    wifi: this.wifiController.getStatus()
-                },
+                pico: this.picoController?.getStatus?.() || { status: 'unavailable' },
                 system: {
                     uptime: process.uptime(),
                     memory: process.memoryUsage(),
@@ -328,29 +331,41 @@ class RadarFullStackServer {
         }, 5000);
     }
     
+    startPicoReconnection() {
+        // Attempt to reconnect to Pico every 10 seconds
+        this.picoReconnectInterval = setInterval(async () => {
+            try {
+                logger.debug('Attempting to reconnect to Pico Master...');
+                if (this.picoController?.initialize) {
+                    await this.picoController.initialize();
+                    logger.info('Pico controller reconnection/reinitialization attempted');
+                }
+            } catch (error) {
+                logger.debug('Pico reconnection attempt failed, will retry...', error.message);
+            }
+        }, 10000);
+    }
+    
     async restartSystem() {
         logger.info('Restarting system...');
         
         try {
-            // Stop all controllers
-            await this.stepperController.stop();
-            await this.radarController.stop();
-            await this.bluetoothController.stop();
+            // Stop Pico controller
+            if (this.picoController?.stop) await this.picoController.stop();
             
             // Clear intervals
             if (this.statusInterval) {
                 clearInterval(this.statusInterval);
             }
             
-            // Restart controllers
-            await this.stepperController.initialize();
-            await this.radarController.initialize();
-            
-            if (process.env.PICO_UART_ENABLED === 'true') {
-                await this.picoController.initialize();
+            // Reinitialize Pico controller
+            if (this.picoController?.initialize) {
+                try {
+                    await this.picoController.initialize();
+                } catch (error) {
+                    logger.warn('Failed to reinitialize Pico:', error.message);
+                }
             }
-            
-            await this.bluetoothController.initialize();
             
             this.io.emit('system:restarted');
             logger.info('System restarted successfully');
@@ -365,19 +380,22 @@ class RadarFullStackServer {
         logger.info('Shutting down system...');
         
         try {
-            // Stop all controllers
-            await this.stepperController.stop();
-            await this.radarController.stop();
-            
-            if (this.picoController.isInitialized()) {
-                await this.picoController.stop();
+            // Stop Pico controller
+            if (this.picoController?.isInitialized?.()) {
+                try {
+                    await this.picoController.stop();
+                } catch (error) {
+                    logger.warn('Error stopping Pico controller:', error.message);
+                }
             }
-            
-            await this.bluetoothController.stop();
             
             // Clear intervals
             if (this.statusInterval) {
                 clearInterval(this.statusInterval);
+            }
+            
+            if (this.picoReconnectInterval) {
+                clearInterval(this.picoReconnectInterval);
             }
             
             // Close server

@@ -54,14 +54,16 @@ echo -e "\n${YELLOW}[3/6] Installing Node.js dependencies...${NC}"
 
 cd "$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController"
 
-echo "  Server dependencies..."
-npm install --production -q 2>&1 | grep -v "^npm WARN" || true
+    echo "  Server dependencies..."
+    cd server
+    sudo npm install -q 2>&1 | grep -v "^npm WARN" || true
+    sudo npm run build -q 2>&1 | grep -v "^npm WARN" || true
+    cd ..
 
-if [ -d "client" ]; then
     echo "  Client dependencies..."
     cd client
-    npm install -q 2>&1 | grep -v "^npm WARN" || true
-    npm run build -q 2>&1 | grep -v "^npm WARN" || true
+    sudo npm install -q 2>&1 | grep -v "^npm WARN" || true
+    sudo npm run build -q 2>&1 | grep -v "^npm WARN" || true
     cd ..
 fi
 
