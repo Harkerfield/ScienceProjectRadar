@@ -85,7 +85,8 @@ class RadarFullStackServer {
                     fontSrc: ["'self'"],
                     imgSrc: ["'self'", "data:"],
                     mediaSrc: ["'self'"],
-                    objectSrc: ["'none'"]
+                    objectSrc: ["'none'"],
+                    upgradeInsecureRequests: []  // Don't upgrade to HTTPS
                 }
             },
             crossOriginOpenerPolicy: false,
@@ -126,17 +127,30 @@ class RadarFullStackServer {
             next();
         });
         
-        // Protocol consistency middleware - ensure no unwanted redirects
+        // Protocol consistency middleware - ensure no unwanted redirects and clear HTTPS upgrade policies
         this.app.use((req, res, next) => {
-            // Don't auto-redirect to HTTPS
+            // Set strict caching control to prevent HTTPS cached preferences
+            res.setHeader('Cache-Control', 'public, max-age=600');
             res.setHeader('X-Forwarded-Proto', 'http');
+            // Explicitly tell browser NOT to upgrade to HTTPS
+            res.setHeader('X-Content-Type-Options', 'nosniff');
+            // Add headers to prevent HTTPS upgrade
+            res.removeHeader('Strict-Transport-Security');
             next();
         });
         
         // Serve static files from client build (both production and development)
         const clientDistPath = path.join(__dirname, '../client/dist');
         this.app.use(express.static(clientDistPath, {
-            maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0
+            maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
+            setHeaders: (res, path) => {
+                // Force HTTP for HTML files, no caching of HTTPS preferences
+                if (path.endsWith('.html')) {
+                    res.set('Cache-Control', 'public, max-age=0, must-revalidate');
+                    res.set('Pragma', 'no-cache');
+                    res.set('Expires', '0');
+                }
+            }
         }));
         logger.info(`Serving static files from: ${clientDistPath}`);
     }
