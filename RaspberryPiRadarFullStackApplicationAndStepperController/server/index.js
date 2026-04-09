@@ -85,13 +85,14 @@ class RadarFullStackServer {
                     fontSrc: ["'self'"],
                     imgSrc: ["'self'", "data:"],
                     mediaSrc: ["'self'"],
-                    objectSrc: ["'none'"],
-                    upgradeInsecureRequests: []  // Don't upgrade to HTTPS
+                    objectSrc: ["'none'"]
+                    // Deliberately omit upgrade-insecure-requests
                 }
             },
             crossOriginOpenerPolicy: false,
             originAgentCluster: false,
-            hsts: false  // Disable HSTS to allow HTTP
+            hsts: false,  // Disable HSTS to allow HTTP
+            referrerPolicy: { policy: 'no-referrer' }
         }));
         
         // CORS configuration - allow all configured origins
@@ -134,13 +135,31 @@ class RadarFullStackServer {
             res.setHeader('X-Forwarded-Proto', 'http');
             // Explicitly tell browser NOT to upgrade to HTTPS
             res.setHeader('X-Content-Type-Options', 'nosniff');
-            // Add headers to prevent HTTPS upgrade
+            // Remove any HSTS headers that might force HTTPS
             res.removeHeader('Strict-Transport-Security');
+            // Ensure we're NOT sending CSP upgrade-insecure-requests
+            const csp = res.getHeader('Content-Security-Policy');
+            if (csp && csp.includes('upgrade-insecure-requests')) {
+                const newCsp = csp.replace('upgrade-insecure-requests', '').replace(/;\s*;/g, ';').trim();
+                res.setHeader('Content-Security-Policy', newCsp);
+            }
             next();
         });
         
         // Serve static files from client build (both production and development)
         const clientDistPath = path.join(__dirname, '../client/dist');
+        
+        // Middleware for HTML files - ensure no HTTPS upgrade
+        this.app.get('*.html', (req, res, next) => {
+            res.set('Cache-Control', 'public, max-age=0, must-revalidate');
+            res.set('Pragma', 'no-cache');
+            res.set('Expires', '0');
+            // Remove any CSP that might try to upgrade
+            res.removeHeader('Content-Security-Policy');
+            res.removeHeader('Content-Security-Policy-Report-Only');
+            next();
+        });
+        
         this.app.use(express.static(clientDistPath, {
             maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
             setHeaders: (res, path) => {
