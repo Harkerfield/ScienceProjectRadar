@@ -1,4 +1,4 @@
-sudo python3 << 'EOF'
+
 import serial
 import time
 

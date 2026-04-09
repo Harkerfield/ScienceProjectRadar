@@ -7,16 +7,110 @@ const path = require('path');
 const os = require('os');
 require('dotenv').config();
 
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const cors = require('cors');
+const helmet = require('helmet');
+const path = require('path');
+const os = require('os');
+require('dotenv').config();
+
 const logger = require('./utils/logger');
+const UARTSerial = require('./utils/uartSerial');
 
 // Create Pico controller for all UART device communication
 class PicoController {
-    async initialize() { logger.info('Pico controller (stub)'); }
-    isInitialized() { return false; }
-    isConnected() { return false; }
-    getStatus() { return {}; }
-    async sendCommand() { throw new Error('Pico not available'); }
-    async stop() {}
+    constructor(io) {
+        this.uart = new UARTSerial();
+        this.isInitialized = false;
+        this.isConnected = false;
+        this.io = io;
+        this.lastStatus = null;
+    }
+
+    async initialize() {
+        try {
+            // Initialize UART connection
+            await this.uart.initialize();
+            logger.info('[PICO] UART connection initialized');
+            
+            // Send MASTER:PING to verify Pico is online
+            const response = await this.sendCommand('MASTER', 'PING');
+            
+            if (response && response.s === 'ok') {
+                this.isConnected = true;
+                this.isInitialized = true;
+                logger.info('[PICO] Pico Master is online and responding');
+                
+                // Get full status
+                this.lastStatus = await this.sendCommand('MASTER', 'STATUS');
+                logger.info(`[PICO] Master status: ${JSON.stringify(this.lastStatus)}`);
+                
+                return { success: true, status: this.lastStatus };
+            } else {
+                throw new Error('Pico Master did not respond to PING');
+            }
+        } catch (err) {
+            logger.error(`[PICO] Failed to initialize: ${err.message}`);
+            this.isConnected = false;
+            this.isInitialized = false;
+            throw err;
+        }
+    }
+
+    getInitialized() {
+        return this.isInitialized;
+    }
+
+    getConnected() {
+        return this.isConnected;
+    }
+
+    getStatus() {
+        return this.lastStatus || { s: 'error', msg: 'Not initialized' };
+    }
+
+    async sendCommand(device, command, args = null) {
+        if (!this.isInitialized) {
+            return { s: 'error', msg: 'Pico not initialized' };
+        }
+
+        try {
+            // Format: DEVICE:COMMAND[:ARGS]
+            let fullCmd = `${device}:${command}`;
+            if (args) {
+                fullCmd += `:${args}`;
+            }
+
+            logger.debug(`[PICO-CMD] Sending: ${fullCmd}`);
+            
+            // Send via UART
+            const response = await this.uart.send(fullCmd);
+            logger.debug(`[PICO-RES] Received: ${response}`);
+
+            // Try to parse as JSON response
+            try {
+                return JSON.parse(response);
+            } catch {
+                // If not JSON, return as raw response
+                return { s: 'ok', msg: response, raw: response };
+            }
+        } catch (err) {
+            logger.error(`[PICO-ERR] Command failed: ${err.message}`);
+            return { s: 'error', msg: err.message };
+        }
+    }
+
+    async stop() {
+        try {
+            await this.uart.close();
+            this.isConnected = false;
+            logger.info('[PICO] UART connection closed');
+        } catch (err) {
+            logger.error(`[PICO] Error closing connection: ${err.message}`);
+        }
+    }
 }
 
 // Routes

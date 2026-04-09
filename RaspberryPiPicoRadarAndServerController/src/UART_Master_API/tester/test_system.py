@@ -97,7 +97,7 @@ def test_system_integration():
     
     try:
         # Import main controller
-        from main import RadarServerController
+        from RaspberryPiPicoRadarAndServerController.src.UART_Slave_Radar.tester.main import RadarServerController
         
         print("Initializing radar server controller...")
         controller = RadarServerController()
@@ -134,7 +134,7 @@ def run_performance_test():
     print("=== Performance Test ===")
     
     try:
-        from main import RadarServerController
+        from RaspberryPiPicoRadarAndServerController.src.UART_Slave_Radar.tester.main import RadarServerController
         
         controller = RadarServerController()
         

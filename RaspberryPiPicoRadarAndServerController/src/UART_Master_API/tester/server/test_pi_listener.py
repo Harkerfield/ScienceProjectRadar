@@ -12,7 +12,7 @@ import sys
 from datetime import datetime
 
 def main():
-    PORT = '/dev/ttyAMA0'
+    PORT = '/dev/ttyAMA'
     BAUD = 460800
     
     try:

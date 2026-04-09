@@ -242,6 +242,21 @@ def get_combined_status():
         "timestamp": utime.ticks_ms()
     }
 
+# ========== MASTER STATUS ENDPOINTS ==========
+def master_ping():
+    """GET: Master alive check"""
+    return {"s": "ok", "msg": "Master ready", "type": "pico_master"}
+
+def master_status():
+    """GET: Master and slave status"""
+    return {
+        "s": "ok",
+        "master": "ready",
+        "slaves_configured": list(SLAVES.keys()),
+        "uptime_ms": utime.ticks_ms(),
+        "led": "on"
+    }
+
 # ============ LEGACY GET ENDPOINTS (for compatibility) ==========
 def get_stepper_heartbeat():
     """GET: Stepper heartbeat/alive check"""
@@ -340,6 +355,12 @@ def process_command(line, source='uart'):
         # Route command to appropriate endpoint
         response = None
         
+        # ========== MASTER COMMANDS ==========
+        if line == 'MASTER:PING' or line == 'PING':
+            response = master_ping()
+        elif line == 'MASTER:STATUS' or line == 'STATUS':
+            response = master_status()
+        
         # ========== SERVO COMMANDS ==========
         if line == 'SERVO:OPEN':
             response = servo_open()
@@ -426,6 +447,11 @@ def process_command(line, source='uart'):
         elif line == 'HELP':
             help_text = (
                 "Master Pico API - UART Device Bus\n\n"
+                "=== MASTER ===\n"
+                "  MASTER:PING     - Master alive check\n"
+                "  MASTER:STATUS   - Get master and slaves status\n"
+                "  PING            - Alias for MASTER:PING\n"
+                "  STATUS          - Alias for MASTER:STATUS\n\n"
                 "=== SERVO (Device: SERVO) ===\n"
                 "  SERVO:OPEN        - Extend actuator\n"
                 "  SERVO:CLOSE       - Retract actuator\n"
