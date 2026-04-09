@@ -74,8 +74,22 @@ class RadarFullStackServer {
     }
     
     setupMiddleware() {
-        // Security middleware
-        this.app.use(helmet());
+        // Security middleware with CSP for self-hosted resources only
+        this.app.use(helmet({
+            contentSecurityPolicy: {
+                directives: {
+                    defaultSrc: ["'self'"],
+                    scriptSrc: ["'self'", "'unsafe-inline'"],
+                    styleSrc: ["'self'", "'unsafe-inline'"],
+                    connectSrc: ["'self'"],
+                    fontSrc: ["'self'"],
+                    imgSrc: ["'self'", "data:"],
+                    mediaSrc: ["'self'"],
+                    objectSrc: ["'none'"]
+                }
+            },
+            crossOriginOpenerPolicy: false
+        }));
         
         // CORS configuration - allow all configured origins
         this.app.use(cors({
@@ -110,10 +124,12 @@ class RadarFullStackServer {
             next();
         });
         
-        // Serve static files from client build
-        if (process.env.NODE_ENV === 'production') {
-            this.app.use(express.static(path.join(__dirname, '../client/dist')));
-        }
+        // Serve static files from client build (both production and development)
+        const clientDistPath = path.join(__dirname, '../client/dist');
+        this.app.use(express.static(clientDistPath, {
+            maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0
+        }));
+        logger.info(`Serving static files from: ${clientDistPath}`);
     }
     
     setupRoutes() {
@@ -131,12 +147,16 @@ class RadarFullStackServer {
             });
         });
         
-        // Serve client app for all other routes (SPA)
-        if (process.env.NODE_ENV === 'production') {
-            this.app.get('*', (req, res) => {
-                res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+        // Serve client app for all other routes (SPA fallback)
+        this.app.get('*', (req, res) => {
+            const indexPath = path.join(__dirname, '../client/dist/index.html');
+            res.sendFile(indexPath, (err) => {
+                if (err) {
+                    logger.error(`Failed to serve index.html: ${err.message}`);
+                    res.status(404).json({ error: 'Client not found. Please run: npm run build', path: indexPath });
+                }
             });
-        }
+        });
         
         // Error handling middleware
         this.app.use((err, req, res, next) => {

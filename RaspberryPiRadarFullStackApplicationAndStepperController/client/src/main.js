@@ -4,9 +4,12 @@ import router from './router'
 import store from './store'
 import socketService from './services/socketService'
 
-// Import CSS frameworks
+// Import CSS frameworks (all bundled locally, no CDN)
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '@fortawesome/fontawesome-free/css/all.min.css'
+
+// Import Bootstrap JS functionality
+import 'bootstrap'
 
 // Import global styles
 import './assets/css/main.css'
