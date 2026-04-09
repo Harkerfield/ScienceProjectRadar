@@ -8,17 +8,12 @@ function getApiBaseUrl() {
   }
   
   // Auto-detect based on current location
-  const protocol = window.location.protocol
+  // Always use HTTP for local network access
   const hostname = window.location.hostname
-  const port = window.location.port || (protocol === 'https:' ? 443 : 80)
+  const port = window.location.port || 3000
   
-  // If we're accessing via .local hostname, assume API is on same host
-  if (hostname.includes('.local') || hostname === 'localhost' || hostname === '127.0.0.1') {
-    return `${protocol}//${hostname}${port ? ':' + port : ''}/api`
-  }
-  
-  // Default fallback
-  return `${protocol}//${hostname}:3000/api`
+  // Always use HTTP for local network access
+  return `http://${hostname}:${port}/api`
 }
 
 // Create axios instance with default configuration

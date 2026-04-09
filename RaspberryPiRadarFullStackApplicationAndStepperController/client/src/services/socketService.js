@@ -8,17 +8,12 @@ function getSocketUrl() {
   }
   
   // Auto-detect based on current location
-  const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:'
+  // Always use HTTP for local network access
   const hostname = window.location.hostname
-  const port = window.location.port
+  const port = window.location.port || 3000
   
-  // If we're accessing via .local hostname or localhost, use same host
-  if (hostname.includes('.local') || hostname === 'localhost' || hostname === '127.0.0.1') {
-    return `${protocol}//${hostname}${port ? ':' + port : ''}`
-  }
-  
-  // Default fallback
-  return `${protocol}//${hostname}:3000`
+  // Always use HTTP for local network access
+  return `http://${hostname}:${port}`
 }
 
 class SocketService {
