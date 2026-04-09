@@ -284,8 +284,8 @@ class RadarFullStackServer {
             }
             
             
-            // Start the server
-            this.server.listen(this.port, () => {
+            // Start the server on all network interfaces (0.0.0.0) to allow connections from other computers
+            this.server.listen(this.port, '0.0.0.0', () => {
                 logger.info(`Radar Full Stack Server running on port ${this.port}`);
                 logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
                 logger.info(`Hostname: ${this.hostname}`);
