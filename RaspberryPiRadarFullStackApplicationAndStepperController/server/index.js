@@ -88,7 +88,9 @@ class RadarFullStackServer {
                     objectSrc: ["'none'"]
                 }
             },
-            crossOriginOpenerPolicy: false
+            crossOriginOpenerPolicy: false,
+            originAgentCluster: false,
+            hsts: false  // Disable HSTS to allow HTTP
         }));
         
         // CORS configuration - allow all configured origins
@@ -121,6 +123,13 @@ class RadarFullStackServer {
         // Logging middleware
         this.app.use((req, res, next) => {
             logger.info(`${req.method} ${req.url} - ${req.ip}`);
+            next();
+        });
+        
+        // Protocol consistency middleware - ensure no unwanted redirects
+        this.app.use((req, res, next) => {
+            // Don't auto-redirect to HTTPS
+            res.setHeader('X-Forwarded-Proto', 'http');
             next();
         });
         
