@@ -120,7 +120,7 @@ echo -e "${GREEN}✓ UART configured${NC}"
 # Step 5: Create systemd services
 echo -e "\n${YELLOW}[5/6] Creating system services...${NC}"
 
-sudo bash -c 'cat > /etc/systemd/system/radar-server.service << EOF
+sudo bash -c "cat > /etc/systemd/system/radar-server.service << EOF
 [Unit]
 Description=Radar Application Server
 After=network-online.target
@@ -135,13 +135,13 @@ Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
-Environment="NODE_ENV=production"
-Environment="PORT=3000"
+Environment=\"NODE_ENV=production\"
+Environment=\"PORT=3000\"
 
 [Install]
 WantedBy=multi-user.target
 EOF
-'
+"
 
 sudo systemctl daemon-reload
 sudo systemctl restart radar-server
