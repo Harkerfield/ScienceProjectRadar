@@ -29,7 +29,7 @@ led = Pin("LED", Pin.OUT)
 led.on()  # Turn on LED while processing to indicate activity
 
 # UART0: Server communication (request source)
-uart_server = UART(0, baudrate=115200, tx=Pin(16), rx=Pin(17))
+uart_server = UART(0, baudrate=460800, tx=Pin(16), rx=Pin(17))
 
 # UART1: Slave communication (shared bus with device addressing)
 uart_slaves = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))

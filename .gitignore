@@ -5,11 +5,6 @@ npm-debug.log.*
 yarn-error.log
 yarn-debug.log
 
-# # Environment variables
-# .env
-# .env.local
-# .env.*.local
-
 # Build outputs
 dist/
 build/
@@ -69,9 +64,9 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
+
 venv/
-ENV/
+
 build/
 develop-eggs/
 dist/
