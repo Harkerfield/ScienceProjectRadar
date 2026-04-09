@@ -45,15 +45,15 @@ if [ -d "$PROJECT_DIR" ]; then
     echo "  Directory exists, updating..."
     cd "$PROJECT_DIR"
     # Force clean update from remote
-    git fetch
-    git checkout -f
-    git reset --hard @{u}
-    git clean -fd
-    git pull
+    sudo git fetch
+    sudo git checkout -f
+    sudo git reset --hard @{u}
+    sudo git clean -fd
+    sudo git pull
     
 else
     echo "  Cloning from GitHub..."
-    git clone "$GIT_URL" "$PROJECT_DIR"
+    sudo git clone "$GIT_URL" "$PROJECT_DIR"
     cd "$PROJECT_DIR"
 fi
 
@@ -129,7 +129,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/home/root/RadarProject/RaspberryPiRadarFullStackApplicationAndStepperController/server
+WorkingDirectory=$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/server
 ExecStart=/usr/bin/npm run server:start
 Restart=always
 RestartSec=10
