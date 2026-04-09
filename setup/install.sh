@@ -120,8 +120,7 @@ echo -e "${GREEN}✓ UART configured${NC}"
 # Step 5: Create systemd services
 echo -e "\n${YELLOW}[5/6] Creating system services...${NC}"
 
-# Server service
-sudo tee /etc/systemd/system/radar-server.service >/dev/null <<EOF
+sudo bash -c 'cat > /etc/systemd/system/radar-server.service << EOF
 [Unit]
 Description=Radar Application Server
 After=network-online.target
@@ -129,8 +128,8 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=$ACTUAL_USER
-WorkingDirectory=$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/server
+User=root
+WorkingDirectory=/home/root/RadarProject/RaspberryPiRadarFullStackApplicationAndStepperController/server
 ExecStart=/usr/bin/npm run server:start
 Restart=always
 RestartSec=10
@@ -142,6 +141,10 @@ Environment="PORT=3000"
 [Install]
 WantedBy=multi-user.target
 EOF
+'
+
+sudo systemctl daemon-reload
+sudo systemctl restart radar-server
 
 # Client service (kiosk mode + network accessible)
 sudo tee /etc/systemd/system/radar-client.service >/dev/null <<EOF
