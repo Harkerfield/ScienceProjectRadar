@@ -142,7 +142,7 @@ class RadarFullStackServer {
                 status: 'ok',
                 timestamp: new Date().toISOString(),
                 uptime: process.uptime(),
-                version: require('../package.json').version,
+                // version: require('../package.json').version,
                 pico: this.picoController?.isInitialized?.() || false
             });
         });
