@@ -74,6 +74,29 @@ class RadarFullStackServer {
     }
     
     setupMiddleware() {
+        // Build allowed connect sources for socket.io and API calls
+        const connectSources = [
+            "'self'",
+            "http://localhost:3000",
+            "http://localhost:8080",
+            "ws://localhost:3000",
+            "wss://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:8080",
+            "ws://127.0.0.1:3000",
+            "wss://127.0.0.1:3000"
+        ];
+        
+        // Add hostname-based connects
+        if (this.hostname) {
+            connectSources.push(`http://${this.hostname}:3000`);
+            connectSources.push(`http://${this.hostname}:8080`);
+            connectSources.push(`ws://${this.hostname}:3000`);
+            connectSources.push(`http://${this.hostname}.local:3000`);
+            connectSources.push(`http://${this.hostname}.local:8080`);
+            connectSources.push(`ws://${this.hostname}.local:3000`);
+        }
+
         // Security middleware with CSP for self-hosted resources only
         this.app.use(helmet({
             contentSecurityPolicy: {
@@ -81,7 +104,7 @@ class RadarFullStackServer {
                     defaultSrc: ["'self'"],
                     scriptSrc: ["'self'", "'unsafe-inline'"],
                     styleSrc: ["'self'", "'unsafe-inline'"],
-                    connectSrc: ["'self'"],
+                    connectSrc: connectSources,
                     fontSrc: ["'self'"],
                     imgSrc: ["'self'", "data:"],
                     mediaSrc: ["'self'"],
