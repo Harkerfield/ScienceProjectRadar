@@ -74,6 +74,7 @@ cd ..
 
 echo "  Client dependencies..."
 cd client
+# rm -rf dist node_modules/.cache
 su - $ACTUAL_USER -c "cd $PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/client && npm install -q 2>&1 | grep -v '^npm WARN' || true"
 su - $ACTUAL_USER -c "cd $PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/client && npm run build 2>&1 | grep -v '^npm WARN' || true"
 cd ..
