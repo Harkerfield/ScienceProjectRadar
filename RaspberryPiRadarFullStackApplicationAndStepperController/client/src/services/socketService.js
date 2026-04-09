@@ -2,20 +2,24 @@ import { io } from 'socket.io-client'
 
 // Determine Socket.io URL intelligently
 function getSocketUrl() {
+  // Check if explicitly set in environment
+  if (process.env.VUE_APP_SOCKET_URL) {
+    console.log('Using VUE_APP_SOCKET_URL:', process.env.VUE_APP_SOCKET_URL)
+    return process.env.VUE_APP_SOCKET_URL
+  }
 
-  
   // Auto-detect based on current location
   const hostname = window.location.hostname
   const port = window.location.port || 3000
   const url = `http://${hostname}:${port}`
-  
+
   console.log('Socket.io auto-detected URL:', {
     hostname,
     port,
     fullUrl: url,
     windowLocation: window.location.href
   })
-  
+
   return url
 }
 
