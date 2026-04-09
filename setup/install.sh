@@ -42,21 +42,21 @@ echo -e "${GREEN}✓ System packages installed${NC}"
 # Step 2: Clone project from GitHub
 echo -e "\n${YELLOW}[2/6] Downloading project from GitHub...${NC}"
 
+# Ensure we're not in the directory we're about to delete
+cd /tmp || cd ~
+
 # Ensure parent directory exists and is writable by the user
 sudo mkdir -p /home/$ACTUAL_USER
 sudo chown $ACTUAL_USER:$ACTUAL_USER /home/$ACTUAL_USER
 
 if [ -d "$PROJECT_DIR" ]; then
     echo "  Directory exists, deleting then updating..."
-    rm -rf "$PROJECT_DIR"
-    echo "  Cloning from GitHub..."
-    git clone "$GIT_URL" "$PROJECT_DIR"
-    cd "$PROJECT_DIR"
-else
-    echo "  Cloning from GitHub..."
-    git clone "$GIT_URL" "$PROJECT_DIR"
-    cd "$PROJECT_DIR"
+    sudo rm -rf "$PROJECT_DIR"
 fi
+
+echo "  Cloning from GitHub..."
+su - $ACTUAL_USER -c "git clone '$GIT_URL' '$PROJECT_DIR'"
+cd "$PROJECT_DIR"
 
 echo -e "${GREEN}✓ Project ready at $PROJECT_DIR${NC}"
 
