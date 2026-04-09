@@ -7,15 +7,6 @@ const path = require('path');
 const os = require('os');
 require('dotenv').config();
 
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-const cors = require('cors');
-const helmet = require('helmet');
-const path = require('path');
-const os = require('os');
-require('dotenv').config();
-
 const logger = require('./utils/logger');
 const UARTSerial = require('./utils/uartSerial');
 
