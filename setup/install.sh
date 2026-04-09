@@ -130,7 +130,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=$ACTUAL_USER
-WorkingDirectory=$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController
+WorkingDirectory=$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/server
 ExecStart=/usr/bin/npm run server:start
 Restart=always
 RestartSec=10
