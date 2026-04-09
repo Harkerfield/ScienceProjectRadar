@@ -2,7 +2,12 @@
 # Auto-Update Checker
 # Runs on system startup to check and pull latest code if internet available
 
-PROJECT_DIR="/home/pi/RadarProject"
+# Auto-detect the actual user (when running with sudo)
+ACTUAL_USER="${SUDO_USER:-$(whoami)}"
+PROJECT_DIR="/home/$ACTUAL_USER/RadarProject"
+GIT_URL="https://github.com/Harkerfield/ScienceProjectRadar.git"
+
+    
 LOG="/tmp/radar-update-check.log"
 
 {
@@ -32,8 +37,9 @@ LOG="/tmp/radar-update-check.log"
         git pull origin main >/dev/null 2>&1
         
         # Reinstall dependencies
-        cd RaspberryPiRadarFullStackApplicationAndStepperController
+        cd "$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController"
         npm install --production >/dev/null 2>&1
+        
         
         if [ -d "client" ]; then
             cd client

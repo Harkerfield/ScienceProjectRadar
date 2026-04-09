@@ -35,25 +35,26 @@ sudo apt-get install -y -qq \
     chromium \
     xserver-xorg xinit x11-xserver-utils \
     unclutter
+    
 
 echo -e "${GREEN}✓ System packages installed${NC}"
 
 # Step 2: Clone project from GitHub
 echo -e "\n${YELLOW}[2/6] Downloading project from GitHub...${NC}"
 
+# Ensure parent directory exists and is writable by the user
+sudo mkdir -p /home/$ACTUAL_USER
+sudo chown $ACTUAL_USER:$ACTUAL_USER /home/$ACTUAL_USER
+
 if [ -d "$PROJECT_DIR" ]; then
-    echo "  Directory exists, updating..."
+    echo "  Directory exists, deleting then updating..."
+    rm -rf "$PROJECT_DIR"
+    echo "  Cloning from GitHub..."
+    git clone "$GIT_URL" "$PROJECT_DIR"
     cd "$PROJECT_DIR"
-    # Force clean update from remote
-    sudo git fetch
-    sudo git checkout -f
-    sudo git reset --hard @{u}
-    sudo git clean -fd
-    sudo git pull
-    
 else
     echo "  Cloning from GitHub..."
-    sudo git clone "$GIT_URL" "$PROJECT_DIR"
+    git clone "$GIT_URL" "$PROJECT_DIR"
     cd "$PROJECT_DIR"
 fi
 
@@ -63,9 +64,6 @@ echo -e "${GREEN}✓ Project ready at $PROJECT_DIR${NC}"
 echo -e "\n${YELLOW}[3/6] Installing Node.js dependencies...${NC}"
 
 cd "$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController"
-
-# Make sure project user owns the project directory
-sudo chown -R $ACTUAL_USER:$ACTUAL_USER "$PROJECT_DIR"
 
 echo "  Server dependencies..."
 cd server
@@ -129,7 +127,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=root
+User=$ACTUAL_USER
 WorkingDirectory=$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/server
 ExecStart=/usr/bin/npm run server:start
 Restart=always
@@ -177,6 +175,7 @@ After=network-online.target
 
 [Service]
 Type=oneshot
+User=$ACTUAL_USER
 ExecStart=/bin/bash $PROJECT_DIR/setup/check-updates.sh
 StandardOutput=journal
 StandardError=journal
@@ -205,6 +204,11 @@ LOG_LEVEL=info
 EOF
 
 echo -e "${GREEN}✓ Configuration created${NC}"
+
+# Step 7: Final permissions fix
+echo -e "\n${YELLOW}[7/7] Finalizing permissions...${NC}"
+sudo chown -R $ACTUAL_USER:$ACTUAL_USER "$PROJECT_DIR"
+echo -e "${GREEN}✓ Permissions verified${NC}"
 
 # Summary
 echo -e "\n${BLUE}╔═══════════════════════════════════════════════════╗${NC}"
