@@ -35,56 +35,48 @@ let buffer = '';
 
 async function initialize() {
     return new Promise((resolve, reject) => {
-        // If not on Raspberry Pi, reject immediately
+        // Guard against concurrent calls
+        if (isOpening) {
+            logger.warn('[UART] Initialize already in progress');
+            return reject(new Error('Initialize already in progress'));
+        }
+
+        // Not on Raspberry Pi
         if (!isRaspberryPi) {
             logger.warn('[UART] UART not available (not on Raspberry Pi)');
             return reject(new Error('UART not available on this platform'));
         }
 
+        if (!SerialPort) {
+            logger.warn('[UART] SerialPort library not available');
+            return reject(new Error('SerialPort library not available'));
+        }
+
         try {
-            // If port is already trying to open, reject
-            if (isOpening) {
-                return reject(new Error('Port initialization already in progress'));
-            }
-
-            if (!SerialPort) {
-                logger.warn('[UART] SerialPort library not available - UART disabled');
-                return reject(new Error('SerialPort library not available'));
-            }
-
+            isOpening = true;
             logger.info(`[UART] Opening ${PORT_PATH} at ${BAUD_RATE} baud`);
 
-            // Clean up existing port
+            // Clean up existing port first
             if (port) {
                 try {
                     port.removeAllListeners();
                     if (port.isOpen) {
-                        port.close();
+                        port.destroy();
                     }
                 } catch (e) {
-                    // Ignore cleanup errors
+                    // Ignore
                 }
                 port = null;
             }
 
             buffer = '';
-            isOpening = true;
 
-            // Create port with explicit settings
-            let portInstance;
-            try {
-                portInstance = new SerialPort({
-                    path: PORT_PATH,
-                    baudRate: BAUD_RATE,
-                    autoOpen: false
-                });
-            } catch (e) {
-                isOpening = false;
-                logger.error(`[UART] Failed to create port: ${e.message}`);
-                return reject(e);
-            }
-
-            port = portInstance;
+            // Create port instance
+            port = new SerialPort({
+                path: PORT_PATH,
+                baudRate: BAUD_RATE,
+                autoOpen: false
+            });
 
             // Setup data listener
             port.on('data', (data) => {
@@ -104,66 +96,76 @@ async function initialize() {
                 }
             });
 
-            // Setup error listener
-            const onPortError = (err) => {
-                logger.error(`[UART] Port error: ${err.message}`);
-                if (pendingReject) {
+            // Runtime error listener
+            port.on('error', (err) => {
+                logger.debug(`[UART] Port error: ${err.message}`);
+                if (pendingReject && isOpening) {
                     const fn = pendingReject;
                     pendingReject = null;
                     pendingResolve = null;
                     fn(err);
                 }
-            };
-            port.on('error', onPortError);
+            });
 
-            // Setup close listener
             port.on('close', () => {
                 logger.warn('[UART] Port closed');
             });
 
-            // Set a timeout for opening
+            // Set timeout
             const openTimeout = setTimeout(() => {
-                isOpening = false;
-                if (port && !port.isOpen) {
-                    reject(new Error('UART port open timeout'));
+                if (isOpening) {
+                    isOpening = false;
+                    if (port && port.isOpen) {
+                        port.close();
+                    }
+                    logger.warn('[UART] Port open timeout (5s)');
+                    reject(new Error('Port open timeout'));
                 }
             }, 5000);
 
-            // Try to open the port with a small delay to let construction settle
-            setImmediate(() => {
-                try {
-                    if (typeof port.open === 'function' && !port.isOpen && isOpening) {
-                        port.open((err) => {
-                            clearTimeout(openTimeout);
-                            isOpening = false;
-                            
-                            if (err) {
-                                logger.error(`[UART] Failed to open port: ${err.message}`);
-                                reject(err);
-                            } else {
-                                logger.info(`[UART] Connected to ${PORT_PATH} at ${BAUD_RATE} baud`);
-                                resolve();
-                            }
-                        });
-                    } else if (!isOpening) {
-                        // Already rejected or timed out
-                        clearTimeout(openTimeout);
-                    } else {
-                        clearTimeout(openTimeout);
-                        isOpening = false;
-                        reject(new Error('port.open is not available'));
-                    }
-                } catch (e) {
-                    clearTimeout(openTimeout);
-                    isOpening = false;
-                    logger.error(`[UART] Exception calling port.open: ${e.message}`);
-                    reject(e);
+            // Listen for 'open' event instead of using callback
+            const onOpenHandler = () => {
+                clearTimeout(openTimeout);
+                port.removeListener('open', onOpenHandler);
+                port.removeListener('error', onErrorHandler);
+                
+                if (!isOpening) {
+                    return; // Already rejected/timed out
                 }
-            });
+
+                isOpening = false;
+                logger.info(`[UART] Connected to ${PORT_PATH} at ${BAUD_RATE} baud`);
+                resolve();
+            };
+
+            const onErrorHandler = (err) => {
+                if (isOpening) {
+                    clearTimeout(openTimeout);
+                    port.removeListener('open', onOpenHandler);
+                    port.removeListener('error', onErrorHandler);
+                    isOpening = false;
+                    logger.warn(`[UART] Could not open port: ${err.message}`);
+                    reject(err);
+                }
+            };
+
+            // Register listeners before opening
+            port.once('open', onOpenHandler);
+            port.once('error', onErrorHandler);
+
+            try {
+                // Try to open the port
+                port.open();
+            } catch (e) {
+                clearTimeout(openTimeout);
+                isOpening = false;
+                logger.warn(`[UART] Exception calling port.open(): ${e.message}`);
+                reject(e);
+            }
 
         } catch (err) {
             isOpening = false;
-            logger.error(`[UART] Init error: ${err.message}`);
+            logger.warn(`[UART] Init error: ${err.message}`);
             reject(err);
         }
     });
