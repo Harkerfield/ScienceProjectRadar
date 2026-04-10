@@ -4,6 +4,9 @@ UART Controller Bridge - Connects Node.js web server to Pico Master via Python
 Runs as a child process, communicates with Node via JSON on stdin/stdout
 
 This leverages proven Python UART functionality instead of problematic Node.js serialport
+
+Note: When running under systemd/venv, the explicit Python path in uartBridge.js bypasses
+the shebang, so this line is mainly for direct execution.
 """
 
 import sys

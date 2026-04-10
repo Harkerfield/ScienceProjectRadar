@@ -5,6 +5,7 @@
 
 const { spawn } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 const logger = require('./logger');
 
 let pythonProcess = null;
@@ -21,11 +22,16 @@ async function initialize() {
         }
 
         try {
-            // Spawn Python process
+            // Spawn Python process - use venv Python if available
             const pythonScriptPath = path.join(__dirname, '../uart_controller.py');
-            logger.info(`[UART-BRIDGE] Spawning Python process: ${pythonScriptPath}`);
+            const venvPython = path.join(__dirname, '../../venv/bin/python3');
+            const systemPython = 'python3';
+            
+            // Check if venv Python exists, fall back to system
+            const pythonExe = fs.existsSync(venvPython) ? venvPython : systemPython;
+            logger.info(`[UART-BRIDGE] Spawning Python process: ${pythonScriptPath} with ${pythonExe}`);
 
-            pythonProcess = spawn('python3', [pythonScriptPath], {
+            pythonProcess = spawn(pythonExe, [pythonScriptPath], {
                 stdio: ['pipe', 'pipe', 'pipe'],
                 detached: false
             });
