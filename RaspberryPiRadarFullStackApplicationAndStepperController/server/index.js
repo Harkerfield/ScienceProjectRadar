@@ -8,7 +8,7 @@ const os = require('os');
 require('dotenv').config();
 
 const logger = require('./utils/logger');
-const uartSerial = require('./utils/uartSerial');
+const uartBridge = require('./utils/uartBridge');
 
 // Create Pico controller for all UART device communication
 class PicoController {
@@ -21,9 +21,9 @@ class PicoController {
 
     async initialize() {
         try {
-            // Initialize UART connection
-            await uartSerial.initialize();
-            logger.info('[PICO] UART connection initialized');
+            // Initialize Python UART bridge
+            await uartBridge.initialize();
+            logger.info('[PICO] Python UART bridge initialized');
             
             // Send MASTER:PING to verify Pico is online
             const response = await this.sendCommand('MASTER', 'PING');
@@ -75,8 +75,8 @@ class PicoController {
 
             logger.debug(`[PICO-CMD] Sending: ${fullCmd}`);
             
-            // Send via UART
-            const response = await uartSerial.send(fullCmd);
+            // Send via Python UART bridge
+            const response = await uartBridge.send(fullCmd);
             logger.debug(`[PICO-RES] Received: ${response}`);
 
             // Try to parse as JSON response
@@ -94,9 +94,9 @@ class PicoController {
 
     async stop() {
         try {
-            await uartSerial.close();
+            await uartBridge.close();
             this.isConnected = false;
-            logger.info('[PICO] UART connection closed');
+            logger.info('[PICO] Python UART bridge closed');
         } catch (err) {
             logger.error(`[PICO] Error closing connection: ${err.message}`);
         }
