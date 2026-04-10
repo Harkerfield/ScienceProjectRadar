@@ -9,6 +9,89 @@ require('dotenv').config();
 
 const logger = require('./utils/logger');
 const uartBridge = require('./utils/uartBridge');
+const PicoStepperController = require('./controllers/picoStepperController');
+const PicoRadarController = require('./controllers/picoRadarController');
+const PicoActuatorController = require('./controllers/picoActuatorController');
+const createStepperRoutes = require('./routes/stepperApi');
+const createRadarRoutes = require('./routes/radarApi');
+const createActuatorRoutes = require('./routes/actuatorApi');
+const createCombinedRoutes = require('./routes/combinedApi');
+
+/**
+ * SerialCommunication wrapper that uses uartBridge
+ * Provides serialComm interface for device controllers
+ */
+class UartBridgeSerializer {
+    constructor() {
+        this.isConnected = false;
+    }
+    
+    async connect() {
+        await uartBridge.initialize();
+        this.isConnected = true;
+    }
+    
+    async sendDeviceCommand(device, command, args = null, timeout = null) {
+        if (!this.isConnected) {
+            throw new Error('Not connected to Pico');
+        }
+        
+        // Build command format: DEVICE:COMMAND[:ARGS]
+        let fullCmd = `${device}:${command}`;
+        if (args !== null && args !== undefined) {
+            fullCmd += `:${args}`;
+        }
+        
+        try {
+            const response = await uartBridge.send(fullCmd);
+            
+            // Parse JSON response from Pico Master
+            let parsed = {};
+            try {
+                parsed = JSON.parse(response);
+            } catch (e) {
+                parsed = { s: 'error', msg: response, raw: response };
+            }
+            
+            // Convert Master's response format to picoMasterSerial format for compatibility
+            // Master returns: {"s": "ok", "device": "STEPPER", "status": "OK", "data": {...}}
+            // Device controllers expect: {success: true, data: {...}, ...}
+            
+            if (parsed.s === 'ok') {
+                return {
+                    success: true,
+                    status: 'OK',
+                    data: parsed.data || {},
+                    device: parsed.device,
+                    timestamp: Date.now()
+                };
+            } else {
+                return {
+                    success: false,
+                    status: parsed.status || 'ERROR',
+                    error: parsed.msg || 'Unknown error',
+                    data: parsed.data || {},
+                    device: parsed.device
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                status: 'ERROR',
+                error: error.message
+            };
+        }
+    }
+    
+    async disconnect() {
+        try {
+            await uartBridge.close();
+            this.isConnected = false;
+        } catch (error) {
+            logger.error('Error disconnecting serialComm:', error);
+        }
+    }
+}
 
 // Create Pico controller for all UART device communication
 class PicoController {
@@ -125,7 +208,13 @@ class RadarFullStackServer {
         
         this.port = process.env.PORT || 3000;
         
-        // Initialize PicoController for all UART device communication
+        // Device controllers use uartBridge through UartBridgeSerializer
+        this.serializer = null;
+        this.stepperController = null;
+        this.radarController = null;
+        this.actuatorController = null;
+        
+        // Initialize legacy PicoController for all UART device communication
         this.picoController = new PicoController(this.io);
 
         
@@ -284,6 +373,9 @@ class RadarFullStackServer {
     setupRoutes() {
         // API routes
         this.app.use('/api', apiRoutes);
+        
+        // Device-specific routes (will be registered after initialization)
+        // These are added in the initialize() method after controllers are created
         
         // Health check endpoint
         this.app.get('/health', (req, res) => {
@@ -509,12 +601,15 @@ class RadarFullStackServer {
     
     async start() {
         try {
-            // Initialize Pico controller (all device communication through Master UART)
+            // Initialize device controllers and register their routes
+            await this.initializeDeviceControllers();
+            
+            // Initialize legacy Pico controller (all device communication through Master UART)
             try {
                 await this.picoController.initialize();
-                logger.info('Pico controller initialized');
+                logger.info('Legacy Pico controller initialized');
             } catch (error) {
-                logger.warn('Failed to initialize Pico controller:', error.message);
+                logger.warn('Failed to initialize legacy Pico controller:', error.message);
                 logger.warn('Continuing with Pico controller unavailable');
             }
             
@@ -546,6 +641,55 @@ class RadarFullStackServer {
         } catch (error) {
             logger.error('Failed to start server:', error);
             process.exit(1);
+        }
+    }
+    
+    async initializeDeviceControllers() {
+        try {
+            // Create serializer that wraps uartBridge
+            this.serializer = new UartBridgeSerializer();
+            await this.serializer.connect();
+            logger.info('UartBridge serializer connected');
+            
+            // Create device-specific controllers
+            this.stepperController = new PicoStepperController(this.serializer);
+            this.radarController = new PicoRadarController(this.serializer);
+            this.actuatorController = new PicoActuatorController(this.serializer);
+            
+            // Register device-specific routes
+            this.app.use('/api/stepper', createStepperRoutes(this.stepperController));
+            this.app.use('/api/radar', createRadarRoutes(this.radarController));
+            this.app.use('/api/actuator', createActuatorRoutes(this.actuatorController));
+            this.app.use('/api/combined', createCombinedRoutes(this.stepperController, this.radarController));
+            
+            logger.info('Device controllers initialized and routes registered');
+            
+            // Initialize/connect to devices
+            try {
+                if (this.stepperController.initialize) {
+                    await this.stepperController.initialize();
+                    logger.info('Stepper controller initialized');
+                }
+            } catch (error) {
+                logger.warn('Failed to initialize stepper controller:', error.message);
+            }
+            
+            try {
+                if (this.actuatorController.initialize) {
+                    await this.actuatorController.initialize();
+                    logger.info('Actuator controller initialized');
+                }
+            } catch (error) {
+                logger.warn('Failed to initialize actuator controller:', error.message);
+            }
+            
+            // Radar controller doesn't need initialization (continuous data stream)
+            logger.info('All device controllers ready');
+            
+        } catch (error) {
+            logger.warn('Failed to initialize device controllers:', error.message);
+            logger.warn('Device-specific routes will not be available');
+            // Don't throw - allow server to continue without device controllers
         }
     }
     

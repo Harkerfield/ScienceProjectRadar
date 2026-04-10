@@ -117,7 +117,10 @@ def send_device_command(device, cmd, timeout_ms=None):
 
 def parse_device_response(response_str, device):
     """
-    Parse response from device in format: DEVICE:STATUS[:DATA]
+    Parse response from device in format: DEVICE:STATUS[:KEY=VALUE:KEY=VALUE...]
+    
+    Example input: STEPPER:OK:position=45:calibrated=1:enabled=0
+    Example output: {"s": "ok", "device": "STEPPER", "data": {"position": 45, "calibrated": 1, "enabled": 0}}
     
     Returns:
         Dictionary with parsed response or error
@@ -131,19 +134,59 @@ def parse_device_response(response_str, device):
             return {"s": "error", "msg": f"wrong_device: {response_str}"}
         
         # Remove device prefix
-        parts = response_str.split(":", 1)
+        parts = response_str.split(":")
         if len(parts) < 2:
             return {"s": "error", "msg": "invalid_format"}
         
-        status_part = parts[1]
+        # parts[0] = device name (already verified)
+        # parts[1] = status (OK or ERROR or other)
+        status = parts[1].upper()
+        
+        # Parse KEY=VALUE pairs (parts[2:])
+        data = {}
+        for i in range(2, len(parts)):
+            pair = parts[i]
+            if "=" in pair:
+                key, value = pair.split("=", 1)
+                # Try to convert value to appropriate type
+                try:
+                    # Try int
+                    data[key] = int(value)
+                except ValueError:
+                    try:
+                        # Try float
+                        data[key] = float(value)
+                    except ValueError:
+                        # Keep as string
+                        data[key] = value
         
         # Check for success/error
-        if "OK" in status_part.upper():
-            return {"s": "ok", "msg": status_part, "raw": response_str}
-        elif "ERROR" in status_part.upper():
-            return {"s": "error", "msg": status_part, "raw": response_str}
+        if status == "OK":
+            return {
+                "s": "ok",
+                "device": device,
+                "status": status,
+                "data": data,
+                "raw": response_str
+            }
+        elif status == "ERROR":
+            error_msg = data.get("msg") or data.get("error") or "Unknown error"
+            return {
+                "s": "error",
+                "device": device,
+                "status": status,
+                "msg": error_msg,
+                "data": data,
+                "raw": response_str
+            }
         else:
-            return {"s": "ok", "msg": status_part, "raw": response_str}
+            return {
+                "s": "ok",
+                "device": device,
+                "status": status,
+                "data": data,
+                "raw": response_str
+            }
     
     except Exception as e:
         return {"s": "error", "msg": f"parse_error: {e}", "raw": response_str}
