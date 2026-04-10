@@ -129,32 +129,37 @@ async function initialize() {
                 }
             }, 5000);
 
-            // Try to open the port
-            try {
-                if (typeof port.open === 'function') {
-                    port.open((err) => {
+            // Try to open the port with a small delay to let construction settle
+            setImmediate(() => {
+                try {
+                    if (typeof port.open === 'function' && !port.isOpen && isOpening) {
+                        port.open((err) => {
+                            clearTimeout(openTimeout);
+                            isOpening = false;
+                            
+                            if (err) {
+                                logger.error(`[UART] Failed to open port: ${err.message}`);
+                                reject(err);
+                            } else {
+                                logger.info(`[UART] Connected to ${PORT_PATH} at ${BAUD_RATE} baud`);
+                                resolve();
+                            }
+                        });
+                    } else if (!isOpening) {
+                        // Already rejected or timed out
+                        clearTimeout(openTimeout);
+                    } else {
                         clearTimeout(openTimeout);
                         isOpening = false;
-                        
-                        if (err) {
-                            logger.error(`[UART] Failed to open port: ${err.message}`);
-                            reject(err);
-                        } else {
-                            logger.info(`[UART] Connected to ${PORT_PATH} at ${BAUD_RATE} baud`);
-                            resolve();
-                        }
-                    });
-                } else {
-                    // If port.open is not a function, port might already be opening
+                        reject(new Error('port.open is not available'));
+                    }
+                } catch (e) {
+                    clearTimeout(openTimeout);
                     isOpening = false;
-                    reject(new Error('port.open is not a function'));
+                    logger.error(`[UART] Exception calling port.open: ${e.message}`);
+                    reject(e);
                 }
-            } catch (e) {
-                clearTimeout(openTimeout);
-                isOpening = false;
-                logger.error(`[UART] Exception calling port.open: ${e.message}`);
-                reject(e);
-            }
+            });
 
         } catch (err) {
             isOpening = false;
