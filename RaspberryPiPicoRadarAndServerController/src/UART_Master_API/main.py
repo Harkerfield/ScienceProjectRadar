@@ -362,7 +362,7 @@ def process_command(line, source='uart'):
             response = master_status()
         
         # ========== SERVO COMMANDS ==========
-        if line == 'SERVO:OPEN':
+        elif line == 'SERVO:OPEN':
             response = servo_open()
         elif line == 'SERVO:CLOSE':
             response = servo_close()

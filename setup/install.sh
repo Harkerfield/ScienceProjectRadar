@@ -106,8 +106,11 @@ dtoverlay=disable-bt
 EOF
     
     # Disable serial console if present
-    sudo sed -i 's/serial0,115200 //' /boot/cmdline.txt 2>/dev/null || true
-    
+    sudo sed -i 's/serial0,460800 //' /boot/cmdline.txt 2>/dev/null || true
+    # Method 2: Manual configuration
+    sudo systemctl stop serial-getty@ttyAMA0.service
+    sudo systemctl disable serial-getty@ttyAMA0.service
+
     UART_CONFIG_NEEDED=1
     echo -e "${YELLOW}  ⚠ UART enabled (reboot required)${NC}"
 else

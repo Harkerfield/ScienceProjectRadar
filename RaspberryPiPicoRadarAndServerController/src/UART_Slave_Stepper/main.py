@@ -1224,20 +1224,24 @@ print()
 
 # Input buffer for reading commands
 pulse_counter = 0  # Count pulses for periodic logging
-loop_count = 0  # Count main loop iterations for LED flashing
 uart_buffer = b""  # Buffer for reading UART data
+last_blink_time = utime.ticks_ms()  # Track LED blink timing
+led_state = True  # Current LED state (True = on, False = off)
+blink_interval = 500  # 500ms on/off interval for visible blinking
 
 print("[INIT] Starting main loop...")
 print()
 
 while True:
-    loop_count += 1
-    
-    # Blink LED slowly to show we're alive
-    if loop_count % 100 == 0:
-        led.off()
-    elif loop_count % 50 == 0:
-        led.on()
+    # Blink LED to show we're alive (500ms on, 500ms off)
+    current_time = utime.ticks_ms()
+    if current_time - last_blink_time >= blink_interval:
+        last_blink_time = current_time
+        led_state = not led_state
+        if led_state:
+            led.on()
+        else:
+            led.off()
     
     # UART polling: Check buffer for commands
     # Check for incoming UART data
