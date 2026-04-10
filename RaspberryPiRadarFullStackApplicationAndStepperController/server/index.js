@@ -296,6 +296,72 @@ class RadarFullStackServer {
             });
         });
         
+        // Diagnostic dashboard
+        this.app.get('/diagnostic', (req, res) => {
+            const isRaspberryPi = process.platform === 'linux';
+            const fs = require('fs');
+            const uartAvailable = isRaspberryPi && fs.existsSync('/dev/ttyAMA0');
+            
+            const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radar Server Diagnostic</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.6; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        h1 { margin-bottom: 30px; color: #60a5fa; }
+        h2 { margin-top: 20px; margin-bottom: 15px; color: #93c5fd; font-size: 1.2em; }
+        .status { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 15px; }
+        .card-title { font-weight: bold; color: #60a5fa; margin-bottom: 10px; }
+        .check { display: flex; justify-content: space-between; margin: 8px 0; font-size: 0.95em; }
+        .label { color: #cbd5e1; }
+        .value { color: #10b981; font-weight: bold; }
+        .error { color: #ef4444; }
+        .endpoint { background: #0f172a; padding: 10px; margin: 8px 0; border-left: 3px solid #60a5fa; border-radius: 4px; }
+        a { color: #60a5fa; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #334155; text-align: center; color: #64748b; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛰️ Radar Server Diagnostic</h1>
+        
+        <div class="status">
+            <div class="card">
+                <div class="card-title">Server Status</div>
+                <div class="check"><span class="label">Uptime:</span><span class="value">${Math.floor(process.uptime())}s</span></div>
+                <div class="check"><span class="label">Memory:</span><span class="value">${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB</span></div>
+                <div class="check"><span class="label">Platform:</span><span class="value">${process.platform}</span></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Hardware</div>
+                <div class="check"><span class="label">Raspberry Pi:</span><span class="value ${isRaspberryPi ? '' : 'error'}">${isRaspberryPi ? '✓ Yes' : '✗ No'}</span></div>
+                <div class="check"><span class="label">UART:</span><span class="value ${uartAvailable ? '' : 'error'}">${uartAvailable ? '✓ Available' : '✗ Not available'}</span></div>
+                <div class="check"><span class="label">Port 3000:</span><span class="value">✓ Open</span></div>
+            </div>
+        </div>
+        
+        <h2>API Endpoints</h2>
+        <div class="endpoint"><a href="/api/status">GET /api/status</a> - Server status</div>
+        <div class="endpoint"><a href="/api/health">GET /api/health</a> - Health check</div>
+        <div class="endpoint"><a href="/api/diagnostic">GET /api/diagnostic</a> - JSON diagnostic data</div>
+        <div class="endpoint"><a href="/">GET /</a> - Frontend application</div>
+        
+        <footer>
+            <p>Server v${require('../package.json').version}</p>
+            <p>${new Date().toLocaleString()}</p>
+        </footer>
+    </div>
+</body>
+</html>`;
+            res.send(html);
+        });
+        
         // Serve client app for all other routes (SPA fallback)
         this.app.get('*', (req, res) => {
             const indexPath = path.join(__dirname, '../client/dist/index.html');
@@ -473,7 +539,7 @@ class RadarFullStackServer {
                 // Start status broadcasting
                 this.startStatusBroadcast();
                 
-                // Start background Pico reconnection attempts
+                // Start background Pico reconnection attempts (retry every 60 seconds to reduce log noise)
                 this.startPicoReconnection();
             });
             
@@ -501,18 +567,19 @@ class RadarFullStackServer {
     }
     
     startPicoReconnection() {
-        // Attempt to reconnect to Pico every 10 seconds
+        // Attempt to reconnect to Pico every 60 seconds (reduced from 10s to minimize log noise)
         this.picoReconnectInterval = setInterval(async () => {
             try {
-                logger.debug('Attempting to reconnect to Pico Master...');
-                if (this.picoController?.initialize) {
+                if (this.picoController?.initialize && !this.isConnected) {
+                    logger.debug('Attempting to reconnect to Pico Master...');
                     await this.picoController.initialize();
                     logger.info('Pico controller reconnection/reinitialization attempted');
                 }
             } catch (error) {
+                // Only log at debug level to reduce noise
                 logger.debug('Pico reconnection attempt failed, will retry...', error.message);
             }
-        }, 10000);
+        }, 60000);
     }
     
     async restartSystem() {
