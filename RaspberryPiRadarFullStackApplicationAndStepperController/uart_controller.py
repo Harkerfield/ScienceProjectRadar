@@ -76,8 +76,12 @@ class UARTController:
         Command format: "DEVICE:COMMAND" or "DEVICE:COMMAND:ARGS"
         Response format: "DEVICE:STATUS[:DATA]"
         """
+        # Auto-reconnect if not connected
         if not self.connected:
-            return {'status': 'error', 'message': 'Not connected to UART'}
+            logger.debug("Not connected, attempting to connect...")
+            conn_result = self.connect()
+            if conn_result['status'] != 'ok':
+                return {'status': 'error', 'message': 'Failed to connect to UART'}
         
         try:
             # Ensure command ends with newline
@@ -156,9 +160,15 @@ def main():
     controller = UARTController()
     logger.info("UART Controller bridge started")
     
-    # Auto-connect on startup
-    conn_result = controller.connect()
-    logger.info(f"Auto-connect result: {conn_result}")
+    # Attempt connection in background (non-blocking)
+    # Don't wait for connection - respond to status/status checks immediately
+    conn_result = None
+    try:
+        logger.info("Attempting initial UART connection...")
+        conn_result = controller.connect()
+        logger.info(f"Connection result: {conn_result}")
+    except Exception as e:
+        logger.warning(f"Auto-connect failed (will retry on first send): {e}")
     
     try:
         while True:
