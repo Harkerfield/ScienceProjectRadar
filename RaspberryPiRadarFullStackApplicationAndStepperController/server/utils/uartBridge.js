@@ -24,11 +24,21 @@ async function initialize() {
         try {
             // Spawn Python process - use venv Python if available
             const pythonScriptPath = path.join(__dirname, '../uart_controller.py');
-            const venvPython = path.join(__dirname, '../../venv/bin/python3');
-            const systemPython = 'python3';
             
-            // Check if venv Python exists, fall back to system
-            const pythonExe = fs.existsSync(venvPython) ? venvPython : systemPython;
+            // Platform-specific Python paths
+            const isWindows = process.platform === 'win32';
+            const isLinux = process.platform === 'linux';
+            
+            let pythonExe;
+            if (isLinux) {
+                const venvPython = path.join(__dirname, '../../venv/bin/python3');
+                pythonExe = fs.existsSync(venvPython) ? venvPython : 'python3';
+            } else if (isWindows) {
+                pythonExe = 'python';
+            } else {
+                pythonExe = 'python3';
+            }
+            
             logger.info(`[UART-BRIDGE] Spawning Python process: ${pythonScriptPath} with ${pythonExe}`);
 
             pythonProcess = spawn(pythonExe, [pythonScriptPath], {
