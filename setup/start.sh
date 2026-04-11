@@ -40,12 +40,7 @@ show_menu() {
 # Parse command line
 if [ $# -gt 0 ]; then
     case "$1" in
-        install) 
-            echo -e "${YELLOW}Starting installation for user: $ACTUAL_USER${NC}"
-            echo -e "${YELLOW}Project will be installed to: /home/$ACTUAL_USER/RadarProject${NC}\n"
-            sudo bash -c "INSTALL_USER='$ACTUAL_USER' bash setup/install.sh"
-            exit 0 
-            ;;
+        install) sudo bash setup/install.sh; exit 0 ;;
         start) sudo systemctl start radar-server radar-client; exit 0 ;;
         stop) sudo systemctl stop radar-server radar-client; exit 0 ;;
         status) sudo systemctl status radar-server; echo ""; sudo systemctl status radar-client; exit 0 ;;
@@ -61,9 +56,7 @@ while true; do
     case $choice in
         1)
             clear
-            echo -e "${YELLOW}Installing for user: $ACTUAL_USER${NC}"
-            echo -e "${YELLOW}Project will be installed to: /home/$ACTUAL_USER/RadarProject${NC}\n"
-            sudo bash -c "INSTALL_USER='$ACTUAL_USER' bash setup/install.sh"
+            sudo bash setup/install.sh
             read -p $'\nPress Enter to return to menu...' dummy
             ;;
         2)
