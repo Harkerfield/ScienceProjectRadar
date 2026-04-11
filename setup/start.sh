@@ -75,7 +75,7 @@ while true; do
         5)
             clear
             echo -e "\n${BLUE}Recent Logs (Ctrl+C to exit):${NC}\n"
-            sudo journalctl -u radar-server -n 30 --no-pager
+            sudo journalctl -u radar-server -n 100 --no-pager
             read -p $'\nPress Enter to return to menu...' dummy
             ;;
         6)
