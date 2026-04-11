@@ -16,31 +16,64 @@ No daily manual setup needed. Just power on the Pi:
 
 ## Quick Start
 
-### First Time Installation
+### First Time Installation (Recommended)
 
 ```bash
 cd /path/to/RadarProject
-bash setup/start.sh
-# Choose option 1: INSTALL
+bash setup/complete-install.sh
 ```
 
-**Time:** 15-25 minutes. Configures everything for auto-start.
+**What it does:**
+- ✓ Installs system dependencies (on Raspberry Pi)
+- ✓ Validates project structure
+- ✓ Installs/updates all Node.js dependencies
+- ✓ Builds the Vue.js client application
+- ✓ Creates server configuration
+- ✓ Restarts services (or shows startup instructions on local machine)
+
+**Time:** 10-25 minutes depending on internet connection
 
 ### After Installation
 
 ```bash
+# On Raspberry Pi
 sudo reboot
 # That's it! Everything starts automatically
+
+# On local machine
+cd RadarApp-FullStack/server
+npm start
+# Then access http://localhost:3000
 ```
 
 Access at:
-- **Local:** HDMI monitor (auto-displays fullscreen)
-- **Network:** http://raspberrypi.local:3000
+- **Local Pi HDMI:** Auto-displays fullscreen
+- **Network:** http://raspberrypi.local:3000 or http://192.168.x.x:3000
 
 ---
 
 ## Available Commands
 
+### Recommended: Complete Install/Build/Restart (Works on Pi and Local)
+```bash
+# One command to install dependencies, build, and restart services
+bash setup/complete-install.sh
+```
+✓ Validates project structure  
+✓ Installs or updates dependencies  
+✓ Builds the Vue.js client application  
+✓ Updates server configuration  
+✓ Restarts services (on Raspberry Pi) OR shows how to start locally  
+✓ Works on Raspberry Pi and local development machines  
+
+**Use this for:**
+- First-time setup (will detect and install everything)
+- After pulling updates from GitHub
+- When dependencies need updating
+- When you want to rebuild the entire application
+- Recovery if something breaks
+
+### Legacy: Interactive Menu
 ```bash
 # Interactive menu
 bash setup/start.sh
@@ -52,6 +85,16 @@ bash setup/start.sh stop        # Stop services
 bash setup/start.sh status      # Check status
 bash setup/start.sh logs        # View recent logs
 ```
+
+### Quick Update (Without Full Reinstall)
+```bash
+# Just update dependencies and rebuild (faster, no system config)
+bash setup/update.sh
+```
+✓ Updates server Node dependencies  
+✓ Rebuilds Vue.js client  
+✓ Restarts services  
+✓ **Does NOT:** Install system packages, configure UART, create services
 
 ---
 
