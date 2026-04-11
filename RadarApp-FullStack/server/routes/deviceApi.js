@@ -14,6 +14,63 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
     const router = express.Router();
 
     /**
+     * GET /api/device
+     * Device API discovery - shows available devices and endpoints
+     */
+    router.get('/', (req, res) => {
+        try {
+            const commands = getAvailableCommands();
+            const devices = Object.keys(commands);
+            
+            res.json({
+                success: true,
+                message: 'Device Control API',
+                availableDevices: devices,
+                endpoints: {
+                    'GET /api/device': 'This page - list available devices',
+                    'GET /api/device/:device': 'Show available commands for a device',
+                    'GET /api/device/:device/info': 'Detailed command info',
+                    'POST /api/device/:device/:command': 'Execute a command',
+                    'GET /api/device/commands': 'List all commands for all devices'
+                },
+                devices: devices.map(device => ({
+                    name: device,
+                    discovery: `/api/device/${device}`,
+                    detailedInfo: `/api/device/${device}/info`
+                })),
+                examples: {
+                    stepper: {
+                        discoverCommands: '/api/device/STEPPER',
+                        getStatus: '/api/device/STEPPER/STATUS',
+                        spin: {
+                            method: 'POST',
+                            url: '/api/device/STEPPER/SPIN',
+                            body: { args: { speed_us: 1500 } }
+                        }
+                    },
+                    radar: {
+                        discoverCommands: '/api/device/RADAR',
+                        getStatus: '/api/device/RADAR/STATUS',
+                        read: 'POST /api/device/RADAR/READ'
+                    },
+                    servo: {
+                        discoverCommands: '/api/device/SERVO',
+                        open: 'POST /api/device/SERVO/OPEN',
+                        close: 'POST /api/device/SERVO/CLOSE'
+                    }
+                }
+            });
+        } catch (error) {
+            logger.error(`Error fetching device list: ${error.message}`);
+            res.status(500).json({
+                success: false,
+                error: error.message,
+                code: 'SERVER_ERROR'
+            });
+        }
+    });
+
+    /**
      * GET /api/device/commands
      * Returns all available device commands and their parameters
      */
@@ -26,6 +83,45 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
             });
         } catch (error) {
             logger.error(`Error fetching device commands: ${error.message}`);
+            res.status(500).json({
+                success: false,
+                error: error.message,
+                code: 'SERVER_ERROR'
+            });
+        }
+    });
+
+    /**
+     * GET /api/device/:device
+     * Show available commands for this device
+     */
+    router.get('/:device', (req, res) => {
+        try {
+            const { device } = req.params;
+            const info = getDeviceInfo(device);
+            
+            if (info.error) {
+                return res.status(404).json({
+                    success: false,
+                    error: info.error,
+                    code: 'UNKNOWN_DEVICE'
+                });
+            }
+
+            res.json({
+                success: true,
+                device: device,
+                message: `Available commands for ${device}`,
+                availableCommands: Object.keys(info.commands || {}),
+                commands: info,
+                endpoints: {
+                    'GET /api/device/:device/:command': 'Send read-only command',
+                    'POST /api/device/:device/:command': 'Send command with arguments',
+                    'GET /api/device/:device/info': 'Detailed command specifications'
+                }
+            });
+        } catch (error) {
+            logger.error(`Error fetching device list: ${error.message}`);
             res.status(500).json({
                 success: false,
                 error: error.message,

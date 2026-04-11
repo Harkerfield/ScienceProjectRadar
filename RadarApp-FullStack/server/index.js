@@ -146,6 +146,51 @@ class RadarFullStackServer {
     }
     
     setupRoutes() {
+        // Root discovery endpoint
+        this.app.get('/', (req, res) => {
+            const getUrl = (path) => {
+                const protocol = req.protocol || 'http';
+                const host = req.get('host') || 'localhost';
+                return `${protocol}://${host}${path}`;
+            };
+
+            res.json({
+                name: 'Radar Control System',
+                version: require('../package.json').version,
+                status: 'running',
+                timestamp: new Date().toISOString(),
+                sections: {
+                    api: {
+                        description: 'RESTful API for device control',
+                        discover: getUrl('/api'),
+                        endpoints: {
+                            'GET /api/device': 'Device control system',
+                            'GET /api/status': 'Server status',
+                            'GET /api/health': 'Health check',
+                            'GET /api/diagnostic': 'Diagnostics'
+                        }
+                    },
+                    ui: {
+                        description: 'Web dashboard',
+                        url: getUrl('/'),
+                        client: 'Vue.js single-page application'
+                    },
+                    websocket: {
+                        description: 'Real-time updates via Socket.io',
+                        url: getUrl('/'),
+                        port: process.env.PORT || 3000
+                    }
+                },
+                getting_started: 'GET /api for device control API',
+                shortcuts: {
+                    listDevices: getUrl('/api/device'),
+                    listCommands: getUrl('/api/device/commands'),
+                    serverStatus: getUrl('/api/status'),
+                    diagnostic: getUrl('/api/diagnostic')
+                }
+            });
+        });
+
         // API routes
         this.app.use('/api', apiRoutes);
 
@@ -235,6 +280,29 @@ class RadarFullStackServer {
             res.send(html);
         });
         
+        // API discovery for /api/* paths that don't match
+        this.app.use('/api', (req, res) => {
+            res.status(404).json({
+                success: false,
+                error: `Endpoint not found: ${req.method} ${req.url}`,
+                code: 'NOT_FOUND',
+                availableEndpoints: {
+                    'GET /api': 'API discovery',
+                    'GET /api/device': 'Device control discovery',
+                    'GET /api/device/:device': 'Device-specific commands',
+                    'GET /api/device/commands': 'All device commands',
+                    'GET /api/status': 'Server status',
+                    'GET /api/health': 'Health check',
+                    'GET /api/diagnostic': 'Detailed diagnostics',
+                    'POST /api/restart': 'Restart system',
+                    'POST /api/shutdown': 'Shutdown system'
+                },
+                hint: 'Start with GET /api to explore available endpoints',
+                requestedPath: req.url,
+                method: req.method
+            });
+        });
+
         // Serve client app for all other routes (SPA fallback)
         this.app.get('*', (req, res) => {
             const indexPath = path.join(__dirname, '../client/dist/index.html');

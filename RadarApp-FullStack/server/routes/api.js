@@ -2,6 +2,34 @@ const express = require('express');
 const router = express.Router();
 const os = require('os');
 
+// Root API discovery endpoint
+router.get('/', (req, res) => {
+    res.json({
+        version: require('../../package.json').version,
+        name: 'Radar Control System API',
+        description: 'RESTful API for controlling radar, stepper, and servo devices',
+        baseUrl: `http://${req.hostname}:${process.env.PORT || 3000}`,
+        sections: {
+            '/api/status': 'Current server status',
+            '/api/health': 'Health check',
+            '/api/diagnostic': 'Detailed diagnostic information',
+            '/api/device': 'Device control endpoints (GET to discover)',
+            '/api/restart': 'Request system restart (POST)',
+            '/api/shutdown': 'Request system shutdown (POST)'
+        },
+        documentation: {
+            quickStart: 'GET /api/device to see available devices',
+            devices: 'GET /api/device/:device to see available commands',
+            sendCommand: 'POST /api/device/:device/:command',
+            examples: {
+                listAll: '/api/device/commands',
+                listDevice: '/api/device/STEPPER/info',
+                sendCommand: 'POST /api/device/STEPPER/SPIN with body {"args":{"speed_us":"1500"}}'
+            }
+        }
+    });
+});
+
 // Comprehensive diagnostic endpoint
 router.get('/diagnostic', (req, res) => {
     const diagnostic = {
