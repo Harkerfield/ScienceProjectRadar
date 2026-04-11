@@ -35,13 +35,18 @@ echo -e "${BLUE}╚════════════════════�
 echo -e "${YELLOW}Detected user: $ACTUAL_USER${NC}"
 echo -e "${YELLOW}Project directory: $PROJECT_DIR${NC}\n"
 
-# Verify user exists
-if ! id "$ACTUAL_USER" &>/dev/null; then
-    echo -e "${RED}✗ ERROR: User '$ACTUAL_USER' does not exist on this system${NC}"
-    echo -e "${YELLOW}Available users:${NC} $(cut -d: -f1,3 /etc/passwd | grep ':[0-9][0-9][0-9]' | cut -d: -f1 | tr '\n' ' ')"
-    echo ""
+# Validate sudo access once at start (single password prompt)
+echo -e "${YELLOW}Validating sudo access...${NC}"
+sudo -v
+if [ $? -ne 0 ]; then
+    echo -e "${RED}✗ Cannot proceed without sudo access${NC}"
     exit 1
 fi
+echo -e "${GREEN}✓ Sudo authenticated${NC}\n"
+
+# Keep sudo session alive during installation
+# This prevents repeated password prompts
+sudo -n true 2>/dev/null || echo "Note: You may need to authenticate once more if installation takes >15 minutes"
 
 # Step 1: Install system prerequisites
 echo -e "${YELLOW}[1/6] Installing system prerequisites...${NC}"
@@ -67,18 +72,19 @@ echo -e "\n${YELLOW}[2/6] Downloading project from GitHub...${NC}"
 cd /tmp || cd ~
 
 # Ensure parent directory exists and is writable by the user
-sudo mkdir -p /home/$ACTUAL_USER
-sudo chown $ACTUAL_USER:$ACTUAL_USER /home/$ACTUAL_USER
-
-if [ -d "$PROJECT_DIR" ]; then
-    echo "  Directory exists, deleting then updating..."
-    sudo rm -rf "$PROJECT_DIR"
-fi
+# Batch all sudo commands together to avoid multiple password prompts
+sudo bash -c "
+    mkdir -p /home/$ACTUAL_USER
+    chown $ACTUAL_USER:$ACTUAL_USER /home/$ACTUAL_USER
+    if [ -d '$PROJECT_DIR' ]; then
+        rm -rf '$PROJECT_DIR'
+    fi
+"
 
 echo "  Cloning from GitHub..."
 su - $ACTUAL_USER -c "git clone '$GIT_URL' '$PROJECT_DIR'"
 cd "$PROJECT_DIR"
-
+ 
 echo -e "${GREEN}✓ Project ready at $PROJECT_DIR${NC}"
 
 # Step 3: Install Node dependencies
@@ -119,18 +125,19 @@ fi
 if ! sudo grep -q "enable_uart=1" "$CONFIG_FILE" 2>/dev/null; then
     echo "  Enabling UART..."
     
-    sudo tee -a "$CONFIG_FILE" >/dev/null <<EOF
+    # Batch all UART config commands together
+    sudo bash -c "
+        tee -a '$CONFIG_FILE' >/dev/null <<'EOFUART'
 
 # Radar Project - UART Configuration
 enable_uart=1
 dtoverlay=disable-bt
-EOF
-    
-    # Disable serial console if present
-    sudo sed -i 's/serial0,460800 //' /boot/cmdline.txt 2>/dev/null || true
-    # Method 2: Manual configuration
-    sudo systemctl stop serial-getty@ttyAMA0.service
-    sudo systemctl disable serial-getty@ttyAMA0.service
+EOFUART
+        
+        sed -i 's/serial0,460800 //' /boot/cmdline.txt 2>/dev/null || true
+        systemctl stop serial-getty@ttyAMA0.service 2>/dev/null || true
+        systemctl disable serial-getty@ttyAMA0.service 2>/dev/null || true
+    "
 
     UART_CONFIG_NEEDED=1
     echo -e "${YELLOW}  ⚠ UART enabled (reboot required)${NC}"
@@ -143,7 +150,9 @@ echo -e "${GREEN}✓ UART configured${NC}"
 # Step 5: Create systemd services
 echo -e "\n${YELLOW}[5/6] Creating system services...${NC}"
 
-sudo bash -c "cat > /etc/systemd/system/radar-server.service << EOF
+# Batch all systemd service creation into one sudo call to avoid multiple prompts
+sudo bash -c "
+cat > /etc/systemd/system/radar-server.service << 'EOFSERVER'
 [Unit]
 Description=Radar Application Server
 After=network-online.target
@@ -163,14 +172,9 @@ Environment=\"PORT=3000\"
 
 [Install]
 WantedBy=multi-user.target
-EOF
-"
+EOFSERVER
 
-sudo systemctl daemon-reload
-sudo systemctl restart radar-server
-
-# Client service (kiosk mode + network accessible)
-sudo bash -c "cat > /etc/systemd/system/radar-client.service << 'EOFSERVICE'
+cat > /etc/systemd/system/radar-client.service << 'EOFCLIENT'
 [Unit]
 Description=Radar Application Client (Kiosk Display)
 After=network-online.target radar-server.service
@@ -189,11 +193,9 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
-EOFSERVICE
-"
+EOFCLIENT
 
-# Auto-update check service (runs on startup)
-sudo bash -c "cat > /etc/systemd/system/radar-update-check.service << 'EOFSERVICE'
+cat > /etc/systemd/system/radar-update-check.service << 'EOFUPDATE'
 [Unit]
 Description=Radar - Auto Update Check
 After=network-online.target
@@ -207,14 +209,11 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
-EOFSERVICE
-"
+EOFUPDATE
 
-sudo systemctl daemon-reload
-sudo systemctl enable radar-server.service radar-client.service radar-update-check.service
-sudo systemctl enable radar-server.service
-sudo systemctl enable radar-client.service  
-sudo systemctl enable radar-update-check.service
+systemctl daemon-reload
+systemctl enable radar-server.service radar-client.service radar-update-check.service
+"
 
 echo -e "${GREEN}✓ Services created and enabled for auto-start${NC}"
 
@@ -231,9 +230,12 @@ EOF
 
 echo -e "${GREEN}✓ Configuration created${NC}"
 
-# Step 7: Final permissions fix
+# Step 7: Final permissions fix - batch all together
 echo -e "\n${YELLOW}[7/7] Finalizing permissions...${NC}"
-sudo chown -R $ACTUAL_USER:$ACTUAL_USER "$PROJECT_DIR"
+sudo bash -c "
+    chown -R $ACTUAL_USER:$ACTUAL_USER '$PROJECT_DIR'
+    systemctl restart radar-server 2>/dev/null || true
+"
 echo -e "${GREEN}✓ Permissions verified${NC}"
 
 # Summary

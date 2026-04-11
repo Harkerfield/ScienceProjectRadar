@@ -67,7 +67,7 @@ class RadarFullStackServer {
     }
     
     setupMiddleware() {
-        // Security
+        // Security - relaxed for local network HTTP access
         this.app.use(helmet({
             contentSecurityPolicy: {
                 directives: {
@@ -82,7 +82,10 @@ class RadarFullStackServer {
                 }
             },
             hsts: false,
-            referrerPolicy: { policy: 'no-referrer' }
+            referrerPolicy: { policy: 'no-referrer' },
+            crossOriginOpenerPolicy: false,
+            crossOriginResourcePolicy: false,
+            originAgentCluster: false
         }));
         
         // CORS
