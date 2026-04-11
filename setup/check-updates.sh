@@ -37,7 +37,7 @@ LOG="/tmp/radar-update-check.log"
         git pull origin main >/dev/null 2>&1
         
         # Reinstall dependencies
-        cd "$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController"
+        cd "$PROJECT_DIR/RadarApp-FullStack"
         npm install --production >/dev/null 2>&1
         
         

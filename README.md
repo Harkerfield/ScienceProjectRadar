@@ -567,7 +567,7 @@ RadarProject/
 │       ├── CROSS-PLATFORM.md
 │       └── INDEX.md
 │
-├── RaspberryPiRadarFullStackApplicationAndStepperController/
+├── RadarApp-FullStack/
 │   ├── server/           ← Node.js backend
 │   │   ├── index.js
 │   │   ├── package.json
@@ -578,7 +578,7 @@ RadarProject/
 │       ├── package.json
 │       └── ...
 │
-└── RaspberryPiPicoRadarAndServerController/
+└── RadarApp-Microcontroller/
     └── ... (Pico firmware)
 ```
 

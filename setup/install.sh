@@ -63,18 +63,18 @@ echo -e "${GREEN}✓ Project ready at $PROJECT_DIR${NC}"
 # Step 3: Install Node dependencies
 echo -e "\n${YELLOW}[3/6] Installing Node.js dependencies...${NC}"
 
-cd "$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController"
+cd "$PROJECT_DIR/RadarApp-FullStack"
 
 echo "  Server dependencies..."
 cd server
-su - $ACTUAL_USER -c "cd $PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/server && npm install -q 2>&1 | grep -v '^npm WARN' || true"
+su - $ACTUAL_USER -c "cd $PROJECT_DIR/RadarApp-FullStack/server && npm install -q 2>&1 | grep -v '^npm WARN' || true"
 cd ..
 
 echo "  Client dependencies..."
 cd client
 # rm -rf dist node_modules/.cache
-su - $ACTUAL_USER -c "cd $PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/client && npm install -q 2>&1 | grep -v '^npm WARN' || true"
-su - $ACTUAL_USER -c "cd $PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/client && npm run build 2>&1 | grep -v '^npm WARN' || true"
+su - $ACTUAL_USER -c "cd $PROJECT_DIR/RadarApp-FullStack/client && npm install -q 2>&1 | grep -v '^npm WARN' || true"
+su - $ACTUAL_USER -c "cd $PROJECT_DIR/RadarApp-FullStack/client && npm run build 2>&1 | grep -v '^npm WARN' || true"
 cd ..
 
 echo -e "${GREEN}✓ Node dependencies installed${NC}"
@@ -131,7 +131,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=$ACTUAL_USER
-WorkingDirectory=$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/server
+WorkingDirectory=$PROJECT_DIR/RadarApp-FullStack/server
 ExecStart=/usr/bin/npm run server:start
 Restart=always
 RestartSec=10
@@ -198,9 +198,9 @@ echo -e "${GREEN}✓ Services created and enabled for auto-start${NC}"
 # Step 6: Create config file
 echo -e "\n${YELLOW}[6/6] Creating configuration...${NC}"
 
-mkdir -p "$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/server"
+mkdir -p "$PROJECT_DIR/RadarApp-FullStack/server"
 
-cat > "$PROJECT_DIR/RaspberryPiRadarFullStackApplicationAndStepperController/server/.env" <<EOF
+cat > "$PROJECT_DIR/RadarApp-FullStack/server/.env" <<EOF
 NODE_ENV=production
 PORT=3000
 LOG_LEVEL=info

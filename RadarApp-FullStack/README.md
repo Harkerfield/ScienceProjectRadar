@@ -130,7 +130,7 @@ sudo apt-get install -y build-essential python3-dev
 ### Project Setup
 ```bash
 # Clone/navigate to project directory
-cd RaspberryPiRadarFullStackApplicationAndStepperController
+cd RadarApp-FullStack
 
 # Install server dependencies
 npm run install:server
@@ -207,7 +207,7 @@ After=network.target
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/home/pi/RaspberryPiRadarFullStackApplicationAndStepperController
+WorkingDirectory=/home/pi/RadarApp-FullStack
 ExecStart=/usr/bin/npm start
 Restart=always
 RestartSec=10

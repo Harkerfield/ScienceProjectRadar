@@ -290,6 +290,10 @@ def master_ping():
     """GET: Master alive check"""
     return {"s": "ok", "msg": "Master ready", "type": "pico_master"}
 
+def master_whoami():
+    """GET: Master device identification"""
+    return {"s": "ok", "device": "MASTER", "type": "pico_master", "msg": "Pico Master Controller"}
+
 def master_status():
     """GET: Master and slave status"""
     return {
@@ -401,6 +405,8 @@ def process_command(line, source='uart'):
         # ========== MASTER COMMANDS ==========
         if line == 'MASTER:PING' or line == 'PING':
             response = master_ping()
+        elif line == 'MASTER:WHOAMI' or line == 'WHOAMI':
+            response = master_whoami()
         elif line == 'MASTER:STATUS' or line == 'STATUS':
             response = master_status()
         
@@ -492,8 +498,10 @@ def process_command(line, source='uart'):
                 "Master Pico API - UART Device Bus\n\n"
                 "=== MASTER ===\n"
                 "  MASTER:PING     - Master alive check\n"
+                "  MASTER:WHOAMI   - Master device identification\n"
                 "  MASTER:STATUS   - Get master and slaves status\n"
                 "  PING            - Alias for MASTER:PING\n"
+                "  WHOAMI          - Alias for MASTER:WHOAMI\n"
                 "  STATUS          - Alias for MASTER:STATUS\n\n"
                 "=== SERVO (Device: SERVO) ===\n"
                 "  SERVO:OPEN        - Extend actuator\n"

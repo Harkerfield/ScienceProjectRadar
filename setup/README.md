@@ -317,10 +317,10 @@ Systemd Services:
 
 Project Files:
 /home/pi/RadarProject/
-├── RaspberryPiRadarFullStackApplicationAndStepperController/
+├── RadarApp-FullStack/
 │   ├── server/
 │   └── client/
-└── RaspberryPiPicoRadarAndServerController/
+└── RadarApp-Microcontroller/
 ```
 
 ---

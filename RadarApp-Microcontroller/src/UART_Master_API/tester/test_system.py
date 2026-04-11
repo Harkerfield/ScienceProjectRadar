@@ -96,8 +96,19 @@ def test_system_integration():
     print("=== System Integration Test ===")
     
     try:
-        # Import main controller
-        from RaspberryPiPicoRadarAndServerController.src.UART_Slave_Radar.tester.main import RadarServerController
+        # Import main controller (handle hyphenated folder name)
+        import sys
+        import os
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+        
+        # Now we can import from the parent modules
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("radar_controller", 
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))),
+            "UART_Slave_Radar", "tester", "main.py"))
+        radar_main = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(radar_main)
+        RadarServerController = radar_main.RadarServerController
         
         print("Initializing radar server controller...")
         controller = RadarServerController()
@@ -134,7 +145,18 @@ def run_performance_test():
     print("=== Performance Test ===")
     
     try:
-        from RaspberryPiPicoRadarAndServerController.src.UART_Slave_Radar.tester.main import RadarServerController
+        # Import main controller (handle hyphenated folder name)
+        import sys
+        import os
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+        
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("radar_controller", 
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))),
+            "UART_Slave_Radar", "tester", "main.py"))
+        radar_main = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(radar_main)
+        RadarServerController = radar_main.RadarServerController
         
         controller = RadarServerController()
         

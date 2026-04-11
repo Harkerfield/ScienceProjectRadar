@@ -96,7 +96,7 @@ Complete master and endpoint communication pinouts for the Radar Project system.
 
 ## Raspberry Pi 4 (Server & Application Controller)
 
-**Location:** `RaspberryPiRadarFullStackApplicationAndStepperController/`
+**Location:** `RadarApp-FullStack/`
 
 **Function:** High-level application server that sends commands to Master Pico and receives sensor/system data for web UI and real-time control
 
