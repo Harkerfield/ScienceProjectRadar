@@ -21,19 +21,39 @@ LOG="/tmp/radar-client.log"
     
     # Wait for server
     echo "[$(date)] Waiting for server at $SERVER..."
-    for i in {1..60}; do
-        if curl -s "$SERVER" >/dev/null 2>&1; then
-            echo "[$(date)] Server is ready!"
-            break
+    
+    # Check if curl is available
+    if ! command -v curl &> /dev/null; then
+        echo "[$(date)] WARNING: curl not found, trying wget..."
+        if command -v wget &> /dev/null; then
+            for i in {1..60}; do
+                if wget -O /dev/null -q "$SERVER" 2>/dev/null; then
+                    echo "[$(date)] Server is ready!"
+                    break
+                fi
+                echo "[$(date)] Waiting... ($i/60)"
+                sleep 1
+            done
+        else
+            echo "[$(date)] WARNING: Neither curl nor wget available, skipping server check"
         fi
-        echo "[$(date)] Waiting... ($i/60)"
-        sleep 1
-    done
+    else
+        for i in {1..60}; do
+            if curl -s "$SERVER" >/dev/null 2>&1; then
+                echo "[$(date)] Server is ready!"
+                break
+            fi
+            echo "[$(date)] Waiting... ($i/60)"
+            sleep 1
+        done
+    fi
     
     # Check if server is running
-    if ! curl -s "$SERVER" >/dev/null 2>&1; then
-        echo "[$(date)] ERROR: Server not responding at $SERVER"
-        echo "[$(date)] Chromium will attempt to connect when server is ready"
+    if command -v curl &> /dev/null; then
+        if ! curl -s "$SERVER" >/dev/null 2>&1; then
+            echo "[$(date)] ERROR: Server not responding at $SERVER"
+            echo "[$(date)] Chromium will attempt to connect when server is ready"
+        fi
     fi
     
     # Check if display is available
@@ -45,9 +65,26 @@ LOG="/tmp/radar-client.log"
     
     echo "[$(date)] Starting Chromium on $DISPLAY..."
     
+    # Find Chromium browser (try multiple locations)
+    CHROMIUM_BIN=""
+    for browser in /usr/bin/chromium-browser /usr/bin/chromium /snap/bin/chromium /usr/bin/google-chrome /usr/bin/google-chrome-stable; do
+        if [ -x "$browser" ]; then
+            CHROMIUM_BIN="$browser"
+            echo "[$(date)] Found browser at: $CHROMIUM_BIN"
+            break
+        fi
+    done
+    
+    if [ -z "$CHROMIUM_BIN" ]; then
+        echo "[$(date)] ERROR: Chromium browser not found at any known location"
+        echo "[$(date)] Tried: /usr/bin/chromium-browser, /usr/bin/chromium, /snap/bin/chromium, /usr/bin/google-chrome"
+        echo "[$(date)] Install with: sudo apt-get install chromium-browser"
+        exit 1
+    fi
+    
     # Start Chromium fullscreen
     export DISPLAY
-    /usr/bin/chromium-browser \
+    "$CHROMIUM_BIN" \
         --kiosk \
         --start-fullscreen \
         --no-first-run \

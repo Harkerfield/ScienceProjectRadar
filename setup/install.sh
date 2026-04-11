@@ -13,6 +13,14 @@ NC='\033[0m'
 
 # Auto-detect the actual user (when running with sudo)
 ACTUAL_USER="${SUDO_USER:-$(whoami)}"
+
+# Prevent installation as root directly
+if [ "$ACTUAL_USER" = "root" ] && [ -z "$SUDO_USER" ]; then
+    echo -e "${RED}✗ ERROR: Must run with sudo as regular user, not as root directly${NC}"
+    echo -e "${YELLOW}Usage: sudo bash $0${NC}"
+    exit 1
+fi
+
 PROJECT_DIR="/home/$ACTUAL_USER/RadarProject"
 GIT_URL="https://github.com/Harkerfield/ScienceProjectRadar.git"
 
@@ -149,7 +157,7 @@ sudo systemctl daemon-reload
 sudo systemctl restart radar-server
 
 # Client service (kiosk mode + network accessible)
-sudo tee /etc/systemd/system/radar-client.service >/dev/null <<EOF
+sudo bash -c "cat > /etc/systemd/system/radar-client.service << 'EOFSERVICE'
 [Unit]
 Description=Radar Application Client (Kiosk Display)
 After=network-online.target radar-server.service
@@ -158,8 +166,8 @@ Wants=radar-server.service
 [Service]
 Type=simple
 User=$ACTUAL_USER
-Environment="DISPLAY=:0"
-Environment="XAUTHORITY=/home/$ACTUAL_USER/.Xauthority"
+Environment=\"DISPLAY=:0\"
+Environment=\"XAUTHORITY=/home/$ACTUAL_USER/.Xauthority\"
 ExecStart=/bin/bash $PROJECT_DIR/setup/start-client.sh
 Restart=always
 RestartSec=5
@@ -168,10 +176,11 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
-EOF
+EOFSERVICE
+"
 
 # Auto-update check service (runs on startup)
-sudo tee /etc/systemd/system/radar-update-check.service >/dev/null <<EOF
+sudo bash -c "cat > /etc/systemd/system/radar-update-check.service << 'EOFSERVICE'
 [Unit]
 Description=Radar - Auto Update Check
 After=network-online.target
@@ -185,7 +194,8 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
-EOF
+EOFSERVICE
+"
 
 sudo systemctl daemon-reload
 sudo systemctl enable radar-server.service radar-client.service radar-update-check.service
