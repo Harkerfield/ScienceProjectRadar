@@ -12,12 +12,17 @@ BLUE='\033[0;36m'
 NC='\033[0m'
 
 # Auto-detect the actual user (when running with sudo)
-ACTUAL_USER="${SUDO_USER:-$(whoami)}"
+# Priority: INSTALL_USER (set by start.sh) > SUDO_USER > current user
+ACTUAL_USER="${INSTALL_USER:-${SUDO_USER:-$(whoami)}}"
 
 # Prevent installation as root directly
-if [ "$ACTUAL_USER" = "root" ] && [ -z "$SUDO_USER" ]; then
-    echo -e "${RED}✗ ERROR: Must run with sudo as regular user, not as root directly${NC}"
-    echo -e "${YELLOW}Usage: sudo bash $0${NC}"
+if [ "$ACTUAL_USER" = "root" ]; then
+    echo -e "${RED}✗ ERROR: Cannot install as root${NC}"
+    echo -e "${YELLOW}Run via the control script:${NC}"
+    echo -e "  bash setup/start.sh install"
+    echo ""
+    echo -e "${YELLOW}Or directly with your username:${NC}"
+    echo -e "  INSTALL_USER=username sudo bash setup/install.sh"
     exit 1
 fi
 
@@ -29,6 +34,14 @@ echo -e "${BLUE}║   RADAR APPLICATION - INSTALLATION SCRIPT        ║${NC}"
 echo -e "${BLUE}╚═══════════════════════════════════════════════════╝${NC}\n"
 echo -e "${YELLOW}Detected user: $ACTUAL_USER${NC}"
 echo -e "${YELLOW}Project directory: $PROJECT_DIR${NC}\n"
+
+# Verify user exists
+if ! id "$ACTUAL_USER" &>/dev/null; then
+    echo -e "${RED}✗ ERROR: User '$ACTUAL_USER' does not exist on this system${NC}"
+    echo -e "${YELLOW}Available users:${NC} $(cut -d: -f1,3 /etc/passwd | grep ':[0-9][0-9][0-9]' | cut -d: -f1 | tr '\n' ' ')"
+    echo ""
+    exit 1
+fi
 
 # Step 1: Install system prerequisites
 echo -e "${YELLOW}[1/6] Installing system prerequisites...${NC}"
