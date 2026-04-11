@@ -5,11 +5,6 @@ module.exports = {
     // Ensure all URLs are relative, not absolute
     config.output.publicPath('/');
   },
-  css: {
-    extract: {
-      ignoreOrder: true
-    }
-  },
   configureWebpack: {
     output: {
       publicPath: '/'
@@ -17,5 +12,9 @@ module.exports = {
     optimization: {
       minimize: false
     }
-  }
+  },
+  // Ensure Bootstrap and dependencies are bundled, not CDN
+  transpileDependencies: [
+    'bootstrap'
+  ]
 }

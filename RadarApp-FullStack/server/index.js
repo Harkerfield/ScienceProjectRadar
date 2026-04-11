@@ -88,23 +88,13 @@ class RadarFullStackServer {
             originAgentCluster: false
         }));
         
-        // CORS
+        // CORS - Permissive for local network development
         this.app.use(cors({
-            origin: (origin, callback) => {
-                if (!origin) return callback(null, true);
-                if (this.corsOrigins.includes(origin)) {
-                    callback(null, true);
-                } else {
-                    const requestHostname = origin.split('//')[1]?.split(':')[0];
-                    if (requestHostname && requestHostname.includes(this.hostname)) {
-                        callback(null, true);
-                    } else {
-                        logger.warn(`Rejected CORS request from origin: ${origin}`);
-                        callback(null, false);
-                    }
-                }
-            },
-            credentials: true
+            origin: true,  // Allow all origins
+            credentials: true,
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization'],
+            optionsSuccessStatus: 200
         }));
         
         // Body parsing
