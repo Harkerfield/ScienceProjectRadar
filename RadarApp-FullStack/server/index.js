@@ -74,25 +74,51 @@ class RadarFullStackServer {
             next();
         });
 
-        // Security - relaxed for local network HTTP access
+        // Security - relaxed for local network HTTP access (DISABLE CSP from helmet)
         this.app.use(helmet({
-            contentSecurityPolicy: {
-                directives: {
-                    defaultSrc: ["'self'"],
-                    scriptSrc: ["'self'", "'unsafe-inline'"],
-                    styleSrc: ["'self'", "'unsafe-inline'"],
-                    connectSrc: this.getConnectSources(),
-                    mediaSrc: ["'self'"],
-                    objectSrc: ["'none'"]
-                    // NOTE: Do NOT include upgradeInsecureRequests - it forces HTTPS
-                }
-            },
+            contentSecurityPolicy: false,  // Disable helmet's CSP
             hsts: false,
             referrerPolicy: { policy: 'no-referrer' },
             crossOriginOpenerPolicy: false,
             crossOriginResourcePolicy: false,
             originAgentCluster: false
         }));
+
+        // CRITICAL: Remove upgrade-insecure-requests if helmet added it anyway
+        // This must run AFTER helmet middleware
+        this.app.use((req, res, next) => {
+            const originalSetHeader = res.setHeader;
+            res.setHeader = function(name, value) {
+                if (name.toLowerCase() === 'content-security-policy' && typeof value === 'string') {
+                    // Remove upgrade-insecure-requests directive
+                    value = value.replace(/;?upgrade-insecure-requests/g, '');
+                    // Remove any trailing semicolons
+                    value = value.replace(/;+$/, '');
+                }
+                return originalSetHeader.call(this, name, value);
+            };
+            next();
+        });
+
+        // Set clean manual CSP without upgrade-insecure-requests
+        this.app.use((req, res, next) => {
+            const cspDirectives = [
+                "default-src 'self'",
+                "script-src 'self' 'unsafe-inline'",
+                "style-src 'self' 'unsafe-inline'",
+                `connect-src ${this.getConnectSources().join(' ')}`,
+                "media-src 'self'",
+                "object-src 'none'",
+                "base-uri 'self'",
+                "font-src 'self' https: data:",
+                "form-action 'self'",
+                "frame-ancestors 'self'",
+                "img-src 'self' data:",
+                "script-src-attr 'none'"
+            ];
+            res.setHeader('Content-Security-Policy', cspDirectives.join(';'));
+            next();
+        });
         
         // CORS - Permissive for local network development
         this.app.use(cors({
