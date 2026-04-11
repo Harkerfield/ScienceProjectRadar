@@ -82,11 +82,9 @@ class RadarFullStackServer {
                     scriptSrc: ["'self'", "'unsafe-inline'"],
                     styleSrc: ["'self'", "'unsafe-inline'"],
                     connectSrc: this.getConnectSources(),
-                    fontSrc: ["'self'"],
-                    imgSrc: ["'self'", "data:"],
                     mediaSrc: ["'self'"],
-                    objectSrc: ["'none'"],
-                    upgradeInsecureRequests: []  // Explicitly do NOT upgrade HTTP to HTTPS
+                    objectSrc: ["'none'"]
+                    // NOTE: Do NOT include upgradeInsecureRequests - it forces HTTPS
                 }
             },
             hsts: false,
