@@ -67,6 +67,13 @@ class RadarFullStackServer {
     }
     
     setupMiddleware() {
+        // Prevent any HTTPS upgrade attempts - explicitly allow HTTP for local network
+        this.app.use((req, res, next) => {
+            res.removeHeader('Strict-Transport-Security');
+            res.setHeader('X-Content-Type-Options', 'nosniff');
+            next();
+        });
+
         // Security - relaxed for local network HTTP access
         this.app.use(helmet({
             contentSecurityPolicy: {
@@ -78,7 +85,8 @@ class RadarFullStackServer {
                     fontSrc: ["'self'"],
                     imgSrc: ["'self'", "data:"],
                     mediaSrc: ["'self'"],
-                    objectSrc: ["'none'"]
+                    objectSrc: ["'none'"],
+                    upgradeInsecureRequests: []  // Explicitly do NOT upgrade HTTP to HTTPS
                 }
             },
             hsts: false,
