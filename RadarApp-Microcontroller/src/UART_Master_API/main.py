@@ -436,18 +436,20 @@ def process_command(line, source='uart'):
         # Map SPEED command to SPIN (client compatibility)
         elif line.startswith('STEPPER:SPEED:'):
             try:
-                # Extract speed_us parameter: "STEPPER:SPEED:speed_us=3445" -> 3445
-                parts = line.split('=')
-                speed = int(parts[-1].strip())
+                # Extract speed_us parameter: "STEPPER:SPEED:3445" or "STEPPER:SPEED:speed_us=3445"
+                value_str = line.split(':')[-1].strip()
+                # Handle both positional (3445) and named (speed_us=3445) formats
+                speed = int(value_str.split('=')[-1])
                 response = stepper_spin(speed)
             except:
                 response = {"s": "error", "msg": "Invalid speed value"}
         # Map MOVE command to SPIN (simplified - uses speed as proxy for distance)
         elif line.startswith('STEPPER:MOVE:'):
             try:
-                # Extract degrees parameter: "STEPPER:MOVE:degrees=180" -> use as speed
-                parts = line.split('=')
-                degrees = int(parts[-1].strip())
+                # Extract degrees parameter: "STEPPER:MOVE:180" or "STEPPER:MOVE:degrees=180"
+                value_str = line.split(':')[-1].strip()
+                # Handle both positional (180) and named (degrees=180) formats
+                degrees = int(value_str.split('=')[-1])
                 # For now, map degrees to speed (full implementation would track position)
                 response = stepper_spin(degrees)
             except:
@@ -463,8 +465,10 @@ def process_command(line, source='uart'):
         # Map ROTATE command
         elif line.startswith('STEPPER:ROTATE:'):
             try:
-                parts = line.split('=')
-                speed = int(parts[-1].strip())
+                # Extract degrees parameter: "STEPPER:ROTATE:45" or "STEPPER:ROTATE:delta_degrees=45"
+                value_str = line.split(':')[-1].strip()
+                # Handle both positional (45) and named (delta_degrees=45) formats
+                speed = int(value_str.split('=')[-1])
                 response = stepper_spin(speed)
             except:
                 response = {"s": "error", "msg": "Invalid rotate value"}
@@ -485,8 +489,10 @@ def process_command(line, source='uart'):
         # Map SET_RANGE command (store the value for later use)
         elif line.startswith('RADAR:SET_RANGE:'):
             try:
-                parts = line.split('=')
-                centimeters = int(parts[-1].strip())
+                # Extract centimeters parameter: "RADAR:SET_RANGE:100" or "RADAR:SET_RANGE:centimeters=100"
+                value_str = line.split(':')[-1].strip()
+                # Handle both positional (100) and named (centimeters=100) formats
+                centimeters = int(value_str.split('=')[-1])
                 # Store the range value (simplified)
                 response = {"s": "ok", "device": "RADAR", "status": "OK", "data": {"range_cm": centimeters}}
             except:
@@ -494,8 +500,10 @@ def process_command(line, source='uart'):
         # Map SET_VELOCITY command (store the value for later use)
         elif line.startswith('RADAR:SET_VELOCITY:'):
             try:
-                parts = line.split('=')
-                velocity = float(parts[-1].strip())
+                # Extract velocity parameter: "RADAR:SET_VELOCITY:5.0" or "RADAR:SET_VELOCITY:meters_per_second=5.0"
+                value_str = line.split(':')[-1].strip()
+                # Handle both positional (5.0) and named (meters_per_second=5.0) formats
+                velocity = float(value_str.split('=')[-1])
                 # Store the velocity value (simplified)
                 response = {"s": "ok", "device": "RADAR", "status": "OK", "data": {"velocity_mps": velocity}}
             except:
