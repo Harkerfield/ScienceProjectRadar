@@ -354,9 +354,20 @@ class RadarFullStackServer {
             logger.info(`Client connected: ${socket.id}`);
             
             // Send initial system status
+            const picoConnected = this.serialComm?.isConnected || false;
             socket.emit('system:status', {
-                connected: this.serialComm?.isConnected || false,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                serial: {
+                    connected: picoConnected
+                },
+                pico: {
+                    status: picoConnected ? 'ready' : 'unavailable',
+                    initialized: picoConnected,
+                    connected: picoConnected
+                },
+                system: {
+                    uptime: process.uptime()
+                }
             });
             
             // Generic device command handler
@@ -496,10 +507,16 @@ class RadarFullStackServer {
     startStatusBroadcast() {
         // Broadcast system status every 5 seconds
         this.statusInterval = setInterval(() => {
+            const picoConnected = this.serialComm?.isConnected || false;
             const status = {
                 timestamp: new Date().toISOString(),
                 serial: {
-                    connected: this.serialComm?.isConnected || false
+                    connected: picoConnected
+                },
+                pico: {
+                    status: picoConnected ? 'ready' : 'unavailable',
+                    initialized: picoConnected,
+                    connected: picoConnected
                 },
                 system: {
                     uptime: process.uptime(),
