@@ -185,42 +185,6 @@
           </div>
         </div>
       </div>
-
-      <!-- System Settings -->
-      <div class="card system-settings">
-        <h2>System Settings</h2>
-        <div class="setting-group">
-          <div class="setting-item">
-            <label for="logLevel">Log Level:</label>
-            <select id="logLevel" v-model="localSettings.system.logLevel">
-              <option value="error">Error</option>
-              <option value="warn">Warning</option>
-              <option value="info">Info</option>
-              <option value="debug">Debug</option>
-            </select>
-          </div>
-          <div class="setting-item">
-            <label for="maxLogEntries">Max Log Entries:</label>
-            <input
-              id="maxLogEntries"
-              v-model.number="localSettings.system.maxLogEntries"
-              type="number"
-              min="10"
-              max="1000"
-            />
-          </div>
-          <div class="setting-item">
-            <label class="checkbox-label">
-              <input
-                v-model="localSettings.system.enableDebugMode"
-                type="checkbox"
-              />
-              <span class="checkmark"></span>
-              Enable Debug Mode
-            </label>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div class="settings-actions">
@@ -276,11 +240,6 @@ export default {
           enableSound: true,
           enableDesktop: false,
           duration: 3000
-        },
-        system: {
-          logLevel: 'info',
-          maxLogEntries: 100,
-          enableDebugMode: false
         }
       }
     }
@@ -356,11 +315,6 @@ export default {
             enableSound: true,
             enableDesktop: false,
             duration: 3000
-          },
-          system: {
-            logLevel: 'info',
-            maxLogEntries: 100,
-            enableDebugMode: false
           }
         }
 

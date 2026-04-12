@@ -100,7 +100,20 @@
             <div :class="['response-status', lastResponse.success ? 'success' : 'error']">
               {{ lastResponse.success ? '✓ Success' : '✗ Error' }}
             </div>
-            <pre class="response-json">{{ JSON.stringify(lastResponse.data, null, 2) }}</pre>
+            
+            <!-- Pico Device Response (Primary) -->
+            <div v-if="lastResponse.picoResponse" class="pico-response-section">
+              <div class="response-label">📱 Pico Device Response:</div>
+              <pre class="response-json">{{ JSON.stringify(lastResponse.picoResponse, null, 2) }}</pre>
+            </div>
+            
+            <!-- Full Server Response (Secondary) -->
+            <div class="server-response-section">
+              <details>
+                <summary class="response-label">🖥️ Full Server Response (click to expand)</summary>
+                <pre class="response-json">{{ JSON.stringify(lastResponse.data, null, 2) }}</pre>
+              </details>
+            </div>
           </div>
           <div v-else class="empty-state">
             Send a command to see the response
@@ -262,7 +275,8 @@ export default {
 
         this.lastResponse = {
           success: response.data.success !== false,
-          data: response.data
+          data: response.data,
+          picoResponse: response.data.response || response.data.data || null
         }
 
         this.$store.dispatch('notifications/showSuccess', 'Command sent successfully')
@@ -286,7 +300,8 @@ export default {
 
         this.lastResponse = {
           success: false,
-          data: historyItem.data
+          data: historyItem.data,
+          picoResponse: historyItem.data?.response || null
         }
 
         this.$store.dispatch('notifications/showError', `Command failed: ${error.message}`)
@@ -300,7 +315,8 @@ export default {
       const item = this.commandHistory[index]
       this.lastResponse = {
         success: item.success,
-        data: item.data
+        data: item.data,
+        picoResponse: item.data?.response || item.data?.data || null
       }
     },
 
@@ -610,6 +626,53 @@ export default {
 
 .command-builder {
   grid-column: span 1;
+}
+
+.pico-response-section {
+  background: #e8f5e9;
+  border-left: 4px solid #4caf50;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.response-label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.server-response-section {
+  background: #f5f5f5;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.server-response-section details {
+  cursor: pointer;
+  padding: 12px;
+}
+
+.server-response-section details summary {
+  user-select: none;
+  color: #666;
+  font-size: 13px;
+}
+
+.server-response-section details summary:hover {
+  color: #333;
+}
+
+.server-response-section details[open] {
+  background: #f9f9f9;
+}
+
+.server-response-section details[open] pre {
+  margin-top: 12px;
+  border-top: 1px solid #ddd;
+  padding-top: 12px;
 }
 
 @media (max-width: 1200px) {
