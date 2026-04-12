@@ -73,7 +73,7 @@ const actions = {
     }
   },
 
-  async open({ commit, _dispatch }) {
+  async open({ commit, dispatch }) {
     try {
       const response = await apiService.post('/device/SERVO/OPEN')
       const _data = response.data.data || response.data.response
@@ -110,7 +110,7 @@ const actions = {
     }
   },
 
-  async close({ commit, _dispatch }) {
+  async close({ commit, dispatch }) {
     try {
       const response = await apiService.post('/device/SERVO/CLOSE')
       const _data = response.data.data || response.data.response
@@ -174,7 +174,7 @@ const actions = {
     commit('CLEAR_HISTORY')
   },
 
-  async ping({ commit, _dispatch }) {
+  async ping({ _commit, _dispatch }) {
     try {
       const response = await apiService.post('/device/SERVO/PING')
       commit('ADD_HISTORY_ENTRY', {
