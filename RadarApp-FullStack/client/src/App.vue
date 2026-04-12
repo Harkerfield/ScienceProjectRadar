@@ -63,6 +63,14 @@
             {{ connectionStatusText }}
           </div>
 
+          <!-- Server IP Address -->
+          <div class="navbar-text me-3">
+            <span class="badge bg-info">
+              <i class="fas fa-network-wired me-1"></i>
+              {{ serverIP }}
+            </span>
+          </div>
+
           <!-- System Status -->
           <div class="navbar-text">
             <span class="badge bg-secondary">
@@ -107,7 +115,11 @@ export default {
     ...mapState(['isLoading', 'loadingMessage']),
     ...mapState('connection', ['connectionStatus']),
     ...mapGetters('connection', ['connectionStatusText']),
-    ...mapGetters('system', ['systemStatus'])
+    ...mapGetters('system', ['systemStatus']),
+
+    serverIP() {
+      return window.location.hostname || 'localhost'
+    }
   },
 
   async created() {

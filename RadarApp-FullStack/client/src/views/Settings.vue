@@ -8,52 +8,6 @@
     </div>
 
     <div class="settings-sections">
-      <!-- Connection Settings -->
-      <div class="card connection-settings">
-        <h2>Connection Settings</h2>
-        <div class="setting-group">
-          <div class="setting-item">
-            <label for="serverUrl">Server URL:</label>
-            <input
-              id="serverUrl"
-              v-model="localSettings.serverUrl"
-              type="url"
-              placeholder="http://localhost:3001"
-            />
-          </div>
-          <div class="setting-item">
-            <label for="websocketUrl">WebSocket URL:</label>
-            <input
-              id="websocketUrl"
-              v-model="localSettings.websocketUrl"
-              type="url"
-              placeholder="ws://localhost:3001"
-            />
-          </div>
-          <div class="setting-item">
-            <label for="reconnectInterval">Reconnect Interval (ms):</label>
-            <input
-              id="reconnectInterval"
-              v-model.number="localSettings.reconnectInterval"
-              type="number"
-              min="1000"
-              max="60000"
-              step="1000"
-            />
-          </div>
-          <div class="setting-item">
-            <label class="checkbox-label">
-              <input
-                v-model="localSettings.autoReconnect"
-                type="checkbox"
-              />
-              <span class="checkmark"></span>
-              Enable Auto-Reconnect
-            </label>
-          </div>
-        </div>
-      </div>
-
       <!-- Radar Settings -->
       <div class="card radar-settings">
         <h2>Radar Settings</h2>
@@ -266,56 +220,6 @@
             </label>
           </div>
         </div>
-      </div>
-
-      <!-- Servo Control -->
-      <div class="card servo-settings">
-        <h2>
-          <i class="fas fa-cog me-2"></i>
-          Servo Control
-        </h2>
-        <div class="setting-group">
-          <div v-if="!allConnected" class="alert alert-warning">
-            ⚠️ All connections required (Server, Serial, Pico) to control servo
-          </div>
-          <div class="setting-item">
-            <label>Servo Status:</label>
-            <span :class="['badge', servoActive ? 'bg-success' : 'bg-secondary', 'ms-2']">
-              {{ servoActive ? 'Active' : 'Inactive' }}
-            </span>
-          </div>
-          <div class="setting-item">
-            <label>Current Position:</label>
-            <span class="badge bg-primary ms-2">{{ servoPosition }}°</span>
-          </div>
-          <div class="button-group">
-            <button
-              @click="openServo"
-              :disabled="!allConnected"
-              class="btn btn-success btn-sm me-2"
-            >
-              <i class="fas fa-arrow-right me-1"></i>
-              Open Servo
-            </button>
-            <button
-              @click="closeServo"
-              :disabled="!allConnected"
-              class="btn btn-warning btn-sm me-2"
-            >
-              <i class="fas fa-arrow-left me-1"></i>
-              Close Servo
-            </button>
-            <button
-              @click="refreshServoStatus"
-              :disabled="!allConnected"
-              class="btn btn-outline-info btn-sm"
-            >
-              <i class="fas fa-sync me-1"></i>
-              Refresh
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div class="settings-actions">
@@ -385,14 +289,6 @@ export default {
 
     allConnected() {
       return this.$store.getters['connection/allConnected']
-    },
-
-    servoActive() {
-      return this.$store.state.actuator?.status?.isOpen || false
-    },
-
-    servoPosition() {
-      return this.$store.state.actuator?.status?.position || 90
     }
   },
 
@@ -518,51 +414,6 @@ export default {
       }
 
       input.click()
-    },
-
-    async openServo() {
-      try {
-        await this.$store.dispatch('actuator/open')
-        this.showNotification({
-          message: 'Servo opened successfully',
-          type: 'success'
-        })
-      } catch (error) {
-        this.showNotification({
-          message: `Failed to open servo: ${error.message}`,
-          type: 'error'
-        })
-      }
-    },
-
-    async closeServo() {
-      try {
-        await this.$store.dispatch('actuator/close')
-        this.showNotification({
-          message: 'Servo closed successfully',
-          type: 'success'
-        })
-      } catch (error) {
-        this.showNotification({
-          message: `Failed to close servo: ${error.message}`,
-          type: 'error'
-        })
-      }
-    },
-
-    async refreshServoStatus() {
-      try {
-        await this.$store.dispatch('actuator/fetchStatus')
-        this.showNotification({
-          message: 'Servo status refreshed',
-          type: 'info'
-        })
-      } catch (error) {
-        this.showNotification({
-          message: `Failed to refresh servo status: ${error.message}`,
-          type: 'error'
-        })
-      }
     }
   }
 }

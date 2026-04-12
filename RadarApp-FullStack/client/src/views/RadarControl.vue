@@ -150,12 +150,12 @@
           </div>
         </div>
 
-        <!-- Pico Servo Control -->
-        <div class="card card-custom mb-4" v-if="picoRadarActive || picoConnected">
+        <!-- Servo Control -->
+        <div class="card card-custom mb-4" v-if="picoConnected">
           <div class="card-header">
             <h6 class="card-title mb-0">
               <i class="fas fa-cog me-2"></i>
-              Pico Servo Control
+              Servo Control
             </h6>
           </div>
           <div class="card-body">
@@ -164,29 +164,37 @@
             </div>
             <div class="mb-3">
               <div class="servo-status mb-3">
-                <span class="status-label">Position:</span>
-                <span class="badge bg-primary">{{ picoServoPosition }}°</span>
-                <span class="status-label ms-3">Status:</span>
-                <span :class="['badge', picoServoActive ? 'bg-success' : 'bg-secondary']">
-                  {{ picoServoActive ? 'Active' : 'Neutral' }}
+                <span class="status-label">Status:</span>
+                <span :class="['badge', servoActive ? 'bg-success' : 'bg-secondary', 'ms-2']">
+                  {{ servoActive ? 'Extended' : 'Retracted' }}
                 </span>
+                <span class="status-label ms-3">Position:</span>
+                <span class="badge bg-primary ms-2">{{ servoPosition }}°</span>
               </div>
 
-              <div class="d-grid gap-2">
+              <div class="d-grid gap-2" style="grid-template-columns: 1fr 1fr;">
                 <button
-                  @click="activatePicoServo"
-                  :class="['btn', picoServoActive ? 'btn-warning' : 'btn-success']"
+                  @click="openServo"
+                  class="btn btn-success"
                   :disabled="!allConnected"
                 >
-                  <i :class="['fas', picoServoActive ? 'fa-stop' : 'fa-play', 'me-1']"></i>
-                  {{ picoServoActive ? 'Deactivate' : 'Activate' }} Servo
+                  <i class="fas fa-arrow-right me-1"></i>
+                  Open
                 </button>
-
-                <button @click="requestPicoStatus" class="btn btn-outline-info btn-sm" :disabled="!allConnected">
-                  <i class="fas fa-sync me-1"></i>
-                  Refresh Status
+                <button
+                  @click="closeServo"
+                  class="btn btn-warning"
+                  :disabled="!allConnected"
+                >
+                  <i class="fas fa-arrow-left me-1"></i>
+                  Close
                 </button>
               </div>
+
+              <button @click="refreshServoStatus" class="btn btn-outline-info btn-sm w-100 mt-2" :disabled="!allConnected">
+                <i class="fas fa-sync me-1"></i>
+                Refresh Status
+              </button>
             </div>
           </div>
         </div>
@@ -312,6 +320,14 @@ export default {
       return this.picoServoStatus?.is_active || false
     },
 
+    servoActive() {
+      return this.$store.state.actuator?.status?.isOpen || false
+    },
+
+    servoPosition() {
+      return this.$store.state.actuator?.status?.position || 90
+    },
+
     radarDataCount() {
       return this.radarData.length + (this.picoRadarData?.length || 0)
     }
@@ -330,6 +346,7 @@ export default {
     ...mapActions('radar', [
       'startRadar', 'stopRadar', 'updateConfiguration', 'clearData', 'exportData'
     ]),
+    ...mapActions('actuator', ['open', 'close', 'fetchStatus']),
     ...mapActions('pico', [
       'sendCommand', 'controlServo', 'requestStatus'
     ]),
@@ -506,6 +523,57 @@ export default {
         scanInterval: this.scanInterval
       }
       localStorage.setItem('radarSettings', JSON.stringify(settings))
+    },
+
+    async openServo() {
+      try {
+        await this.open()
+        this.addNotification({
+          type: 'success',
+          title: 'Servo Control',
+          message: 'Servo opened successfully'
+        })
+      } catch (error) {
+        this.addNotification({
+          type: 'error',
+          title: 'Servo Error',
+          message: `Failed: ${error.message}`
+        })
+      }
+    },
+
+    async closeServo() {
+      try {
+        await this.close()
+        this.addNotification({
+          type: 'success',
+          title: 'Servo Control',
+          message: 'Servo closed successfully'
+        })
+      } catch (error) {
+        this.addNotification({
+          type: 'error',
+          title: 'Servo Error',
+          message: `Failed: ${error.message}`
+        })
+      }
+    },
+
+    async refreshServoStatus() {
+      try {
+        await this.fetchStatus()
+        this.addNotification({
+          type: 'success',
+          title: 'Servo Status',
+          message: 'Status refreshed'
+        })
+      } catch (error) {
+        this.addNotification({
+          type: 'error',
+          title: 'Status Error',
+          message: `Failed: ${error.message}`
+        })
+      }
     }
   }
 }
