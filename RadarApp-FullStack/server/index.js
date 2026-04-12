@@ -425,19 +425,19 @@ class RadarFullStackServer {
                 }
             });
             
-            // Actuator control
+            // Actuator/Servo control
             socket.on('actuator:command', async (data) => {
                 try {
-                    logger.info(`Actuator command from ${socket.id}:`, data);
+                    logger.info(`Servo command from ${socket.id}:`, data);
                     const { command, args } = data;
                     const fullCommand = args
-                        ? `ACTUATOR:${command}:${args}`
-                        : `ACTUATOR:${command}`;
+                        ? `SERVO:${command}:${args}`
+                        : `SERVO:${command}`;
                     
                     const response = await this.serialComm.sendDeviceCommand(fullCommand);
                     socket.emit('actuator:response', response);
                 } catch (error) {
-                    logger.error(`Actuator command error: ${error.message}`);
+                    logger.error(`Servo command error: ${error.message}`);
                     socket.emit('actuator:error', { error: error.message });
                 }
             });
