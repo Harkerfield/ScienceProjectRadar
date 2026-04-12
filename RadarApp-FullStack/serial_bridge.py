@@ -28,15 +28,14 @@ logger = logging.getLogger(__name__)
 # Configuration
 SERIAL_PORT = '/dev/ttyAMA0'           # Raspberry Pi UART port
 BAUD_RATE = 460800                     # Pico Master UART0 speed
-TIMEOUT = 2.0                          # Serial read timeout
-COMMAND_TIMEOUT = 5000                 # Command response timeout (ms)
+TIMEOUT = 0.5                          # Serial read timeout
+COMMAND_TIMEOUT = 5.0                  # Command response timeout (seconds)
 
 # Global state
 ser = None
 is_running = False
-pending_commands = {}  # Track pending commands by ID
-response_thread = None
-command_id_counter = 0
+response_buffer = []                   # Collected responses from Pico
+response_thread = None                 # Serial listener thread
 lock = threading.Lock()
 
 
@@ -55,8 +54,8 @@ def connect_serial():
 
 
 def listen_to_serial():
-    """Background thread: Continuously read from serial and send to Node.js"""
-    global is_running
+    """Background thread: Continuously read from serial"""
+    global is_running, response_buffer
     
     buffer = ''
     logger.info("Serial listener thread started")
@@ -73,11 +72,10 @@ def listen_to_serial():
                     line = line.strip()
                     
                     if line:
-                        # Send to Node.js with SERIAL_DATA prefix
-                        response = {'type': 'serial_data', 'data': line}
-                        print(json.dumps(response))
-                        sys.stdout.flush()
-                        logger.debug(f"Sent to Node.js: {line}")
+                        # Collect response in buffer for waiting commands
+                        with lock:
+                            response_buffer.append(line)
+                        logger.debug(f"Received from Pico: {line}")
             else:
                 time.sleep(0.01)  # Prevent CPU spinning
                 
@@ -108,6 +106,7 @@ def send_to_serial(command):
 
 def handle_command(cmd_data):
     """Process incoming command from Node.js"""
+    global response_buffer
     try:
         action = cmd_data.get('action')
         
@@ -118,8 +117,7 @@ def handle_command(cmd_data):
         elif action == 'disconnect':
             if ser and ser.is_open:
                 ser.close()
-                return {'status': 'ok', 'message': 'Disconnected'}
-            return {'status': 'ok', 'message': 'Not connected'}
+            return {'status': 'ok', 'message': 'Disconnected'}
         
         elif action == 'status':
             return {
@@ -134,11 +132,38 @@ def handle_command(cmd_data):
             if not command:
                 return {'status': 'error', 'message': 'No command provided'}
             
+            # Clear response buffer before sending
+            with lock:
+                response_buffer.clear()
+            
+            # Send command to serial
             success = send_to_serial(command)
+            if not success:
+                return {'status': 'error', 'message': 'Failed to send command'}
+            
+            logger.info(f"Command sent: {command}")
+            
+            # Wait for response from Pico Master
+            start_time = time.time()
+            while (time.time() - start_time) < COMMAND_TIMEOUT:
+                with lock:
+                    if response_buffer:
+                        response = response_buffer.pop(0)
+                        logger.info(f"Response received: {response}")
+                        return {
+                            'status': 'ok',
+                            'command': command,
+                            'response': response,
+                            'sent': True
+                        }
+                time.sleep(0.05)  # Small sleep to reduce CPU usage
+            
+            logger.warning(f"No response from Pico for command: {command}")
             return {
-                'status': 'ok' if success else 'error',
+                'status': 'timeout',
                 'command': command,
-                'sent': success
+                'message': f'No response after {COMMAND_TIMEOUT}s',
+                'sent': True
             }
         
         else:
