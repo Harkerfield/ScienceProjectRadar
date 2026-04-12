@@ -393,7 +393,7 @@ const actions = {
     }
   },
 
-  async ping({ commit, dispatch }) {
+  async ping({ commit, _dispatch }) {
     try {
       const response = await apiService.post('/device/STEPPER/PING')
       commit('ADD_HISTORY_ENTRY', {
@@ -411,7 +411,7 @@ const actions = {
     }
   },
 
-  async getInfo({ commit, dispatch }) {
+  async getInfo({ _commit, _dispatch }) {
     try {
       const response = await apiService.post('/device/STEPPER/WHOAMI')
       return response.data

@@ -73,10 +73,10 @@ const actions = {
     }
   },
 
-  async open({ commit, dispatch }) {
+  async open({ commit, _dispatch }) {
     try {
       const response = await apiService.post('/device/SERVO/OPEN')
-      const data = response.data.data || response.data.response
+      const _data = response.data.data || response.data.response
 
       commit('SET_STATUS', {
         state: 'open',
@@ -110,10 +110,10 @@ const actions = {
     }
   },
 
-  async close({ commit, dispatch }) {
+  async close({ commit, _dispatch }) {
     try {
       const response = await apiService.post('/device/SERVO/CLOSE')
-      const data = response.data.data || response.data.response
+      const _data = response.data.data || response.data.response
 
       commit('SET_STATUS', {
         state: 'closed',
@@ -174,7 +174,7 @@ const actions = {
     commit('CLEAR_HISTORY')
   },
 
-  async ping({ commit, dispatch }) {
+  async ping({ commit, _dispatch }) {
     try {
       const response = await apiService.post('/device/SERVO/PING')
       commit('ADD_HISTORY_ENTRY', {
@@ -192,7 +192,7 @@ const actions = {
     }
   },
 
-  async getInfo({ commit, dispatch }) {
+  async getInfo({ _commit, _dispatch }) {
     try {
       const response = await apiService.post('/device/SERVO/WHOAMI')
       return response.data

@@ -405,7 +405,7 @@ export default {
       }
     },
 
-    async ping({ commit }) {
+    async ping({ _commit }) {
       try {
         const response = await apiService.post('/device/RADAR/PING')
         return response.data
@@ -415,7 +415,7 @@ export default {
       }
     },
 
-    async getInfo({ commit }) {
+    async getInfo({ _commit }) {
       try {
         const response = await apiService.post('/device/RADAR/WHOAMI')
         return response.data
