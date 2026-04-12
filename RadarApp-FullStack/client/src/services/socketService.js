@@ -146,6 +146,13 @@ class SocketService {
       }
     })
 
+    // System heartbeat tracking
+    this.socket.on('system:status', (data) => {
+      if (this.store) {
+        this.store.dispatch('system/recordHeartbeat')
+      }
+    })
+
     // Stepper motor events
     this.socket.on('stepperStatus', (data) => {
       if (this.store) {
