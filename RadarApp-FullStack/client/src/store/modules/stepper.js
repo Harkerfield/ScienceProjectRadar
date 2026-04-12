@@ -422,15 +422,11 @@ const actions = {
   },
 
   /**
-   * Raise stepper by fixed increment (15 degrees)
+   * Raise stepper to full extent (360°)
    */
-  async raise({ state, dispatch }) {
-    const INCREMENT = 15 // degrees
-    const currentTarget = state.status.targetPosition
-    const newTarget = Math.min(360, currentTarget + INCREMENT)
-    
+  async raise({ dispatch }) {
     try {
-      await dispatch('moveToAngle', { angle: newTarget })
+      await dispatch('moveToAngle', { angle: 360 })
     } catch (error) {
       console.error('Failed to raise:', error)
       throw error
@@ -438,15 +434,11 @@ const actions = {
   },
 
   /**
-   * Lower stepper by fixed increment (15 degrees)
+   * Lower stepper to minimum (0°)
    */
-  async lower({ state, dispatch }) {
-    const INCREMENT = 15 // degrees
-    const currentTarget = state.status.targetPosition
-    const newTarget = Math.max(0, currentTarget - INCREMENT)
-    
+  async lower({ dispatch }) {
     try {
-      await dispatch('moveToAngle', { angle: newTarget })
+      await dispatch('moveToAngle', { angle: 0 })
     } catch (error) {
       console.error('Failed to lower:', error)
       throw error

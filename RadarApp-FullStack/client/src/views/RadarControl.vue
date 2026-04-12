@@ -214,25 +214,31 @@
             <div v-if="!allConnected" class="alert alert-warning" role="alert">
               ⚠️ Stepper control disabled. All connections required (Server, Serial, Pico).
             </div>
-            <div v-if="allConnected" class="d-grid gap-2" style="grid-template-columns: 1fr 1fr;">
-              <button
-                @click="raiseMotor"
-                class="btn btn-success btn-lg"
-                :disabled="!allConnected"
-              >
-                <i class="fas fa-arrow-up me-1"></i>
-                Raise
-              </button>
-              <button
-                @click="lowerMotor"
-                class="btn btn-warning btn-lg"
-                :disabled="!allConnected"
-              >
-                <i class="fas fa-arrow-down me-1"></i>
-                Lower
-              </button>
+            <div v-if="allConnected">
+              <div class="mb-3">
+                <span class="badge" :class="targetPosition === 360 ? 'bg-success' : targetPosition === 0 ? 'bg-warning' : 'bg-info'">
+                  {{ targetPosition === 360 ? '☝️ Up' : targetPosition === 0 ? '👇 Down' : `Position: ${targetPosition}°` }}
+                </span>
+              </div>
+              <div class="d-grid gap-2" style="grid-template-columns: 1fr 1fr;">
+                <button
+                  @click="raiseMotor"
+                  class="btn btn-success btn-lg"
+                  :disabled="!allConnected"
+                >
+                  <i class="fas fa-arrow-up me-1"></i>
+                  Raise
+                </button>
+                <button
+                  @click="lowerMotor"
+                  class="btn btn-warning btn-lg"
+                  :disabled="!allConnected"
+                >
+                  <i class="fas fa-arrow-down me-1"></i>
+                  Lower
+                </button>
+              </div>
             </div>
-            <p class="text-muted small mt-2 mb-0">Each click moves 15° • Target: {{ targetPosition }}°</p>
           </div>
         </div>
 
