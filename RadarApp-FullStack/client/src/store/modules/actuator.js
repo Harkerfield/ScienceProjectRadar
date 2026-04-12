@@ -174,7 +174,7 @@ const actions = {
     commit('CLEAR_HISTORY')
   },
 
-  async ping({ _commit, _dispatch }) {
+  async ping({ commit, _dispatch }) {
     try {
       const response = await apiService.post('/device/SERVO/PING')
       commit('ADD_HISTORY_ENTRY', {
