@@ -266,6 +266,9 @@ export default {
       'raise',
       'lower'
     ]),
+    ...mapActions('notifications', [
+      'addNotification'
+    ]),
 
     moveToPosition() {
       if (this.manualTargetPosition >= 0 && this.manualTargetPosition <= 360) {
