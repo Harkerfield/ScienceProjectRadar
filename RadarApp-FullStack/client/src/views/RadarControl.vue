@@ -20,11 +20,19 @@
               </button>
               <button
                 @click="togglePicoRadar"
-                :class="['btn', 'btn-sm', picoRadarActive ? 'btn-success' : 'btn-outline-secondary']"
+                :class="['btn', 'btn-sm', 'me-2', picoRadarActive ? 'btn-success' : 'btn-outline-secondary']"
                 :disabled="!allConnected"
               >
                 <i class="fas fa-microchip me-1"></i>
                 Pico Radar
+              </button>
+              <button
+                @click="emergencyStop"
+                class="btn btn-sm btn-danger"
+                :disabled="!allConnected"
+              >
+                <i class="fas fa-stop me-1"></i>
+                EMERGENCY STOP
               </button>
             </div>
           </div>
@@ -571,6 +579,26 @@ export default {
         this.addNotification({
           type: 'error',
           title: 'Status Error',
+          message: `Failed: ${error.message}`
+        })
+      }
+    },
+
+    async emergencyStop() {
+      try {
+        if (confirm('Are you sure you want to trigger EMERGENCY STOP? This will stop all radar operations immediately!')) {
+          await this.stopRadar()
+          await this.close()
+          this.addNotification({
+            type: 'error',
+            title: '🛑 EMERGENCY STOP',
+            message: 'All systems halted'
+          })
+        }
+      } catch (error) {
+        this.addNotification({
+          type: 'error',
+          title: 'Emergency Stop Error',
           message: `Failed: ${error.message}`
         })
       }

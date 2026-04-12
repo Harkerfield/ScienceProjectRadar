@@ -1,10 +1,46 @@
-// Global CSS styles
+/* Global CSS styles */
+/* Theme Variables */
+:root {
+  --theme-primary-bg: #ffffff;
+  --theme-secondary-bg: #f8f9fa;
+  --theme-primary-text: #333333;
+  --theme-secondary-text: #666666;
+  --theme-border-color: #dee2e6;
+}
+
+#app.theme-dark {
+  --theme-primary-bg: #1a1a1a;
+  --theme-secondary-bg: #2d2d2d;
+  --theme-primary-text: #ffffff;
+  --theme-secondary-text: #b0b0b0;
+  --theme-border-color: #444444;
+}
+
+#app.theme-dark body {
+  background-color: var(--theme-secondary-bg) !important;
+  color: var(--theme-primary-text) !important;
+}
+
+#app.theme-dark .navbar,
+#app.theme-dark .card {
+  background-color: var(--theme-primary-bg) !important;
+  color: var(--theme-primary-text) !important;
+  border-color: var(--theme-border-color) !important;
+}
+
+#app.theme-dark .form-control,
+#app.theme-dark .form-select {
+  background-color: var(--theme-secondary-bg) !important;
+  color: var(--theme-primary-text) !important;
+  border-color: var(--theme-border-color) !important;
+}
+
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f8f9fa;
+  background-color: var(--theme-secondary-bg);
 }
 
 * {

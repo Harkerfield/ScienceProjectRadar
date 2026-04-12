@@ -430,6 +430,7 @@ export default {
       const distance = Math.sqrt(dx * dx + dy * dy)
       const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 90 + 360) % 360
 
+      // Set position for crosshair - CSS transform will center it
       this.mousePosition = { x, y }
       this.mouseDistance = Math.round((distance / this.scaleFactor) * 10) / 10
       this.mouseAngle = Math.round(angle)
@@ -506,41 +507,44 @@ canvas {
   position: absolute;
   pointer-events: none;
   z-index: 10;
+  transform: translate(-50%, -50%);
 }
 
 .radar-crosshair::before,
 .radar-crosshair::after {
   content: '';
   position: absolute;
-  background: rgba(0, 255, 0, 0.8);
+  background: rgba(0, 255, 0, 0.9);
+  box-shadow: 0 0 5px rgba(0, 255, 0, 0.8);
 }
 
 .radar-crosshair::before {
-  width: 20px;
-  height: 1px;
-  top: -0.5px;
-  left: -10px;
+  width: 24px;
+  height: 2px;
+  top: -1px;
+  left: -12px;
 }
 
 .radar-crosshair::after {
-  width: 1px;
-  height: 20px;
-  top: -10px;
-  left: -0.5px;
+  width: 2px;
+  height: 24px;
+  top: -12px;
+  left: -1px;
 }
 
 .crosshair-info {
   position: absolute;
-  top: -25px;
-  left: 10px;
-  background: rgba(0, 0, 0, 0.9);
+  top: -28px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.95);
   color: #00ff00;
-  padding: 2px 6px;
+  padding: 4px 8px;
   border-radius: 3px;
   font-family: 'Courier New', monospace;
-  font-size: 10px;
+  font-size: 11px;
   white-space: nowrap;
-  border: 1px solid rgba(0, 255, 0, 0.5);
+  border: 1px solid rgba(0, 255, 0, 0.6);
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
 }
 
 @media (max-width: 768px) {

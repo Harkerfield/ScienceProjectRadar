@@ -108,7 +108,7 @@
         <div class="setting-group">
           <div class="setting-item">
             <label for="theme">Theme:</label>
-            <select id="theme" v-model="localSettings.display.theme">
+            <select id="theme" v-model="localSettings.display.theme" @change="applyThemeChange">
               <option value="light">Light</option>
               <option value="dark">Dark</option>
               <option value="auto">Auto</option>
@@ -161,6 +161,10 @@
               <span class="checkmark"></span>
               Enable Sound Notifications
             </label>
+            <button @click="testNotificationSound" class="btn btn-sm btn-outline-secondary ms-2" v-if="localSettings.notifications.enableSound">
+              <i class="fas fa-volume-up me-1"></i>
+              Test Sound
+            </button>
           </div>
           <div class="setting-item">
             <label class="checkbox-label">
@@ -395,6 +399,38 @@ export default {
         console.error('Error loading microcontroller settings:', error)
         // Silently fail - use local defaults if server settings unavailable
       }
+    },
+
+    applyThemeChange() {
+      // Apply theme immediately
+      this.$root.setTheme(this.localSettings.display.theme)
+      localStorage.setItem('userSettings', JSON.stringify(this.localSettings))
+    },
+
+    testNotificationSound() {
+      // Create and play a notification sound (blimp sound)
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+
+      // Create a blimp-like sound: quick ascent then descend
+      oscillator.frequency.setValueAtTime(200, audioContext.currentTime)
+      oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.3)
+      oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.5)
+
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5)
+
+      oscillator.start(audioContext.currentTime)
+      oscillator.stop(audioContext.currentTime + 0.5)
+
+      this.showNotification({
+        message: 'Notification sound test played',
+        type: 'success'
+      })
     }
   }
 }

@@ -94,6 +94,13 @@
             >
               Stop
             </button>
+            <button
+              @click="emergencyStop"
+              :disabled="!allConnected"
+              class="btn btn-danger btn-emergency"
+            >
+              🛑 EMERGENCY STOP
+            </button>
           </div>
         </div>
       </div>
@@ -294,6 +301,17 @@ export default {
 
     applyConfiguration() {
       this.updateConfiguration(this.motorConfig)
+    },
+
+    emergencyStop() {
+      if (confirm('Are you sure you want to trigger EMERGENCY STOP? This will immediately stop all motor operations!')) {
+        this.stopRotation()
+        this.addNotification({
+          type: 'error',
+          title: '🛑 EMERGENCY STOP',
+          message: 'Stepper motor halted immediately'
+        })
+      }
     }
   }
 }
@@ -550,5 +568,25 @@ export default {
 .btn-outline:hover:not(:disabled) {
   background: #2196f3;
   color: white;
+}
+
+.btn-emergency {
+  background: #d32f2f !important;
+  font-weight: 700 !important;
+  animation: pulse 2s infinite;
+}
+
+.btn-emergency:hover:not(:disabled) {
+  background: #b71c1c !important;
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(211, 47, 47, 0);
+  }
 }
 </style>

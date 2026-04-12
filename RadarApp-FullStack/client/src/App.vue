@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" :class="`theme-${currentTheme}`">
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
@@ -111,6 +111,12 @@ export default {
     NotificationContainer
   },
 
+  data() {
+    return {
+      currentTheme: 'light'
+    }
+  },
+
   computed: {
     ...mapState(['isLoading', 'loadingMessage']),
     ...mapState('connection', ['connectionStatus']),
@@ -123,6 +129,11 @@ export default {
   },
 
   async created() {
+    // Load theme preference
+    const savedTheme = localStorage.getItem('selectedTheme') || 'light'
+    this.currentTheme = savedTheme
+    this.applyTheme(savedTheme)
+
     // Initialize the application
     await this.initializeApp()
   },
@@ -171,6 +182,23 @@ export default {
         this.$store.dispatch('radar/fetchStatus'),
         this.$store.dispatch('system/fetchStatus')
       ])
+    },
+
+    applyTheme(theme) {
+      // Handle auto theme
+      if (theme === 'auto') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        this.currentTheme = prefersDark ? 'dark' : 'light'
+      } else {
+        this.currentTheme = theme
+      }
+      
+      // Save preference
+      localStorage.setItem('selectedTheme', theme)
+    },
+
+    setTheme(theme) {
+      this.applyTheme(theme)
     }
   }
 }
