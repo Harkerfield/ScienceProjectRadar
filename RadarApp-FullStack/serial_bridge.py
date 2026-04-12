@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 SERIAL_PORT = '/dev/ttyAMA0'           # Raspberry Pi UART port
 BAUD_RATE = 460800                     # Pico Master UART0 speed
 TIMEOUT = 0.5                          # Serial read timeout
-COMMAND_TIMEOUT = 5.0                  # Command response timeout (seconds)
+COMMAND_TIMEOUT = 10.0                 # Command response timeout (seconds)
 
 # Global state
 ser = None

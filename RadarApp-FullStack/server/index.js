@@ -36,7 +36,7 @@ class RadarFullStackServer {
         this.serialComm = new SerialComm({
             pythonExe: process.env.PYTHON_EXE || 'python3',
             scriptPath: path.join(__dirname, '../serial_bridge.py'),
-            commandTimeout: 5000
+            commandTimeout: 10000
         });
         
         this.setupMiddleware();

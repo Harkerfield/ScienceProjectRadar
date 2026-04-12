@@ -10,7 +10,7 @@ class PicoMasterSerial {
   constructor(options = {}) {
     this.portPath = options.port || process.env.PICO_UART_PORT || '/dev/ttyACM0';
     this.baudRate = options.baudRate || parseInt(process.env.PICO_UART_BAUD_RATE) || 115200;
-    this.timeout = options.timeout || 5000;
+    this.timeout = options.timeout || 10000;
     this.isConnected = false;
     this.port = null;
     this.parser = null;

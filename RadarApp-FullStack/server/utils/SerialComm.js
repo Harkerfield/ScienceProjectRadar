@@ -19,7 +19,7 @@ class SerialComm {
         
         // Pending command callbacks
         this.pendingCommands = new Map();
-        this.commandTimeout = options.commandTimeout || 5000;
+        this.commandTimeout = options.commandTimeout || 10000;
         
         // Serial data callbacks
         this.dataHandlers = [];
