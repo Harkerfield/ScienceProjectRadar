@@ -198,21 +198,28 @@ export default {
 
     async controlServo({ dispatch }, action) {
       try {
-        const commands = {
-          activate: { command: 'servo_activate' },
-          deactivate: { command: 'servo_deactivate' },
-          position: { command: 'servo_position', params: { angle: action.angle } },
-          sweep: { command: 'servo_sweep', params: { start: action.start, end: action.end, speed: action.speed } }
+        // Map pico action to actuator store methods
+        if (action === 'activate' || action === 'open') {
+          return await dispatch('actuator/open', {}, { root: true })
+        } else if (action === 'deactivate' || action === 'close') {
+          return await dispatch('actuator/close', {}, { root: true })
+        } else if (typeof action === 'object') {
+          // Handle object-based actions if needed
+          if (action.type === 'open' || action.type === 'activate') {
+            return await dispatch('actuator/open', {}, { root: true })
+          } else if (action.type === 'close' || action.type === 'deactivate') {
+            return await dispatch('actuator/close', {}, { root: true })
+          }
         }
-
-        const commandData = commands[action] || commands[action.type]
-        if (!commandData) {
-          throw new Error(`Unknown servo action: ${action}`)
-        }
-
-        return await dispatch('sendCommand', commandData)
+        
+        throw new Error(`Unknown servo action: ${action}`)
       } catch (error) {
-        throw new Error(`Servo control failed: ${error.message}`)
+        dispatch('notifications/addNotification', {
+          type: 'error',
+          title: 'Servo Control Error',
+          message: error.message
+        }, { root: true })
+        throw error
       }
     },
 
