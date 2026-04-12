@@ -147,7 +147,7 @@ class SocketService {
     })
 
     // System heartbeat tracking
-    this.socket.on('system:status', (data) => {
+    this.socket.on('system:status', () => {
       if (this.store) {
         this.store.dispatch('system/recordHeartbeat')
       }
