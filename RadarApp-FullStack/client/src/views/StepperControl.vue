@@ -334,9 +334,10 @@ export default {
       if (confirm('Are you sure you want to trigger EMERGENCY STOP? This will immediately stop all motor operations!')) {
         this.stopRotation()
         this.addNotification({
-          type: 'error',
-          title: '🛑 EMERGENCY STOP',
-          message: 'Stepper motor halted immediately'
+          type: 'emergency',
+          title: '🛑 EMERGENCY STOP ACTIVATED',
+          message: 'Stepper motor halted immediately. Click "Clear" to acknowledge.',
+          persistent: true
         })
       }
     }

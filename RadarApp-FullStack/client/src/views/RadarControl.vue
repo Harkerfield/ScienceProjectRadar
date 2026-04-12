@@ -645,16 +645,18 @@ export default {
           await this.stopRadar()
           await this.close()
           this.addNotification({
-            type: 'error',
-            title: '🛑 EMERGENCY STOP',
-            message: 'All systems halted'
+            type: 'emergency',
+            title: '🛑 EMERGENCY STOP ACTIVATED',
+            message: 'All systems halted. Click "Clear" to acknowledge.',
+            persistent: true
           })
         }
       } catch (error) {
         this.addNotification({
           type: 'error',
           title: 'Emergency Stop Error',
-          message: `Failed: ${error.message}`
+          message: `Failed: ${error.message}`,
+          timeout: 5000
         })
       }
     }

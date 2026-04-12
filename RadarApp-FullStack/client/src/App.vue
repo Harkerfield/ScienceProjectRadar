@@ -82,6 +82,9 @@
       </div>
     </nav>
 
+    <!-- Emergency Banner -->
+    <EmergencyBanner />
+
     <!-- Main Content -->
     <main class="container-fluid mt-3">
       <router-view />
@@ -103,12 +106,14 @@
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex'
 import NotificationContainer from './components/NotificationContainer.vue'
+import EmergencyBanner from './components/EmergencyBanner.vue'
 import socketService from './services/socketService'
 
 export default {
   name: 'App',
   components: {
-    NotificationContainer
+    NotificationContainer,
+    EmergencyBanner
   },
 
   data() {

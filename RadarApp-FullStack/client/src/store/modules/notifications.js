@@ -8,6 +8,10 @@ export default {
   },
 
   getters: {
+    notifications: (state) => {
+      return state.notifications.filter(notification => !notification.dismissed)
+    },
+
     activeNotifications: (state) => {
       return state.notifications.filter(notification => !notification.dismissed)
     },
@@ -16,12 +20,20 @@ export default {
       return state.notifications.slice(-20) // Keep last 20 for history
     },
 
+    emergencyNotifications: (state) => {
+      return state.notifications.filter(n => n.type === 'emergency' && !n.dismissed)
+    },
+
     errorNotifications: (state) => {
       return state.notifications.filter(n => n.type === 'error' && !n.dismissed)
     },
 
     hasUnreadErrors: (state, getters) => {
       return getters.errorNotifications.length > 0
+    },
+
+    hasEmergency: (state, getters) => {
+      return getters.emergencyNotifications.length > 0
     }
   },
 
@@ -35,9 +47,13 @@ export default {
         ...notification
       }
 
-      // Set default timeout based on type
+      // Set default timeout and persistent flag based on type
       if (!newNotification.timeout) {
         switch (newNotification.type) {
+        case 'emergency':
+          newNotification.timeout = 0 // No auto-dismiss for emergencies
+          newNotification.persistent = true
+          break
         case 'error':
           newNotification.timeout = 10000 // 10 seconds for errors
           break
@@ -49,7 +65,7 @@ export default {
           break
         case 'info':
         default:
-          newNotification.timeout = state.defaultTimeout
+          newNotification.timeout = state.defaultTimeout || 5000 // 5 seconds default
           break
         }
       }

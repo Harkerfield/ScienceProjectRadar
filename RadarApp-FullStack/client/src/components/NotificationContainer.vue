@@ -6,7 +6,7 @@
       class="notification-container"
     >
       <div
-        v-for="notification in notifications"
+        v-for="notification in activeNotifications"
         :key="notification.id"
         :class="[
           'notification',
@@ -73,7 +73,12 @@ export default {
   name: 'NotificationContainer',
 
   computed: {
-    ...mapGetters('notifications', ['notifications'])
+    ...mapGetters('notifications', ['notifications']),
+
+    activeNotifications() {
+      // Filter out emergency notifications since they're shown in EmergencyBanner
+      return this.notifications.filter(n => n.type !== 'emergency')
+    }
   },
 
   methods: {
@@ -85,7 +90,8 @@ export default {
         error: 'fas fa-exclamation-circle',
         warning: 'fas fa-exclamation-triangle',
         info: 'fas fa-info-circle',
-        loading: 'fas fa-spinner fa-spin'
+        loading: 'fas fa-spinner fa-spin',
+        emergency: 'fas fa-exclamation-octagon'
       }
       return iconMap[type] || 'fas fa-bell'
     },
@@ -167,6 +173,11 @@ export default {
   border-left-color: #6f42c1;
 }
 
+.notification-emergency {
+  border-left-color: #dc3545;
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, rgba(220, 53, 69, 0.02) 100%);
+}
+
 .notification-dismissible {
   cursor: pointer;
 }
@@ -206,6 +217,10 @@ export default {
 
 .notification-loading .notification-icon {
   color: #6f42c1;
+}
+
+.notification-emergency .notification-icon {
+  color: #dc3545;
 }
 
 .notification-body {
