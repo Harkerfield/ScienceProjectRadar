@@ -74,6 +74,20 @@
 
           <div class="direction-buttons">
             <button
+              @click="raiseMotor"
+              :disabled="!allConnected || isMoving"
+              class="btn btn-success"
+            >
+              ⬆️ Raise
+            </button>
+            <button
+              @click="lowerMotor"
+              :disabled="!allConnected || isMoving"
+              class="btn btn-success"
+            >
+              ⬇️ Lower
+            </button>
+            <button
               @click="rotateClockwise"
               :disabled="!allConnected || isMoving"
               class="btn btn-secondary"
@@ -248,7 +262,9 @@ export default {
       'rotateDirection',
       'stopRotation',
       'homePosition',
-      'updateConfiguration'
+      'updateConfiguration',
+      'raise',
+      'lower'
     ]),
 
     moveToPosition() {
@@ -283,6 +299,14 @@ export default {
 
     stopMotor() {
       this.stopRotation()
+    },
+
+    raiseMotor() {
+      this.raise()
+    },
+
+    lowerMotor() {
+      this.lower()
     },
 
     homeMotor() {

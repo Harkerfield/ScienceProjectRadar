@@ -207,6 +207,35 @@
           </div>
         </div>
 
+        <!-- Stepper Motor Raise/Lower -->
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Stepper Motor Control</h5>
+            <div v-if="!allConnected" class="alert alert-warning" role="alert">
+              ⚠️ Stepper control disabled. All connections required (Server, Serial, Pico).
+            </div>
+            <div v-if="allConnected" class="d-grid gap-2" style="grid-template-columns: 1fr 1fr;">
+              <button
+                @click="raiseMotor"
+                class="btn btn-success btn-lg"
+                :disabled="!allConnected"
+              >
+                <i class="fas fa-arrow-up me-1"></i>
+                Raise
+              </button>
+              <button
+                @click="lowerMotor"
+                class="btn btn-warning btn-lg"
+                :disabled="!allConnected"
+              >
+                <i class="fas fa-arrow-down me-1"></i>
+                Lower
+              </button>
+            </div>
+            <p class="text-muted small mt-2 mb-0">Each click moves 15° • Target: {{ targetPosition }}°</p>
+          </div>
+        </div>
+
         <!-- Data Export -->
         <div class="card card-custom">
           <div class="card-header">
@@ -334,6 +363,10 @@ export default {
 
     servoPosition() {
       return this.$store.state.actuator?.status?.position || 90
+    },
+
+    targetPosition() {
+      return this.$store.state.stepper?.status?.targetPosition || 0
     },
 
     radarDataCount() {
@@ -564,6 +597,22 @@ export default {
           title: 'Servo Error',
           message: `Failed: ${error.message}`
         })
+      }
+    },
+
+    async raiseMotor() {
+      try {
+        await this.$store.dispatch('stepper/raise')
+      } catch (error) {
+        console.error('Raise failed:', error)
+      }
+    },
+
+    async lowerMotor() {
+      try {
+        await this.$store.dispatch('stepper/lower')
+      } catch (error) {
+        console.error('Lower failed:', error)
       }
     },
 

@@ -419,6 +419,38 @@ const actions = {
       console.error('Failed to get stepper info:', error)
       throw error
     }
+  },
+
+  /**
+   * Raise stepper by fixed increment (15 degrees)
+   */
+  async raise({ state, dispatch }) {
+    const INCREMENT = 15 // degrees
+    const currentTarget = state.status.targetPosition
+    const newTarget = Math.min(360, currentTarget + INCREMENT)
+    
+    try {
+      await dispatch('moveToAngle', { angle: newTarget })
+    } catch (error) {
+      console.error('Failed to raise:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Lower stepper by fixed increment (15 degrees)
+   */
+  async lower({ state, dispatch }) {
+    const INCREMENT = 15 // degrees
+    const currentTarget = state.status.targetPosition
+    const newTarget = Math.max(0, currentTarget - INCREMENT)
+    
+    try {
+      await dispatch('moveToAngle', { angle: newTarget })
+    } catch (error) {
+      console.error('Failed to lower:', error)
+      throw error
+    }
   }
 }
 
