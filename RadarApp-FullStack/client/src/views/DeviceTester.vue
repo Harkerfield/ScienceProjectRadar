@@ -162,7 +162,7 @@ export default {
         SERVO: ['PING', 'STATUS', 'WHOAMI', 'OPEN', 'CLOSE'],
         RADAR: ['PING', 'STATUS', 'WHOAMI', 'READ', 'SET_RANGE', 'SET_VELOCITY']
       },
-      commandParams: {
+      commandParamTemplates: {
         SPEED: { speed_us: '' },
         SPIN: { speed: '' },
         MOVE: { degrees: '' },
@@ -194,9 +194,9 @@ export default {
     },
 
     updateCommandParams() {
-      if (this.selectedCommand && this.commandParams[this.selectedCommand]) {
-        this.requiredParams = Object.keys(this.commandParams[this.selectedCommand])
-        this.commandParams = { ...this.commandParams[this.selectedCommand] }
+      if (this.selectedCommand && this.commandParamTemplates[this.selectedCommand]) {
+        this.requiredParams = Object.keys(this.commandParamTemplates[this.selectedCommand])
+        this.commandParams = { ...this.commandParamTemplates[this.selectedCommand] }
       } else {
         this.requiredParams = []
         this.commandParams = {}
