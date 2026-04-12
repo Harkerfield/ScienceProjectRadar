@@ -181,7 +181,7 @@ class RadarFullStackServer {
 
             res.json({
                 name: 'Radar Control System',
-                version: require('./package.json').version,
+                version: require('../package.json').version,
                 status: 'running',
                 timestamp: new Date().toISOString(),
                 sections: {
@@ -296,7 +296,7 @@ class RadarFullStackServer {
         <div class="endpoint">POST /api/device/STEPPER/START - Send command (requires args in body)</div>
         
         <footer>
-            <p>Server v${require('./package.json').version}</p>
+            <p>Server v${require('../package.json').version}</p>
             <p>${new Date().toLocaleString()}</p>
         </footer>
     </div>
