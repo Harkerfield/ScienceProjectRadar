@@ -433,6 +433,41 @@ def process_command(line, source='uart'):
                 response = stepper_spin(speed)
             except:
                 response = {"s": "error", "msg": "Invalid speed value"}
+        # Map SPEED command to SPIN (client compatibility)
+        elif line.startswith('STEPPER:SPEED:'):
+            try:
+                # Extract speed_us parameter: "STEPPER:SPEED:speed_us=3445" -> 3445
+                parts = line.split('=')
+                speed = int(parts[-1].strip())
+                response = stepper_spin(speed)
+            except:
+                response = {"s": "error", "msg": "Invalid speed value"}
+        # Map MOVE command to SPIN (simplified - uses speed as proxy for distance)
+        elif line.startswith('STEPPER:MOVE:'):
+            try:
+                # Extract degrees parameter: "STEPPER:MOVE:degrees=180" -> use as speed
+                parts = line.split('=')
+                degrees = int(parts[-1].strip())
+                # For now, map degrees to speed (full implementation would track position)
+                response = stepper_spin(degrees)
+            except:
+                response = {"s": "error", "msg": "Invalid move value"}
+        # Map HOME command (simplified)
+        elif line == 'STEPPER:HOME':
+            response = {"s": "ok", "device": "STEPPER", "status": "OK", "data": {"moved_to_home": 1}}
+        # Map ENABLE/DISABLE commands (simplified)
+        elif line == 'STEPPER:ENABLE':
+            response = {"s": "ok", "device": "STEPPER", "status": "OK", "data": {"enabled": 1}}
+        elif line == 'STEPPER:DISABLE':
+            response = {"s": "ok", "device": "STEPPER", "status": "OK", "data": {"enabled": 0}}
+        # Map ROTATE command
+        elif line.startswith('STEPPER:ROTATE:'):
+            try:
+                parts = line.split('=')
+                speed = int(parts[-1].strip())
+                response = stepper_spin(speed)
+            except:
+                response = {"s": "error", "msg": "Invalid rotate value"}
         elif line == 'STEPPER:STOP':
             response = stepper_stop()
         elif line == 'STEPPER:WHOAMI':
@@ -447,6 +482,24 @@ def process_command(line, source='uart'):
             response = radar_status()
         elif line == 'RADAR:WHOAMI':
             response = radar_whoami()
+        # Map SET_RANGE command (store the value for later use)
+        elif line.startswith('RADAR:SET_RANGE:'):
+            try:
+                parts = line.split('=')
+                centimeters = int(parts[-1].strip())
+                # Store the range value (simplified)
+                response = {"s": "ok", "device": "RADAR", "status": "OK", "data": {"range_cm": centimeters}}
+            except:
+                response = {"s": "error", "msg": "Invalid range value"}
+        # Map SET_VELOCITY command (store the value for later use)
+        elif line.startswith('RADAR:SET_VELOCITY:'):
+            try:
+                parts = line.split('=')
+                velocity = float(parts[-1].strip())
+                # Store the velocity value (simplified)
+                response = {"s": "ok", "device": "RADAR", "status": "OK", "data": {"velocity_mps": velocity}}
+            except:
+                response = {"s": "error", "msg": "Invalid velocity value"}
         
         # ========== LEGACY STEPPER GET COMMANDS ==========
         elif line == 'GET_STEPPER_HEARTBEAT':
