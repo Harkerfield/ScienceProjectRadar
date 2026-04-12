@@ -266,6 +266,10 @@ export default {
       'raise',
       'lower'
     ]),
+    ...mapActions('actuator', [
+      'open',
+      'close'
+    ]),
     ...mapActions('notifications', [
       'addNotification'
     ]),
@@ -306,10 +310,12 @@ export default {
 
     raiseMotor() {
       this.raise()
+      this.open()
     },
 
     lowerMotor() {
       this.lower()
+      this.close()
     },
 
     homeMotor() {

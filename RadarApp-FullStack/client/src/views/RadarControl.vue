@@ -609,6 +609,7 @@ export default {
     async raiseMotor() {
       try {
         await this.$store.dispatch('stepper/raise')
+        await this.$store.dispatch('actuator/open')
       } catch (error) {
         console.error('Raise failed:', error)
       }
@@ -617,6 +618,7 @@ export default {
     async lowerMotor() {
       try {
         await this.$store.dispatch('stepper/lower')
+        await this.$store.dispatch('actuator/close')
       } catch (error) {
         console.error('Lower failed:', error)
       }
