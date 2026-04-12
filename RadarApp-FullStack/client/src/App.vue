@@ -176,12 +176,17 @@ export default {
     },
 
     async loadInitialData() {
-      // Load system status and initial state
-      await Promise.all([
-        this.$store.dispatch('stepper/fetchStatus'),
-        this.$store.dispatch('radar/fetchStatus'),
-        this.$store.dispatch('system/fetchStatus')
-      ])
+      // Load system status and initial state (optional - doesn't block if connections not ready)
+      try {
+        await Promise.allSettled([
+          this.$store.dispatch('stepper/fetchStatus'),
+          this.$store.dispatch('radar/fetchStatus'),
+          this.$store.dispatch('system/fetchStatus')
+        ])
+      } catch (error) {
+        // Silently handle initialization errors - connections may not be ready yet
+        console.warn('Could not fetch initial status:', error)
+      }
     },
 
     applyTheme(theme) {
