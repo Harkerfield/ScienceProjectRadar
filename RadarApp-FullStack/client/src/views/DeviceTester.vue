@@ -212,11 +212,19 @@ export default {
 
       try {
         const endpoint = `/api/device/${this.selectedDevice}/${this.selectedCommand}`
+        
+        // Read-only commands should use GET
+        const readOnlyCommands = ['PING', 'STATUS', 'INFO', 'WHOAMI', 'HEARTBEAT', 'READ']
+        const isReadOnly = readOnlyCommands.includes(this.selectedCommand.toUpperCase())
+        
         const body = {
           args: this.commandParams
         }
 
-        const response = await apiService.post(endpoint, body)
+        // Use GET for read-only commands, POST for commands with side effects
+        const response = isReadOnly 
+          ? await apiService.get(endpoint)
+          : await apiService.post(endpoint, body)
 
         const historyItem = {
           device: this.selectedDevice,
