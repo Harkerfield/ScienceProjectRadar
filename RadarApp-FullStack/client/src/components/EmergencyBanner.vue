@@ -38,11 +38,11 @@ export default {
   },
 
   methods: {
-    ...mapActions('notifications', ['removeNotification']),
+    ...mapActions('notifications', ['dismissNotification']),
 
     dismissEmergency() {
       if (this.emergencyNotifications.length > 0) {
-        this.removeNotification(this.emergencyNotifications[0].id)
+        this.dismissNotification(this.emergencyNotifications[0].id)
       }
     }
   }

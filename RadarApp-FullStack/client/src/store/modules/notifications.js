@@ -39,8 +39,8 @@ export default {
 
   mutations: {
     ADD_NOTIFICATION(state, notification) {
+      // ID must already be set by the action
       const newNotification = {
-        id: Date.now() + Math.random(),
         timestamp: new Date().toISOString(),
         dismissed: false,
         read: false,
@@ -122,7 +122,7 @@ export default {
   },
 
   actions: {
-    addNotification({ commit, dispatch }, notification) {
+    addNotification({ commit, dispatch, state }, notification) {
       // Validate notification structure
       if (!notification.title && !notification.message) {
         console.warn('Notification must have either title or message')
@@ -134,23 +134,30 @@ export default {
         notification.type = 'info'
       }
 
+      // Generate unique ID before mutation so we can use it for timeout
+      const notificationId = Date.now() + Math.random()
+      const notificationWithId = {
+        id: notificationId,
+        ...notification
+      }
+
       // Add notification
-      commit('ADD_NOTIFICATION', notification)
+      commit('ADD_NOTIFICATION', notificationWithId)
 
       // Auto-dismiss after timeout (unless persistent)
-      if (!notification.persistent && notification.timeout > 0) {
+      if (!notificationWithId.persistent && notificationWithId.timeout > 0) {
         setTimeout(() => {
-          dispatch('dismissNotification', notification.id || Date.now())
-        }, notification.timeout)
+          dispatch('dismissNotification', notificationId)
+        }, notificationWithId.timeout)
       }
 
       // Log to console for debugging
-      const logLevel = notification.type === 'error'
+      const logLevel = notificationWithId.type === 'error'
         ? 'error'
-        : notification.type === 'warning' ? 'warn' : 'log'
-      console[logLevel](`Notification [${notification.type}]:`, notification.title || notification.message)
+        : notificationWithId.type === 'warning' ? 'warn' : 'log'
+      console[logLevel](`Notification [${notificationWithId.type}]:`, notificationWithId.title || notificationWithId.message)
 
-      return notification
+      return notificationWithId
     },
 
     dismissNotification({ commit }, notificationId) {

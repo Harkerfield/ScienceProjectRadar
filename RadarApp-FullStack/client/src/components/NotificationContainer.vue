@@ -57,9 +57,9 @@
 
         <!-- Progress bar for auto-dismiss -->
         <div
-          v-if="notification.duration && notification.duration > 0"
+          v-if="notification.timeout && notification.timeout > 0"
           class="notification-progress"
-          :style="{ animationDuration: `${notification.duration}ms` }"
+          :style="{ animationDuration: `${notification.timeout}ms` }"
         ></div>
       </div>
     </transition-group>
@@ -82,7 +82,7 @@ export default {
   },
 
   methods: {
-    ...mapActions('notifications', ['removeNotification']),
+    ...mapActions('notifications', ['dismissNotification']),
 
     getIconClass(type) {
       const iconMap = {
@@ -120,10 +120,6 @@ export default {
       if (notification.action && notification.action.dismissAfter) {
         this.dismissNotification(notification.id)
       }
-    },
-
-    dismissNotification(id) {
-      this.removeNotification(id)
     }
   }
 }
