@@ -56,16 +56,34 @@ function validateDeviceCommand(device, command, args) {
  * @param {string} device - Device name
  * @param {string} command - Command name
  * @param {object} args - Command arguments
- * @returns {string} Formatted command (DEVICE:COMMAND[:KEY=VALUE:...])
+ * @returns {string} Formatted command (DEVICE:COMMAND[:ARGS])
  */
 function formatDeviceCommand(device, command, args) {
     let cmd = `${device}:${command}`;
     
     if (args && typeof args === 'object' && Object.keys(args).length > 0) {
-        const argPairs = Object.entries(args)
-            .map(([key, val]) => `${key}=${val}`)
-            .join(':');
-        cmd += `:${argPairs}`;
+        // Map of commands that use positional arguments (just the value, not key=value)
+        const positionalCommands = {
+            'MOVE': 'degrees',           // MOVE:90
+            'ROTATE': 'delta_degrees',   // ROTATE:45
+            'SPIN': 'speed_us',          // SPIN:2000
+            'SPEED': 'speed_us',         // SPEED:2000
+            'SET_RANGE': 'centimeters',  // SET_RANGE:100
+            'SET_VELOCITY': 'meters_per_second'  // SET_VELOCITY:5.0
+        };
+
+        const cmdKey = positionalCommands[command];
+        
+        if (cmdKey && args[cmdKey] !== undefined) {
+            // Use positional argument format (just the value)
+            cmd += `:${args[cmdKey]}`;
+        } else {
+            // Fall back to key=value format for unknown commands or multiple args
+            const argPairs = Object.entries(args)
+                .map(([key, val]) => `${key}=${val}`)
+                .join(':');
+            cmd += `:${argPairs}`;
+        }
     }
 
     return cmd;
