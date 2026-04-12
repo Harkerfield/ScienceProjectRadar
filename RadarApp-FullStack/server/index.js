@@ -105,7 +105,7 @@ class RadarFullStackServer {
                 "default-src 'self'",
                 "script-src 'self' 'unsafe-inline'",
                 "style-src 'self' 'unsafe-inline'",
-                `connect-src ${this.getConnectSources().join(' ')}`,
+            `connect-src ${this.getConnectSources(req).join(' ')}`,
                 "media-src 'self'",
                 "object-src 'none'",
                 "base-uri 'self'",
@@ -146,8 +146,8 @@ class RadarFullStackServer {
         logger.info(`Serving static files from: ${clientDistPath}`);
     }
     
-    getConnectSources() {
-        const sources = [
+    getConnectSources(req = null) {
+        const sources = new Set([
             "'self'",
             "http://localhost:3000",
             "http://localhost:8080",
@@ -155,18 +155,41 @@ class RadarFullStackServer {
             "wss://localhost:3000",
             "http://127.0.0.1:3000",
             "http://127.0.0.1:8080"
-        ];
-        
-        if (this.hostname) {
-            sources.push(`http://${this.hostname}:3000`);
-            sources.push(`http://${this.hostname}:8080`);
-            sources.push(`ws://${this.hostname}:3000`);
-            sources.push(`http://${this.hostname}.local:3000`);
-            sources.push(`http://${this.hostname}.local:8080`);
-            sources.push(`ws://${this.hostname}.local:3000`);
+        ]);
+
+        // Allow connect-src for all detected local IPv4 interfaces.
+        const interfaces = os.networkInterfaces();
+        for (const iface of Object.values(interfaces)) {
+            if (!iface) continue;
+            for (const addr of iface) {
+                if (addr.family !== 'IPv4' || addr.internal) continue;
+                sources.add(`http://${addr.address}:3000`);
+                sources.add(`http://${addr.address}:8080`);
+                sources.add(`ws://${addr.address}:3000`);
+            }
+        }
+
+        // Include the current request host if available (for LAN debugging via IP).
+        if (req && typeof req.get === 'function') {
+            const hostHeader = req.get('host') || '';
+            const hostOnly = hostHeader.split(':')[0];
+            if (hostOnly) {
+                sources.add(`http://${hostOnly}:3000`);
+                sources.add(`http://${hostOnly}:8080`);
+                sources.add(`ws://${hostOnly}:3000`);
+            }
         }
         
-        return sources;
+        if (this.hostname) {
+            sources.add(`http://${this.hostname}:3000`);
+            sources.add(`http://${this.hostname}:8080`);
+            sources.add(`ws://${this.hostname}:3000`);
+            sources.add(`http://${this.hostname}.local:3000`);
+            sources.add(`http://${this.hostname}.local:8080`);
+            sources.add(`ws://${this.hostname}.local:3000`);
+        }
+        
+        return Array.from(sources);
     }
     
     setupRoutes() {
