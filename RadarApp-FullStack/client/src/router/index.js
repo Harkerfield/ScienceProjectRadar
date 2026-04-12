@@ -3,6 +3,7 @@ import Dashboard from '../views/Dashboard.vue'
 import StepperControl from '../views/StepperControl.vue'
 import RadarControl from '../views/RadarControl.vue'
 import Settings from '../views/Settings.vue'
+import DeviceTester from '../views/DeviceTester.vue'
 import NotFound from '../views/NotFound.vue'
 
 const routes = [
@@ -29,6 +30,12 @@ const routes = [
     name: 'Settings',
     component: Settings,
     meta: { title: 'Settings' }
+  },
+  {
+    path: '/tester',
+    name: 'DeviceTester',
+    component: DeviceTester,
+    meta: { title: 'Microcontroller Tester' }
   },
   {
     path: '/404',

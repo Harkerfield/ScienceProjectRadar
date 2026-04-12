@@ -43,6 +43,12 @@
                 Settings
               </router-link>
             </li>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/tester" active-class="active">
+                <i class="fas fa-microchip me-1"></i>
+                Tester
+              </router-link>
+            </li>
           </ul>
 
           <!-- Connection Status -->
