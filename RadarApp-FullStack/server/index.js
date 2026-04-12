@@ -9,7 +9,6 @@ require('dotenv').config();
 
 const logger = require('./utils/logger');
 const SerialComm = require('./utils/SerialComm');
-const createUnifiedDeviceRoutes = require('./routes/deviceApi');
 
 // Routes
 const apiRoutes = require('./routes/api');
@@ -217,15 +216,8 @@ class RadarFullStackServer {
         });
 
         // API routes
-        this.app.use('/api', apiRoutes);
+        this.app.use('/api', apiRoutes(this.serialComm, logger));
 
-        // Unified device API - handles all device interactions (STEPPER, RADAR, ACTUATOR)
-        // POST /api/device/:device/:command - Send command with arguments
-        // GET /api/device/:device/:command - Send read-only command
-        // GET /api/device/:device/info - Get available commands for device
-        // GET /api/device/commands - Get all available commands
-        this.app.use('/api/device', createUnifiedDeviceRoutes(this.serialComm, logger));
-        
         // Health check endpoint
         this.app.get('/health', (req, res) => {
             res.json({

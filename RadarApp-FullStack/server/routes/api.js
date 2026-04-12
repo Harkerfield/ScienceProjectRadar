@@ -1,7 +1,15 @@
 const express = require('express');
-const router = express.Router();
 const os = require('os');
 const createUnifiedDeviceRoutes = require('./deviceApi');
+
+/**
+ * Create API routes with device control integration
+ * @param {SerialComm} serialComm - Serial communication handler
+ * @param {Logger} logger - Logger instance
+ * @returns {express.Router} Configured API router
+ */
+function createApiRoutes(serialComm, logger) {
+    const router = express.Router();
 
 // Root API discovery endpoint
 router.get('/', (req, res) => {
@@ -121,4 +129,11 @@ router.post('/shutdown', (req, res) => {
     }
 });
 
-module.exports = router;
+    // Mount unified device control API
+    // This must be before the module.exports so routes are properly nested
+    router.use('/device', createUnifiedDeviceRoutes(serialComm, logger));
+
+    return router;
+}
+
+module.exports = createApiRoutes;
