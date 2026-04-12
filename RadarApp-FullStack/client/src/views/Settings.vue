@@ -267,6 +267,55 @@
           </div>
         </div>
       </div>
+
+      <!-- Servo Control -->
+      <div class="card servo-settings">
+        <h2>
+          <i class="fas fa-cog me-2"></i>
+          Servo Control
+        </h2>
+        <div class="setting-group">
+          <div v-if="!allConnected" class="alert alert-warning">
+            ⚠️ All connections required (Server, Serial, Pico) to control servo
+          </div>
+          <div class="setting-item">
+            <label>Servo Status:</label>
+            <span :class="['badge', servoActive ? 'bg-success' : 'bg-secondary', 'ms-2']">
+              {{ servoActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+          <div class="setting-item">
+            <label>Current Position:</label>
+            <span class="badge bg-primary ms-2">{{ servoPosition }}°</span>
+          </div>
+          <div class="button-group">
+            <button
+              @click="openServo"
+              :disabled="!allConnected"
+              class="btn btn-success btn-sm me-2"
+            >
+              <i class="fas fa-arrow-right me-1"></i>
+              Open Servo
+            </button>
+            <button
+              @click="closeServo"
+              :disabled="!allConnected"
+              class="btn btn-warning btn-sm me-2"
+            >
+              <i class="fas fa-arrow-left me-1"></i>
+              Close Servo
+            </button>
+            <button
+              @click="refreshServoStatus"
+              :disabled="!allConnected"
+              class="btn btn-outline-info btn-sm"
+            >
+              <i class="fas fa-sync me-1"></i>
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="settings-actions">
@@ -332,7 +381,19 @@ export default {
   },
 
   computed: {
-    ...mapGetters('system', ['systemSettings'])
+    ...mapGetters('system', ['systemSettings']),
+
+    allConnected() {
+      return this.$store.getters['connection/allConnected']
+    },
+
+    servoActive() {
+      return this.$store.state.actuator?.status?.isOpen || false
+    },
+
+    servoPosition() {
+      return this.$store.state.actuator?.status?.position || 90
+    }
   },
 
   mounted() {
@@ -457,6 +518,51 @@ export default {
       }
 
       input.click()
+    },
+
+    async openServo() {
+      try {
+        await this.$store.dispatch('actuator/open')
+        this.showNotification({
+          message: 'Servo opened successfully',
+          type: 'success'
+        })
+      } catch (error) {
+        this.showNotification({
+          message: `Failed to open servo: ${error.message}`,
+          type: 'error'
+        })
+      }
+    },
+
+    async closeServo() {
+      try {
+        await this.$store.dispatch('actuator/close')
+        this.showNotification({
+          message: 'Servo closed successfully',
+          type: 'success'
+        })
+      } catch (error) {
+        this.showNotification({
+          message: `Failed to close servo: ${error.message}`,
+          type: 'error'
+        })
+      }
+    },
+
+    async refreshServoStatus() {
+      try {
+        await this.$store.dispatch('actuator/fetchStatus')
+        this.showNotification({
+          message: 'Servo status refreshed',
+          type: 'info'
+        })
+      } catch (error) {
+        this.showNotification({
+          message: `Failed to refresh servo status: ${error.message}`,
+          type: 'error'
+        })
+      }
     }
   }
 }
@@ -618,5 +724,64 @@ export default {
     gap: 15px;
     align-items: stretch;
   }
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.button-group .btn {
+  flex: 1;
+  min-width: 120px;
+}
+
+.servo-settings .badge {
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+.alert {
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border: 1px solid #ffc107;
+  background: #fff3cd;
+  color: #856404;
+}
+
+.btn-success {
+  background: #4caf50;
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #45a049;
+}
+
+.btn-warning {
+  background: #ff9800;
+  color: white;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: #e68900;
+}
+
+.btn-outline-info {
+  border: 1px solid #2196f3;
+  background: transparent;
+  color: #2196f3;
+}
+
+.btn-outline-info:hover:not(:disabled) {
+  background: #2196f3;
+  color: white;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
