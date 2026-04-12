@@ -177,9 +177,9 @@ export default {
       },
       commandParamTemplates: {
         SPEED: { speed_us: '' },
-        SPIN: { speed: '' },
+        SPIN: { speed_us: '' },
         MOVE: { degrees: '' },
-        ROTATE: { speed: '' },
+        ROTATE: { delta_degrees: '' },
         SET_RANGE: { centimeters: '' },
         SET_VELOCITY: { meters_per_second: '' }
       },
