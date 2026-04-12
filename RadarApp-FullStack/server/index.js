@@ -315,6 +315,8 @@ class RadarFullStackServer {
                     'GET /api': 'API discovery',
                     'GET /api/device': 'Device control discovery',
                     'GET /api/device/:device': 'Device-specific commands',
+                    'GET /api/device/:device/info': 'Device command specifications',
+                    'POST /api/device/:device/:command': 'Send command to device',
                     'GET /api/device/commands': 'All device commands',
                     'GET /api/status': 'Server status',
                     'GET /api/health': 'Health check',

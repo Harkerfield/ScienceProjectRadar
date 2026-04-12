@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const os = require('os');
+const createUnifiedDeviceRoutes = require('./deviceApi');
 
 // Root API discovery endpoint
 router.get('/', (req, res) => {
