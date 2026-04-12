@@ -226,8 +226,18 @@ def stepper_ping():
     return parse_device_response(resp, "STEPPER") if resp else {"s": "error", "msg": "timeout"}
 
 def stepper_spin(speed):
-    """POST: Start stepper spinning at speed"""
+    """POST: Start stepper spinning at speed (microseconds per pulse)"""
     resp = send_device_command("STEPPER", f"SPIN:{speed}")
+    return parse_device_response(resp, "STEPPER") if resp else {"s": "error", "msg": "timeout"}
+
+def stepper_move(degrees):
+    """POST: Move stepper to absolute angle (degrees)"""
+    resp = send_device_command("STEPPER", f"MOVE:{degrees}")
+    return parse_device_response(resp, "STEPPER") if resp else {"s": "error", "msg": "timeout"}
+
+def stepper_rotate(delta_degrees):
+    """POST: Rotate stepper by relative angle (degrees)"""
+    resp = send_device_command("STEPPER", f"ROTATE:{delta_degrees}")
     return parse_device_response(resp, "STEPPER") if resp else {"s": "error", "msg": "timeout"}
 
 def stepper_stop():
@@ -443,15 +453,14 @@ def process_command(line, source='uart'):
                 response = stepper_spin(speed)
             except:
                 response = {"s": "error", "msg": "Invalid speed value"}
-        # Map MOVE command to SPIN (simplified - uses speed as proxy for distance)
+        # Map MOVE command to proper movement (absolute position)
         elif line.startswith('STEPPER:MOVE:'):
             try:
                 # Extract degrees parameter: "STEPPER:MOVE:180" or "STEPPER:MOVE:degrees=180"
                 value_str = line.split(':')[-1].strip()
                 # Handle both positional (180) and named (degrees=180) formats
-                degrees = int(value_str.split('=')[-1])
-                # For now, map degrees to speed (full implementation would track position)
-                response = stepper_spin(degrees)
+                degrees = float(value_str.split('=')[-1])
+                response = stepper_move(degrees)
             except:
                 response = {"s": "error", "msg": "Invalid move value"}
         # Map HOME command (simplified)
@@ -468,8 +477,8 @@ def process_command(line, source='uart'):
                 # Extract degrees parameter: "STEPPER:ROTATE:45" or "STEPPER:ROTATE:delta_degrees=45"
                 value_str = line.split(':')[-1].strip()
                 # Handle both positional (45) and named (delta_degrees=45) formats
-                speed = int(value_str.split('=')[-1])
-                response = stepper_spin(speed)
+                delta_degrees = float(value_str.split('=')[-1])
+                response = stepper_rotate(delta_degrees)
             except:
                 response = {"s": "error", "msg": "Invalid rotate value"}
         elif line == 'STEPPER:STOP':
