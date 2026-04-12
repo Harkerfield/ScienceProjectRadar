@@ -122,7 +122,7 @@ export default {
   },
 
   actions: {
-    addNotification({ commit, dispatch, state }, notification) {
+    addNotification({ commit, dispatch, _state }, notification) {
       // Validate notification structure
       if (!notification.title && !notification.message) {
         console.warn('Notification must have either title or message')
