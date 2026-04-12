@@ -39,35 +39,12 @@ export default {
 
   mutations: {
     ADD_NOTIFICATION(state, notification) {
-      // ID must already be set by the action
+      // ID and timeout already set by the action
       const newNotification = {
         timestamp: new Date().toISOString(),
         dismissed: false,
         read: false,
         ...notification
-      }
-
-      // Set default timeout and persistent flag based on type
-      if (!newNotification.timeout) {
-        switch (newNotification.type) {
-        case 'emergency':
-          newNotification.timeout = 0 // No auto-dismiss for emergencies
-          newNotification.persistent = true
-          break
-        case 'error':
-          newNotification.timeout = 3000 // 3 seconds for errors
-          break
-        case 'warning':
-          newNotification.timeout = 3000 // 3 seconds for warnings
-          break
-        case 'success':
-          newNotification.timeout = 3000 // 3 seconds for success
-          break
-        case 'info':
-        default:
-          newNotification.timeout = state.defaultTimeout || 3000 // 3 seconds default
-          break
-        }
       }
 
       state.notifications.push(newNotification)
@@ -132,6 +109,30 @@ export default {
       // Set default type
       if (!notification.type) {
         notification.type = 'info'
+      }
+
+      // Set default timeout and persistent flag based on type BEFORE mutation
+      if (!notification.timeout && notification.type !== 'emergency') {
+        switch (notification.type) {
+        case 'error':
+          notification.timeout = 3000
+          break
+        case 'warning':
+          notification.timeout = 3000
+          break
+        case 'success':
+          notification.timeout = 3000
+          break
+        case 'info':
+        default:
+          notification.timeout = 3000
+          break
+        }
+      }
+
+      if (notification.type === 'emergency') {
+        notification.timeout = 0
+        notification.persistent = true
       }
 
       // Generate unique ID before mutation so we can use it for timeout
