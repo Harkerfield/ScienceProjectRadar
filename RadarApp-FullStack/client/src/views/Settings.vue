@@ -220,6 +220,7 @@
             </label>
           </div>
         </div>
+      </div>
     </div>
 
     <div class="settings-actions">
