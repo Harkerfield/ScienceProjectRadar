@@ -110,7 +110,7 @@ class RadarFullStackServer {
                 "media-src 'self'",
                 "object-src 'none'",
                 "base-uri 'self'",
-                "font-src 'self' http: data:",
+                "font-src 'self' https: data:",
                 "form-action 'self'",
                 "frame-ancestors 'self'",
                 "img-src 'self' data:",

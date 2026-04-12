@@ -110,8 +110,8 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
 
             res.json({
                 success: true,
-                device: device,
-                message: `Available commands for ${device}`,
+                device: info.device,
+                message: `Available commands for ${info.device}`,
                 availableCommands: Object.keys(info.commands || {}),
                 commands: info,
                 endpoints: {
@@ -172,7 +172,7 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
             const { device, command } = req.params;
             const args = req.body?.args || {};
 
-            // Validate command
+            // Validate command (returns normalized device/command)
             const validation = validateDeviceCommand(device, command, args);
             if (!validation.valid) {
                 logger.warn(`Invalid device command: ${device}:${command} - ${validation.error}`);
@@ -183,8 +183,8 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
                 });
             }
 
-            // Format and send command through SerialComm
-            const fullCommand = formatDeviceCommand(device, command, args);
+            // Format and send command through SerialComm using normalized names
+            const fullCommand = formatDeviceCommand(validation.device, validation.command, args);
             logger.info(`Executing device command: ${fullCommand}`);
 
             const response = await serialComm.sendDeviceCommand(fullCommand);
@@ -224,7 +224,7 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
                 });
             }
 
-            // Validate command
+            // Validate command (returns normalized device/command)
             const validation = validateDeviceCommand(device, command);
             if (!validation.valid) {
                 logger.warn(`Invalid device command: ${device}:${command} - ${validation.error}`);
@@ -235,8 +235,8 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
                 });
             }
 
-            // Format and send command
-            const fullCommand = formatDeviceCommand(device, command);
+            // Format and send command using normalized names
+            const fullCommand = formatDeviceCommand(validation.device, validation.command);
             logger.debug(`Executing device command (GET): ${fullCommand}`);
 
             const response = await serialComm.sendDeviceCommand(fullCommand);

@@ -45,9 +45,12 @@ const mutations = {
 const actions = {
   async fetchStatus({ commit }) {
     try {
-      const response = await apiService.get('/actuator/status')
-      const data = response.data.data || response.data
-      commit('SET_STATUS', data)
+      const response = await apiService.post('/device/SERVO/STATUS')
+      const data = response.data.data || response.data.response
+      commit('SET_STATUS', {
+        state: data.state || 'unknown',
+        isOpen: data.state === 'open'
+      })
       return data
     } catch (error) {
       console.error('Failed to fetch actuator status:', error)
@@ -57,11 +60,10 @@ const actions = {
 
   async getPosition({ commit }) {
     try {
-      const response = await apiService.get('/actuator/position')
-      const data = response.data.data || response.data
+      const response = await apiService.post('/device/SERVO/STATUS')
+      const data = response.data.data || response.data.response
       commit('SET_STATUS', {
-        position: data.position,
-        state: data.state,
+        state: data.state || 'unknown',
         isOpen: data.state === 'open'
       })
       return data
@@ -73,11 +75,10 @@ const actions = {
 
   async open({ commit, dispatch }) {
     try {
-      const response = await apiService.put('/actuator/open')
-      const data = response.data.data || response.data
+      const response = await apiService.post('/device/SERVO/OPEN')
+      const data = response.data.data || response.data.response
 
       commit('SET_STATUS', {
-        position: data.position,
         state: 'open',
         isOpen: true
       })
@@ -111,11 +112,10 @@ const actions = {
 
   async close({ commit, dispatch }) {
     try {
-      const response = await apiService.put('/actuator/close')
-      const data = response.data.data || response.data
+      const response = await apiService.post('/device/SERVO/CLOSE')
+      const data = response.data.data || response.data.response
 
       commit('SET_STATUS', {
-        position: data.position,
         state: 'closed',
         isOpen: false
       })
@@ -149,26 +149,9 @@ const actions = {
 
   async setPosition({ commit, dispatch }, position) {
     try {
-      const response = await apiService.put('/actuator/position', { position })
-      const data = response.data.data || response.data
-
-      commit('SET_STATUS', {
-        position: data.position,
-        state: data.state,
-        isOpen: data.state === 'open'
-      })
-
-      commit('ADD_HISTORY_ENTRY', {
-        action: 'setPosition',
-        position,
-        success: true
-      })
-
-      dispatch('notifications/addNotification', {
-        type: 'success',
-        title: 'Position Set',
-        message: `Actuator position set to ${position}%`
-      }, { root: true })
+      // Note: Direct position setting is not supported by the SERVO API
+      // Use OPEN or CLOSE instead
+      throw new Error('Direct position setting not supported. Use open() or close()')
     } catch (error) {
       commit('ADD_HISTORY_ENTRY', {
         action: 'setPosition',
@@ -179,8 +162,8 @@ const actions = {
 
       dispatch('notifications/addNotification', {
         type: 'error',
-        title: 'Set Position Failed',
-        message: error.response?.data?.error || error.message
+        title: 'Set Position Not Supported',
+        message: 'Use open() or close() instead'
       }, { root: true })
 
       throw error
@@ -189,6 +172,34 @@ const actions = {
 
   clearHistory({ commit }) {
     commit('CLEAR_HISTORY')
+  },
+
+  async ping({ commit, dispatch }) {
+    try {
+      const response = await apiService.post('/device/SERVO/PING')
+      commit('ADD_HISTORY_ENTRY', {
+        action: 'ping',
+        success: true
+      })
+      return response.data
+    } catch (error) {
+      commit('ADD_HISTORY_ENTRY', {
+        action: 'ping',
+        success: false,
+        error: error.message
+      })
+      throw error
+    }
+  },
+
+  async getInfo({ commit, dispatch }) {
+    try {
+      const response = await apiService.post('/device/SERVO/WHOAMI')
+      return response.data
+    } catch (error) {
+      console.error('Failed to get servo info:', error)
+      throw error
+    }
   }
 }
 

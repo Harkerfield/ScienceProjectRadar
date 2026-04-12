@@ -3,24 +3,28 @@ const deviceCommands = require('../config/deviceCommands.json');
 
 /**
  * Validate if a device command is valid
- * @param {string} device - Device name (STEPPER, RADAR, ACTUATOR)
- * @param {string} command - Command name (STATUS, START, etc)
+ * @param {string} device - Device name (STEPPER, RADAR, ACTUATOR) - case-insensitive
+ * @param {string} command - Command name (STATUS, START, etc) - case-insensitive
  * @param {any} args - Command arguments
- * @returns {object} { valid: boolean, error?: string }
+ * @returns {object} { valid: boolean, error?: string, device?: string, command?: string }
  */
 function validateDeviceCommand(device, command, args) {
+    // Normalize device and command to uppercase for case-insensitive lookup
+    const normalizedDevice = device.toUpperCase();
+    const normalizedCommand = command.toUpperCase();
+
     // Check if device exists
-    if (!deviceCommands[device]) {
+    if (!deviceCommands[normalizedDevice]) {
         return { valid: false, error: `Unknown device: ${device}` };
     }
 
     // Check if command exists for device
-    if (!deviceCommands[device][command]) {
-        const available = Object.keys(deviceCommands[device]).join(', ');
+    if (!deviceCommands[normalizedDevice][normalizedCommand]) {
+        const available = Object.keys(deviceCommands[normalizedDevice]).join(', ');
         return { valid: false, error: `Unknown command for ${device}: ${command}. Available: ${available}` };
     }
 
-    const cmdDef = deviceCommands[device][command];
+    const cmdDef = deviceCommands[normalizedDevice][normalizedCommand];
     
     // Validate arguments if specified
     if (cmdDef.args && args && typeof args === 'object') {
@@ -43,7 +47,8 @@ function validateDeviceCommand(device, command, args) {
         }
     }
 
-    return { valid: true };
+    // Return normalized device and command in response
+    return { valid: true, device: normalizedDevice, command: normalizedCommand };
 }
 
 /**
@@ -76,17 +81,19 @@ function getAvailableCommands() {
 
 /**
  * Get info about a specific device
- * @param {string} device - Device name
+ * @param {string} device - Device name (case-insensitive)
  * @returns {object} Device command info
  */
 function getDeviceInfo(device) {
-    if (!deviceCommands[device]) {
+    const normalizedDevice = device.toUpperCase();
+    
+    if (!deviceCommands[normalizedDevice]) {
         return { error: `Unknown device: ${device}` };
     }
 
     return {
-        device,
-        commands: deviceCommands[device]
+        device: normalizedDevice,
+        commands: deviceCommands[normalizedDevice]
     };
 }
 

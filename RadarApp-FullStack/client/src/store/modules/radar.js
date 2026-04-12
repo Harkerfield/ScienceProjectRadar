@@ -1,3 +1,5 @@
+import apiService from '../../services/apiService'
+
 export default {
   namespaced: true,
 
@@ -316,6 +318,110 @@ export default {
         }
       } catch (error) {
         console.warn('Failed to load persisted radar data:', error)
+      }
+    },
+
+    async fetchStatus({ commit }) {
+      try {
+        const response = await apiService.post('/device/RADAR/STATUS')
+        const data = response.data.data || response.data.response
+        commit('ADD_RADAR_DATA', {
+          range: data.range,
+          velocity: data.velocity,
+          confidence: data.confidence,
+          movement: data.movement,
+          detected: data.confidence > 0,
+          timestamp: new Date().toISOString()
+        })
+        return data
+      } catch (error) {
+        commit('ADD_ERROR', { message: `Failed to fetch radar status: ${error.message}`, type: 'api_error' })
+        throw error
+      }
+    },
+
+    async readRadar({ commit }) {
+      try {
+        const response = await apiService.post('/device/RADAR/READ')
+        const data = response.data.data || response.data.response
+        commit('ADD_RADAR_DATA', {
+          range: data.range,
+          velocity: data.velocity,
+          confidence: data.confidence,
+          movement: data.movement,
+          detected: data.confidence > 0,
+          timestamp: new Date().toISOString()
+        })
+        return data
+      } catch (error) {
+        commit('ADD_ERROR', { message: `Failed to read radar: ${error.message}`, type: 'api_error' })
+        throw error
+      }
+    },
+
+    async setRangeSimulation({ commit, dispatch }, centimeters) {
+      try {
+        const response = await apiService.post('/device/RADAR/SET_RANGE', { 
+          args: { centimeters } 
+        })
+        commit('ADD_RADAR_DATA', {
+          range: centimeters,
+          timestamp: new Date().toISOString()
+        })
+
+        dispatch('notifications/addNotification', {
+          type: 'info',
+          title: 'Radar Range Set',
+          message: `Simulated range set to ${centimeters}cm`
+        }, { root: true })
+
+        return response.data
+      } catch (error) {
+        commit('ADD_ERROR', { message: `Failed to set range: ${error.message}`, type: 'api_error' })
+        throw error
+      }
+    },
+
+    async setVelocitySimulation({ commit, dispatch }, metersPerSecond) {
+      try {
+        const response = await apiService.post('/device/RADAR/SET_VELOCITY', { 
+          args: { meters_per_second: metersPerSecond } 
+        })
+        commit('ADD_RADAR_DATA', {
+          velocity: metersPerSecond,
+          timestamp: new Date().toISOString()
+        })
+
+        dispatch('notifications/addNotification', {
+          type: 'info',
+          title: 'Radar Velocity Set',
+          message: `Simulated velocity set to ${metersPerSecond}m/s`
+        }, { root: true })
+
+        return response.data
+      } catch (error) {
+        commit('ADD_ERROR', { message: `Failed to set velocity: ${error.message}`, type: 'api_error' })
+        throw error
+      }
+    },
+
+    async ping({ commit }) {
+      try {
+        const response = await apiService.post('/device/RADAR/PING')
+        return response.data
+      } catch (error) {
+        commit('ADD_ERROR', { message: `Ping failed: ${error.message}`, type: 'api_error' })
+        throw error
+      }
+    },
+
+    async getInfo({ commit }) {
+      try {
+        const response = await apiService.post('/device/RADAR/WHOAMI')
+        return response.data
+      } catch (error) {
+        console.error('Failed to get radar info:', error)
+        throw error
       }
     }
   }
