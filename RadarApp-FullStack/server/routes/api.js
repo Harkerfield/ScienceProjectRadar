@@ -129,6 +129,83 @@ router.post('/shutdown', (req, res) => {
     }
 });
 
+// Microcontroller settings endpoints
+router.get('/config/microcontroller-settings', (req, res) => {
+    try {
+        const fs = require('fs');
+        const path = require('path');
+        const settingsPath = path.join(__dirname, '../config/microcontrollerSettings.json');
+        
+        if (!fs.existsSync(settingsPath)) {
+            return res.status(404).json({
+                success: false,
+                error: 'Settings file not found',
+                message: 'microcontrollerSettings.json does not exist'
+            });
+        }
+        
+        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        res.json({
+            success: true,
+            settings: settings
+        });
+    } catch (error) {
+        logger.error('Error reading microcontroller settings:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to read settings',
+            message: error.message
+        });
+    }
+});
+
+router.post('/config/microcontroller-settings', (req, res) => {
+    try {
+        const fs = require('fs');
+        const path = require('path');
+        const settingsPath = path.join(__dirname, '../config/microcontrollerSettings.json');
+        
+        if (!req.body || typeof req.body !== 'object') {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid request',
+                message: 'Request body must be a valid JSON object'
+            });
+        }
+        
+        // Add timestamp to metadata
+        if (!req.body.metadata) {
+            req.body.metadata = {};
+        }
+        req.body.metadata.lastModified = new Date().toISOString();
+        
+        fs.writeFileSync(settingsPath, JSON.stringify(req.body, null, 2), 'utf8');
+        
+        logger.info('Microcontroller settings updated');
+        
+        // Broadcast update to all connected clients
+        if (req.app.get('io')) {
+            req.app.get('io').emit('config:settings-updated', {
+                timestamp: new Date().toISOString(),
+                settings: req.body
+            });
+        }
+        
+        res.json({
+            success: true,
+            message: 'Settings updated successfully',
+            lastModified: req.body.metadata.lastModified
+        });
+    } catch (error) {
+        logger.error('Error saving microcontroller settings:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to save settings',
+            message: error.message
+        });
+    }
+});
+
     // Mount unified device control API
     // This must be before the module.exports so routes are properly nested
     router.use('/device', createUnifiedDeviceRoutes(serialComm, logger));

@@ -241,6 +241,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
+import apiService from '@/services/apiService'
 
 export default {
   name: 'Settings',
@@ -297,6 +298,8 @@ export default {
     if (this.systemSettings) {
       this.localSettings = { ...this.systemSettings }
     }
+    // Load microcontroller settings from server
+    this.loadMicrocontrollerSettings()
   },
 
   methods: {
@@ -414,6 +417,29 @@ export default {
       }
 
       input.click()
+    },
+
+    async loadMicrocontrollerSettings() {
+      try {
+        const response = await apiService.get('/api/config/microcontroller-settings')
+        if (response.data.success && response.data.settings) {
+          const settings = response.data.settings
+          // Merge loaded settings into local settings
+          if (settings.radar) {
+            Object.assign(this.localSettings.radar, settings.radar)
+          }
+          if (settings.stepper) {
+            Object.assign(this.localSettings.stepper, settings.stepper)
+          }
+          this.showNotification({
+            message: 'Microcontroller settings loaded from server',
+            type: 'info'
+          })
+        }
+      } catch (error) {
+        console.error('Error loading microcontroller settings:', error)
+        // Silently fail - use local defaults if server settings unavailable
+      }
     }
   }
 }

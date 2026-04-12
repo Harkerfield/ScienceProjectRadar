@@ -1,0 +1,125 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "lastModified": "2026-04-12T00:00:00Z",
+    "description": "Microcontroller configuration settings for radar, stepper, and servo devices"
+  },
+  "radar": {
+    "enabled": true,
+    "detectionRange": {
+      "min": 10,
+      "max": 500,
+      "default": 100,
+      "unit": "cm"
+    },
+    "sensitivity": {
+      "min": 1,
+      "max": 10,
+      "default": 5,
+      "unit": "level"
+    },
+    "scanSpeed": {
+      "options": ["slow", "medium", "fast"],
+      "default": "medium"
+    },
+    "continuousMode": {
+      "default": true
+    },
+    "updateInterval": {
+      "default": 100,
+      "unit": "ms"
+    }
+  },
+  "stepper": {
+    "enabled": true,
+    "motorType": "NEMA17",
+    "stepsPerRevolution": 200,
+    "defaultSpeed": {
+      "default": 50,
+      "min": 1,
+      "max": 100,
+      "unit": "RPM"
+    },
+    "acceleration": {
+      "default": 500,
+      "min": 1,
+      "max": 1000,
+      "unit": "steps/s²"
+    },
+    "homePosition": {
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "unit": "degrees"
+    },
+    "enablePositionLimits": {
+      "default": true
+    },
+    "maxPosition": {
+      "default": 360,
+      "unit": "degrees"
+    },
+    "minPosition": {
+      "default": 0,
+      "unit": "degrees"
+    }
+  },
+  "servo": {
+    "enabled": true,
+    "minPosition": {
+      "default": 0,
+      "unit": "degrees"
+    },
+    "maxPosition": {
+      "default": 180,
+      "unit": "degrees"
+    },
+    "defaultPosition": {
+      "default": 90,
+      "unit": "degrees"
+    },
+    "speed": {
+      "default": 60,
+      "min": 1,
+      "max": 180,
+      "unit": "degrees/second"
+    },
+    "extendTime": {
+      "default": 6000,
+      "unit": "ms"
+    },
+    "retractTime": {
+      "default": 6000,
+      "unit": "ms"
+    }
+  },
+  "uart": {
+    "master": {
+      "port": "/dev/ttyAMA0",
+      "baudRate": 460800,
+      "timeout": 2000,
+      "unit": "ms"
+    },
+    "slave": {
+      "port": "shared_uart1",
+      "baudRate": 115200,
+      "timeout": 2000,
+      "unit": "ms"
+    }
+  },
+  "calibration": {
+    "radar": {
+      "zeroOffset": 0,
+      "rangeScale": 1.0
+    },
+    "stepper": {
+      "stepAngleError": 0,
+      "homeOffsetSteps": 0
+    },
+    "servo": {
+      "minPulseWidth": 1000,
+      "maxPulseWidth": 2000,
+      "unit": "microseconds"
+    }
+  }
+}
