@@ -5,7 +5,7 @@ const os = require('os');
 // Root API discovery endpoint
 router.get('/', (req, res) => {
     res.json({
-        version: require('../../package.json').version,
+        version: require('../package.json').version,
         name: 'Radar Control System API',
         description: 'RESTful API for controlling radar, stepper, and servo devices',
         baseUrl: `http://${req.hostname}:${process.env.PORT || 3000}`,
@@ -36,7 +36,7 @@ router.get('/diagnostic', (req, res) => {
         status: 'ok',
         timestamp: new Date().toISOString(),
         server: {
-            version: require('../../package.json').version,
+            version: require('../package.json').version,
             uptime: `${Math.floor(process.uptime())}s`,
             environment: process.env.NODE_ENV || 'development',
             platform: process.platform,
@@ -79,7 +79,7 @@ router.get('/status', (req, res) => {
     res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
-        version: require('../../package.json').version,
+        version: require('../package.json').version,
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         env: process.env.NODE_ENV || 'development'
