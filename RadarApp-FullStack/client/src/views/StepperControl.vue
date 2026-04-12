@@ -46,11 +46,11 @@
                 min="0"
                 max="360"
                 step="1"
-                :disabled="!stepperConnected || isMoving"
+                :disabled="!allConnected || isMoving"
               />
               <button
                 @click="moveToPosition"
-                :disabled="!stepperConnected || isMoving"
+                :disabled="!allConnected || isMoving"
                 class="btn btn-primary"
               >
                 Move
@@ -67,7 +67,7 @@
               min="1"
               max="100"
               step="1"
-              :disabled="!stepperConnected"
+              :disabled="!allConnected"
             />
             <span class="speed-display">{{ motorSpeed }} RPM</span>
           </div>
@@ -75,21 +75,21 @@
           <div class="direction-buttons">
             <button
               @click="rotateClockwise"
-              :disabled="!stepperConnected || isMoving"
+              :disabled="!allConnected || isMoving"
               class="btn btn-secondary"
             >
               Rotate CW
             </button>
             <button
               @click="rotateCounterClockwise"
-              :disabled="!stepperConnected || isMoving"
+              :disabled="!allConnected || isMoving"
               class="btn btn-secondary"
             >
               Rotate CCW
             </button>
             <button
               @click="stopMotor"
-              :disabled="!stepperConnected"
+              :disabled="!allConnected"
               class="btn btn-danger"
             >
               Stop
@@ -106,7 +106,7 @@
             v-for="preset in presetPositions"
             :key="preset.name"
             @click="moveToPreset(preset.angle)"
-            :disabled="!stepperConnected || isMoving"
+            :disabled="!allConnected || isMoving"
             class="preset-btn"
           >
             {{ preset.name }}
@@ -117,14 +117,14 @@
         <div class="preset-controls">
           <button
             @click="saveCurrentPosition"
-            :disabled="!stepperConnected"
+            :disabled="!allConnected"
             class="btn btn-outline"
           >
             Save Current Position
           </button>
           <button
             @click="homeMotor"
-            :disabled="!stepperConnected || isMoving"
+            :disabled="!allConnected || isMoving"
             class="btn btn-outline"
           >
             Home Motor
@@ -144,7 +144,7 @@
               type="number"
               min="1"
               max="1000"
-              :disabled="!stepperConnected"
+              :disabled="!allConnected"
             />
           </div>
           <div class="config-item">
@@ -155,7 +155,7 @@
               type="number"
               min="1"
               max="1000"
-              :disabled="!stepperConnected"
+              :disabled="!allConnected"
             />
           </div>
           <div class="config-item">
@@ -163,7 +163,7 @@
             <select
               id="microstepping"
               v-model="motorConfig.microstepping"
-              :disabled="!stepperConnected"
+              :disabled="!allConnected"
             >
               <option value="1">1 (Full Step)</option>
               <option value="2">1/2 Step</option>
@@ -174,7 +174,7 @@
           </div>
           <button
             @click="applyConfiguration"
-            :disabled="!stepperConnected"
+            :disabled="!allConnected"
             class="btn btn-primary"
           >
             Apply Configuration
@@ -217,9 +217,14 @@ export default {
       'currentSpeed',
       'isMoving'
     ]),
-    ...mapGetters('connection', [
-      'stepperConnected'
-    ]),
+
+    stepperConnected() {
+      return this.$store.state.connection.picoConnected
+    },
+
+    allConnected() {
+      return this.$store.getters['connection/allConnected']
+    },
 
     motorStateClass() {
       return {
@@ -547,3 +552,4 @@ export default {
   color: white;
 }
 </style>
+
