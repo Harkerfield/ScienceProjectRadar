@@ -3,6 +3,7 @@ import socketService from '../../services/socketService'
 const state = {
   connectionStatus: 'disconnected', // 'connected', 'connecting', 'disconnected', 'error'
   websocketStatus: 'disconnected', // WebSocket (server) status
+  serialConnected: false, // Serial bridge (Python) connection status
   picoConnected: false, // Pico master device status
   lastConnected: null,
   reconnectAttempts: 0,
@@ -12,6 +13,7 @@ const state = {
 const getters = {
   isConnected: state => state.connectionStatus === 'connected',
   isConnecting: state => state.connectionStatus === 'connecting',
+  allConnected: state => state.websocketStatus === 'connected' && state.serialConnected && state.picoConnected,
   connectionStatusText: state => {
     switch (state.connectionStatus) {
     case 'connected': return 'Connected'
@@ -30,6 +32,7 @@ const getters = {
     default: return 'Unknown'
     }
   },
+  serialStatusText: state => state.serialConnected ? 'Connected' : 'Disconnected',
   picoStatusText: state => state.picoConnected ? 'Connected' : 'Disconnected'
 }
 
@@ -45,6 +48,10 @@ const mutations = {
 
   SET_WEBSOCKET_STATUS(state, status) {
     state.websocketStatus = status
+  },
+
+  SET_SERIAL_CONNECTED(state, connected) {
+    state.serialConnected = connected
   },
 
   SET_PICO_CONNECTED(state, connected) {
@@ -147,8 +154,11 @@ const actions = {
       dispatch('radar/handleScanStopped', data, { root: true })
     })
 
-    // System status to track Pico connection
+    // System status to track Pico and Serial connection
     socketService.on('system:status', (data) => {
+      if (data.serial) {
+        commit('SET_SERIAL_CONNECTED', data.serial.connected || false)
+      }
       if (data.pico) {
         const picoConnected = data.pico.status !== 'unavailable' && data.pico.initialized
         commit('SET_PICO_CONNECTED', picoConnected)

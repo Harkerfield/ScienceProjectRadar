@@ -13,7 +13,7 @@
               <button
                 @click="toggleLocalRadar"
                 :class="['btn', 'btn-sm', 'me-2', localRadarActive ? 'btn-success' : 'btn-outline-secondary']"
-                :disabled="!isConnected"
+                :disabled="!allConnected"
               >
                 <i class="fas fa-satellite-dish me-1"></i>
                 Local Radar
@@ -21,7 +21,7 @@
               <button
                 @click="togglePicoRadar"
                 :class="['btn', 'btn-sm', picoRadarActive ? 'btn-success' : 'btn-outline-secondary']"
-                :disabled="!picoConnected"
+                :disabled="!allConnected"
               >
                 <i class="fas fa-microchip me-1"></i>
                 Pico Radar
@@ -151,7 +151,7 @@
         </div>
 
         <!-- Pico Servo Control -->
-        <div class="card card-custom mb-4" v-if="picoConnected">
+        <div class="card card-custom mb-4" v-if="picoRadarActive || picoConnected">
           <div class="card-header">
             <h6 class="card-title mb-0">
               <i class="fas fa-cog me-2"></i>
@@ -159,6 +159,9 @@
             </h6>
           </div>
           <div class="card-body">
+            <div v-if="!allConnected" class="alert alert-warning" role="alert">
+              ⚠️ Servo control disabled. All connections required (Server, Serial, Pico).
+            </div>
             <div class="mb-3">
               <div class="servo-status mb-3">
                 <span class="status-label">Position:</span>
@@ -173,13 +176,13 @@
                 <button
                   @click="activatePicoServo"
                   :class="['btn', picoServoActive ? 'btn-warning' : 'btn-success']"
-                  :disabled="!picoConnected"
+                  :disabled="!allConnected"
                 >
                   <i :class="['fas', picoServoActive ? 'fa-stop' : 'fa-play', 'me-1']"></i>
                   {{ picoServoActive ? 'Deactivate' : 'Activate' }} Servo
                 </button>
 
-                <button @click="requestPicoStatus" class="btn btn-outline-info btn-sm" :disabled="!picoConnected">
+                <button @click="requestPicoStatus" class="btn btn-outline-info btn-sm" :disabled="!allConnected">
                   <i class="fas fa-sync me-1"></i>
                   Refresh Status
                 </button>
@@ -246,6 +249,10 @@ export default {
     ...mapState('connection', ['isConnected']),
     ...mapState('radar', ['isScanning', 'radarData', 'stats']),
     ...mapState('pico', ['picoConnected', 'picoRadarData', 'picoServoStatus']),
+
+    allConnected() {
+      return this.$store.getters['connection/allConnected']
+    },
 
     localRadarActive() {
       return this.isScanning

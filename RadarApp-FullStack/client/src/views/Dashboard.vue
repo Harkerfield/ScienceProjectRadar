@@ -52,10 +52,17 @@
         <h2>Connection Status</h2>
         <div class="connections">
           <div class="connection-item">
-            <span class="connection-name">WebSocket (Server):</span>
+            <span class="connection-name">Server (WebSocket):</span>
             <span class="connection-badge" :class="{ connected: websocketConnected }">
               <span class="status-dot" :class="{ connected: websocketConnected }"></span>
               {{ websocketConnected ? 'Connected' : 'Disconnected' }}
+            </span>
+          </div>
+          <div class="connection-item">
+            <span class="connection-name">Serial Bridge:</span>
+            <span class="connection-badge" :class="{ connected: serialConnected }">
+              <span class="status-dot" :class="{ connected: serialConnected }"></span>
+              {{ serialConnected ? 'Connected' : 'Disconnected' }}
             </span>
           </div>
           <div class="connection-item">
@@ -67,7 +74,10 @@
           </div>
           <div class="connection-item">
             <span class="connection-name">Overall Status:</span>
-            <span class="connection-text">{{ overallStatus }}</span>
+            <span class="connection-text" :class="{ warning: !allConnected }">{{ overallStatus }}</span>
+          </div>
+          <div v-if="!allConnected" class="connection-warning">
+            ⚠️ Devices disabled until all connections are established
           </div>
         </div>
       </div>
@@ -119,19 +129,27 @@ export default {
       return this.$store.state.connection.websocketStatus === 'connected'
     },
 
+    serialConnected() {
+      return this.$store.state.connection.serialConnected
+    },
+
     picoConnected() {
       return this.$store.state.connection.picoConnected
     },
 
+    allConnected() {
+      return this.websocketConnected && this.serialConnected && this.picoConnected
+    },
+
     overallStatus() {
-      if (this.websocketConnected && this.picoConnected) {
-        return 'All systems operational'
-      } else if (this.websocketConnected) {
-        return 'Server connected, waiting for Pico'
-      } else if (this.picoConnected) {
-        return 'Pico connected, server disconnected'
+      if (this.allConnected) {
+        return 'All systems operational - Ready for control'
       } else {
-        return 'System offline'
+        const statuses = []
+        if (!this.websocketConnected) statuses.push('Server')
+        if (!this.serialConnected) statuses.push('Serial')
+        if (!this.picoConnected) statuses.push('Pico')
+        return `Waiting for: ${statuses.join(', ')}`
       }
     },
 
@@ -354,5 +372,22 @@ export default {
   text-align: center;
   color: #666;
   font-style: italic;
+}
+
+.connection-warning {
+  margin-top: 12px;
+  padding: 10px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  color: #856404;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.connection-text.warning {
+  color: #ff9800;
+  font-weight: bold;
 }
 </style>
