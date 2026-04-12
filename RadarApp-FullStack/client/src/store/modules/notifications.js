@@ -55,17 +55,17 @@ export default {
           newNotification.persistent = true
           break
         case 'error':
-          newNotification.timeout = 10000 // 10 seconds for errors
+          newNotification.timeout = 3000 // 3 seconds for errors
           break
         case 'warning':
-          newNotification.timeout = 7000 // 7 seconds for warnings
+          newNotification.timeout = 3000 // 3 seconds for warnings
           break
         case 'success':
-          newNotification.timeout = 4000 // 4 seconds for success
+          newNotification.timeout = 3000 // 3 seconds for success
           break
         case 'info':
         default:
-          newNotification.timeout = state.defaultTimeout || 5000 // 5 seconds default
+          newNotification.timeout = state.defaultTimeout || 3000 // 3 seconds default
           break
         }
       }
@@ -182,7 +182,7 @@ export default {
         type: 'success',
         title: 'Success',
         message,
-        timeout: 4000
+        timeout: 3000
       })
     },
 
@@ -191,7 +191,7 @@ export default {
         type: 'error',
         title: 'Error',
         message,
-        timeout: 10000
+        timeout: 3000
       })
     },
 
@@ -200,7 +200,7 @@ export default {
         type: 'warning',
         title: 'Warning',
         message,
-        timeout: 7000
+        timeout: 3000
       })
     },
 
@@ -209,7 +209,7 @@ export default {
         type: 'info',
         title: 'Information',
         message,
-        timeout: 5000
+        timeout: 3000
       })
     },
 
