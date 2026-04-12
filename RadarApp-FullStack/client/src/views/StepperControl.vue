@@ -26,7 +26,10 @@
             <span class="value" :class="motorStateClass">{{ motorState }}</span>
           </div>
           <div class="status-item">
-            <span class="label">Speed:</span>
+            <span class="label">Actuator State:</span>
+            <span class="value" :class="actuatorStateClass">{{ actuatorState }}</span>
+          </div>
+          <div class="status-item">
             <span class="value">{{ currentSpeed }} RPM</span>
           </div>
         </div>
@@ -238,6 +241,9 @@ export default {
       'currentSpeed',
       'isMoving'
     ]),
+    ...mapGetters('actuator', [
+      'state'
+    ]),
 
     stepperConnected() {
       return this.$store.state.connection.picoConnected
@@ -252,6 +258,18 @@ export default {
         'state-idle': this.motorState === 'idle',
         'state-moving': this.motorState === 'moving',
         'state-error': this.motorState === 'error'
+      }
+    },
+
+    actuatorState() {
+      return this.state || 'unknown'
+    },
+
+    actuatorStateClass() {
+      return {
+        'state-open': this.actuatorState === 'open',
+        'state-closed': this.actuatorState === 'closed',
+        'state-unknown': this.actuatorState === 'unknown'
       }
     }
   },
@@ -438,6 +456,20 @@ export default {
 
 .value.state-error {
   color: #f44336;
+}
+
+.value.state-open {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.value.state-closed {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.value.state-unknown {
+  color: #999;
 }
 
 .control-section {
