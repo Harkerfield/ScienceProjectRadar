@@ -422,7 +422,7 @@ export default {
 
     async loadMicrocontrollerSettings() {
       try {
-        const response = await apiService.get('/api/config/microcontroller-settings')
+        const response = await apiService.get('/config/microcontroller-settings')
         if (response.data.success && response.data.settings) {
           const settings = response.data.settings
           // Merge loaded settings into local settings
