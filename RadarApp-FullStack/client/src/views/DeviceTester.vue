@@ -49,7 +49,7 @@
               :key="cmd"
               :value="cmd"
             >
-              {{ cmd }}
+              {{ commandDisplayLabel(cmd) }}
             </option>
           </select>
         </div>
@@ -169,6 +169,11 @@ export default {
         ROTATE: { speed: '' },
         SET_RANGE: { centimeters: '' },
         SET_VELOCITY: { meters_per_second: '' }
+      },
+      masterCommandEndpointMap: {
+        PING: 'GET /health',
+        STATUS: 'GET /status',
+        WHOAMI: 'GET /api'
       }
     }
   },
@@ -182,6 +187,15 @@ export default {
   },
 
   methods: {
+    commandDisplayLabel(command) {
+      if (this.selectedDevice !== 'MASTER') {
+        return command
+      }
+
+      const endpoint = this.masterCommandEndpointMap[command]
+      return endpoint ? `${command} (${endpoint})` : command
+    },
+
     updateAvailableCommands() {
       if (this.selectedDevice) {
         this.availableCommands = this.deviceCommands[this.selectedDevice] || []
@@ -211,12 +225,26 @@ export default {
       this.isSending = true
 
       try {
-        const endpoint = `/api/device/${this.selectedDevice}/${this.selectedCommand}`
-        const body = {
-          args: this.commandParams
-        }
+        let response
 
-        const response = await apiService.post(endpoint, body)
+        // MASTER routes are API-level endpoints, not /device endpoints.
+        if (this.selectedDevice === 'MASTER') {
+          if (this.selectedCommand === 'PING') {
+            response = await apiService.get('/health')
+          } else if (this.selectedCommand === 'STATUS') {
+            response = await apiService.get('/status')
+          } else if (this.selectedCommand === 'WHOAMI') {
+            response = await apiService.get('/api')
+          } else {
+            throw new Error(`Unsupported MASTER command: ${this.selectedCommand}`)
+          }
+        } else {
+          const endpoint = `/device/${this.selectedDevice}/${this.selectedCommand}`
+          const body = {
+            args: this.commandParams
+          }
+          response = await apiService.post(endpoint, body)
+        }
 
         const historyItem = {
           device: this.selectedDevice,

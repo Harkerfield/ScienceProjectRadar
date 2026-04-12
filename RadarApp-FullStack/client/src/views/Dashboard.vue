@@ -18,6 +18,10 @@
             <span class="value">{{ formatUptime(uptime) }}</span>
           </div>
           <div class="stat">
+            <span class="label">Device IP:</span>
+            <span class="value">{{ deviceIp }}</span>
+          </div>
+          <div class="stat">
             <span class="label">Status:</span>
             <span class="value">{{ systemStatus }}</span>
           </div>
@@ -151,6 +155,11 @@ export default {
         if (!this.picoConnected) statuses.push('Pico')
         return `Waiting for: ${statuses.join(', ')}`
       }
+    },
+
+    deviceIp() {
+      const host = window.location.hostname || 'unknown'
+      return host
     },
 
     systemStatusClass() {
