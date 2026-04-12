@@ -224,7 +224,6 @@
                 <button
                   @click="raiseMotor"
                   class="btn btn-success btn-lg"
-                  :disabled="!allConnected"
                 >
                   <i class="fas fa-arrow-up me-1"></i>
                   Raise
@@ -232,7 +231,6 @@
                 <button
                   @click="lowerMotor"
                   class="btn btn-warning btn-lg"
-                  :disabled="!allConnected"
                 >
                   <i class="fas fa-arrow-down me-1"></i>
                   Lower

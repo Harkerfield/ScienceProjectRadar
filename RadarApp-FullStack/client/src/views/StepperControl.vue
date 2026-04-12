@@ -75,14 +75,14 @@
           <div class="direction-buttons">
             <button
               @click="raiseMotor"
-              :disabled="!allConnected || isMoving"
+              :disabled="!allConnected"
               class="btn btn-success"
             >
               ⬆️ Raise
             </button>
             <button
               @click="lowerMotor"
-              :disabled="!allConnected || isMoving"
+              :disabled="!allConnected"
               class="btn btn-success"
             >
               ⬇️ Lower
