@@ -41,7 +41,6 @@
               :radar-data="combinedRadarData"
               :is-scanning="isScanning"
               :range="radarRange"
-              :sweep-angle="sweepAngle"
             />
           </div>
         </div>

@@ -6,6 +6,7 @@ export default {
   state: {
     isScanning: false,
     radarData: [],
+    currentSweepAngle: 0,
     configuration: {
       scanInterval: 100,
       detectionThreshold: 50,
@@ -26,6 +27,8 @@ export default {
   },
 
   getters: {
+    currentSweepAngle: (state) => state.currentSweepAngle,
+
     activeDetections: (state) => {
       const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
       return state.radarData.filter(data =>
@@ -68,6 +71,10 @@ export default {
   },
 
   mutations: {
+    SET_SWEEP_ANGLE(state, angle) {
+      state.currentSweepAngle = angle % 360
+    },
+
     SET_SCANNING_STATE(state, isScanning) {
       state.isScanning = isScanning
       if (isScanning) {
@@ -216,6 +223,11 @@ export default {
         commit('ADD_ERROR', error)
         throw error
       }
+    },
+
+    updateSweepAngle({ commit }, angle) {
+      // Update sweep angle from stepper position (real-time from microcontroller)
+      commit('SET_SWEEP_ANGLE', angle)
     },
 
     processRadarData({ commit }, data) {

@@ -43,6 +43,8 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
   name: 'RadarDisplay',
 
@@ -58,10 +60,6 @@ export default {
     range: {
       type: Number,
       default: 100
-    },
-    sweepAngle: {
-      type: Number,
-      default: 0
     }
   },
 
@@ -81,6 +79,12 @@ export default {
   },
 
   computed: {
+    ...mapGetters('radar', ['currentSweepAngle']),
+
+    sweepAngle() {
+      return this.currentSweepAngle
+    },
+
     activeTargets() {
       return this.radarData.filter(data => data.detected && this.isTargetVisible(data)).length
     },
@@ -430,7 +434,6 @@ export default {
       const distance = Math.sqrt(dx * dx + dy * dy)
       const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 90 + 360) % 360
 
-      // Set position for crosshair - CSS transform will center it
       this.mousePosition = { x, y }
       this.mouseDistance = Math.round((distance / this.scaleFactor) * 10) / 10
       this.mouseAngle = Math.round(angle)
@@ -507,44 +510,41 @@ canvas {
   position: absolute;
   pointer-events: none;
   z-index: 10;
-  transform: translate(-10%, -10%);
 }
 
 .radar-crosshair::before,
 .radar-crosshair::after {
   content: '';
   position: absolute;
-  background: rgba(0, 255, 0, 0.9);
-  box-shadow: 0 0 5px rgba(0, 255, 0, 0.8);
+  background: rgba(0, 255, 0, 0.8);
 }
 
 .radar-crosshair::before {
-  width: 24px;
-  height: 2px;
-  top: -1px;
-  left: -12px;
+  width: 20px;
+  height: 1px;
+  top: -0.5px;
+  left: -10px;
 }
 
 .radar-crosshair::after {
-  width: 2px;
-  height: 24px;
-  top: -12px;
-  left: -1px;
+  width: 1px;
+  height: 20px;
+  top: -10px;
+  left: -0.5px;
 }
 
 .crosshair-info {
   position: absolute;
-  top: -28px;
-  left: 12px;
-  background: rgba(0, 0, 0, 0.95);
+  top: -25px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.9);
   color: #00ff00;
-  padding: 4px 8px;
+  padding: 2px 6px;
   border-radius: 3px;
   font-family: 'Courier New', monospace;
-  font-size: 11px;
+  font-size: 10px;
   white-space: nowrap;
-  border: 1px solid rgba(0, 255, 0, 0.6);
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  border: 1px solid rgba(0, 255, 0, 0.5);
 }
 
 @media (max-width: 768px) {

@@ -62,7 +62,7 @@ const mutations = {
 }
 
 const actions = {
-  async fetchStatus({ commit }) {
+  async fetchStatus({ commit, dispatch }) {
     try {
       const response = await apiService.post('/device/STEPPER/STATUS')
       if (response.data.success) {
@@ -74,6 +74,8 @@ const actions = {
           atHome: data.at_home || false,
           motorState: data.enabled ? 'idle' : 'error'
         })
+        // Update radar sweep angle with real-time stepper position
+        dispatch('radar/updateSweepAngle', data.position || 0, { root: true })
       }
       return response.data
     } catch (error) {
@@ -117,6 +119,9 @@ const actions = {
         targetPosition: angle,
         motorState: 'idle'
       })
+
+      // Update radar sweep angle in real-time
+      dispatch('radar/updateSweepAngle', data.position || angle, { root: true })
 
       commit('ADD_HISTORY_ENTRY', {
         action: 'moveToAngle',
