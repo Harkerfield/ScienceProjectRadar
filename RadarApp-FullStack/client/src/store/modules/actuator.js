@@ -58,19 +58,9 @@ const actions = {
     }
   },
 
-  async getPosition({ commit }) {
-    try {
-      const response = await apiService.get('/device/servo/status')
-      const data = response.data.data || response.data.response
-      commit('SET_status', {
-        state: data.state || 'unknown',
-        isOpen: data.state === 'open'
-      })
-      return data
-    } catch (error) {
-      console.error('Failed to get actuator position:', error)
-      throw error
-    }
+  async getPosition({ dispatch }) {
+    // Delegate to fetchStatus to avoid duplication
+    return dispatch('fetchStatus')
   },
 
   async open({ commit, dispatch }) {
