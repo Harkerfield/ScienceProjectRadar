@@ -498,32 +498,32 @@ def process_uart_command(cmd_text):
             send_uart_response("error:invalid_format")
             return
         
-        device = parts[0].upper()
+        device = parts[0].lower()
         if device != device_name:
             send_uart_response(f"error:wrong_device:{device}")
             return
         
-        cmd = parts[1].upper()
+        cmd = parts[1].lower()
         args = parts[2] if len(parts) > 2 else ""
         
         print(f"[UART-CMD] Device: {device}, Command: {cmd}, Args: {args}")
         
         # ========== STANDARD COMMANDS ==========
-        if cmd == "COMMANDS":
+        if cmd == "commands":
             commands = "ping,whoami,status,home,move,rotate,spin,stop,enable,disable,speed"
-            send_uart_response(f"OK:commands={commands}")
+            send_uart_response(f"ok:commands={commands}")
         
         elif cmd == "ping":
             uptime_ms = utime.ticks_ms() - startup_time
             uptime_s = uptime_ms // 1000
-            send_uart_response(f"OK:msg=alive:uptime={uptime_s}s")
+            send_uart_response(f"ok:msg=alive:uptime={uptime_s}s")
         
         elif cmd == "whoami":
-            send_uart_response(f"OK:device=stepper:type=motor_controller")
+            send_uart_response(f"ok:device=stepper:type=motor_controller")
         
         elif cmd == "status":
-            state = "home" if stepper_at_home else "ROTATING" if continuous_rotating else "IDLE"
-            send_uart_response(f"OK:state={state}:position={int(stepper_position)}:calibrated={1 if home_calibrated else 0}")
+            state = "home" if stepper_at_home else "rotating" if continuous_rotating else "idle"
+            send_uart_response(f"ok:state={state}:position={int(stepper_position)}:calibrated={1 if home_calibrated else 0}")
         
         # ========== MOTOR CONTROL COMMANDS ==========
         elif cmd == "spin":
@@ -536,7 +536,7 @@ def process_uart_command(cmd_text):
                         continuous_rotating = True
                         continuous_direction = CW
                         enable_motor()
-                        send_uart_response(f"OK:msg=spin_started:speed={speed}:direction=CW")
+                        send_uart_response(f"ok:msg=spin_started:speed={speed}:direction=cw")
                     else:
                         send_uart_response(f"error:speed_out_of_range:min={MIN_speed_US}:max={MAX_speed_US}")
                 except ValueError:
@@ -548,7 +548,7 @@ def process_uart_command(cmd_text):
             if continuous_rotating:
                 continuous_rotating = False
                 disable_motor()
-                send_uart_response(f"OK:msg=stopped:pos={int(stepper_position)}:revolutions={continuous_revolutions}")
+                send_uart_response(f"ok:msg=stopped:position={int(stepper_position)}:revolutions={continuous_revolutions}")
             else:
                 send_uart_response("error:not_rotating")
         
@@ -559,20 +559,20 @@ def process_uart_command(cmd_text):
                     if MIN_speed_US <= speed <= MAX_speed_US:
                         current_speed_us = speed
                         stepper_settings['speed'] = speed
-                        send_uart_response(f"OK:msg=speed_set:speed={speed}")
+                        send_uart_response(f"ok:msg=speed_set:speed={speed}")
                     else:
                         send_uart_response(f"error:speed_out_of_range:min={MIN_speed_US}:max={MAX_speed_US}")
                 except ValueError:
                     send_uart_response("error:invalid_speed")
             else:
-                send_uart_response(f"OK:msg=current_speed:speed={current_speed_us}")
+                send_uart_response(f"ok:msg=current_speed:speed={current_speed_us}")
         
         elif cmd == "home":
             # Start home finding process
             continuous_rotating = False
             result = find_home_complete()
             if result:
-                send_uart_response(f"OK:msg=home_found:pos=0:calib=1")
+                send_uart_response(f"ok:msg=home_found:position=0:calibrated=1")
             else:
                 send_uart_response("error:home_not_found")
         
@@ -586,7 +586,7 @@ def process_uart_command(cmd_text):
                     else:
                         result = move_stepper_direct(angle)
                         if result:
-                            send_uart_response(f"OK:msg=moved:pos={int(stepper_position)}:target={int(angle)}")
+                            send_uart_response(f"ok:msg=moved:position={int(stepper_position)}:target={int(angle)}")
                         else:
                             send_uart_response("error:move_failed")
                 except ValueError:
@@ -604,7 +604,7 @@ def process_uart_command(cmd_text):
                     else:
                         result = rotate_stepper_relative(delta)
                         if result:
-                            send_uart_response(f"OK:msg=rotated:pos={int(stepper_position)}:delta={int(delta)}")
+                            send_uart_response(f"ok:msg=rotated:position={int(stepper_position)}:delta={int(delta)}")
                         else:
                             send_uart_response("error:rotate_failed")
                 except ValueError:
@@ -614,11 +614,11 @@ def process_uart_command(cmd_text):
         
         elif cmd == "enable":
             enable_motor()
-            send_uart_response("OK:msg=enabled:enabled=1")
+            send_uart_response("ok:msg=enabled:enabled=1")
         
         elif cmd == "disable":
             disable_motor()
-            send_uart_response("OK:msg=disabled:enabled=0")
+            send_uart_response("ok:msg=disabled:enabled=0")
         
         else:
             send_uart_response(f"error:unknown_command:{cmd}")

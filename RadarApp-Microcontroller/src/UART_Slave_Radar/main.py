@@ -110,26 +110,26 @@ def process_uart_command(cmd_text):
             send_uart_response("error:invalid_format")
             return
         
-        device = parts[0].upper()
+        device = parts[0].lower()
         if device != device_name:
             send_uart_response(f"error:wrong_device:{device}")
             return
         
-        cmd = parts[1].upper()
+        cmd = parts[1].lower()
         args = parts[2] if len(parts) > 2 else ""
         
         print(f"[UART-CMD] Device: {device}, Command: {cmd}, Args: {args}")
         
         # ========== STANDARD COMMANDS ==========
-        if cmd == "COMMANDS":
+        if cmd == "commands":
             commands = "ping,whoami,status,read,set_range,set_velocity"
-            send_uart_response(f"OK:commands={commands}")
+            send_uart_response(f"ok:commands={commands}")
         
         elif cmd == "ping":
-            send_uart_response(f"OK:msg=alive")
+            send_uart_response(f"ok:msg=alive")
         
         elif cmd == "whoami":
-            send_uart_response(f"OK:device=radar:type=distance_sensor")
+            send_uart_response(f"ok:device=radar:type=distance_sensor")
         
         elif cmd == "status":
             # Calculate confidence based on distance (simulate signal strength)
@@ -139,7 +139,7 @@ def process_uart_command(cmd_text):
                 confidence = 0
             
             movement = 1 if radar_velocity > 0.5 else 0
-            send_uart_response(f"OK:range={radar_range}:velocity={radar_velocity}:confidence={int(confidence)}:movement={movement}")
+            send_uart_response(f"ok:range={radar_range}:velocity={radar_velocity}:confidence={int(confidence)}:movement={movement}")
         
         elif cmd == "read":
             # Calculate confidence based on distance
@@ -149,25 +149,25 @@ def process_uart_command(cmd_text):
                 confidence = 0
             
             movement = 1 if radar_velocity > 0.5 else 0
-            send_uart_response(f"OK:range={radar_range}:velocity={radar_velocity:.1f}:confidence={int(confidence)}:movement={movement}")
+            send_uart_response(f"ok:range={radar_range}:velocity={radar_velocity:.1f}:confidence={int(confidence)}:movement={movement}")
         
         elif cmd == "set_range":
-            # Command format: radar:set_range:value
+            # Command format: radar:set_range:centimeters
             global radar_range
             try:
                 if args:
                     radar_range = int(args)
-                send_uart_response(f"OK:range_set:value={radar_range}")
+                send_uart_response(f"ok:msg=range_set:range={radar_range}")
             except:
                 send_uart_response(f"error:invalid_range")
         
         elif cmd == "set_velocity":
-            # Command format: radar:set_velocity:value
+            # Command format: radar:set_velocity:meters_per_second
             global radar_velocity
             try:
                 if args:
                     radar_velocity = float(args)
-                send_uart_response(f"OK:velocity_set:value={radar_velocity:.1f}")
+                send_uart_response(f"ok:msg=velocity_set:velocity={radar_velocity:.1f}")
             except:
                 send_uart_response(f"error:invalid_velocity")
         
