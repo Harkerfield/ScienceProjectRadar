@@ -157,8 +157,8 @@ CLIENT_URL=http://localhost:8080
 # Hardware Configuration
 stepper_PINS=18,19,20,21
 stepper_enable_PIN=22
-RADAR_SERIAL_PORT=/dev/ttyUSB0
-RADAR_BAUD_RATE=115200
+radar_SERIAL_PORT=/dev/ttyUSB0
+radar_BAUD_RATE=115200
 
 # UART Communication with Raspberry Pi Pico
 PICO_UART_PORT=/dev/ttyAMA0

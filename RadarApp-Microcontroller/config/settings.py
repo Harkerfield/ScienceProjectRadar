@@ -20,7 +20,7 @@ servo_ACTIVE_POSITION = 45   # Active position in degrees
 servo_FREQUENCY = 50  # PWM frequency for servo (50Hz standard)
 
 # Radar Type Configuration - Choose one
-RADAR_TYPE = "RCWL0516"  # Options: "RCWL0516" or "CQROBOT"
+radar_TYPE = "RCWL0516"  # Options: "RCWL0516" or "CQROBOT"
 
 # RCWL-0516 Configuration (if using RCWL-0516 modules)
 RCWL_PINS = [2, 3, 4, 5, 6, 7, 8, 9]  # GPIO pins for 8 RCWL-0516 modules
@@ -76,14 +76,14 @@ PIN_ASSIGNMENTS = {
 def print_configuration():
     """Print current configuration for debugging"""
     print("=== Radar Controller Configuration ===")
-    print(f"Radar Type: {RADAR_TYPE}")
+    print(f"Radar Type: {radar_TYPE}")
     print(f"Servo Pin: {servo_PIN}")
     print(f"Scan Interval: {SCAN_INTERVAL_MS}ms")
     print(f"Detection Threshold: {DETECTION_THRESHOLD}")
     
-    if RADAR_TYPE == "RCWL0516":
+    if radar_TYPE == "RCWL0516":
         print(f"RCWL-0516 Pins: {RCWL_PINS}")
-    elif RADAR_TYPE == "CQROBOT":
+    elif radar_TYPE == "CQROBOT":
         print("CQRobot Modules:")
         for module in CQROBOT_PINS['modules']:
             print(f"  {module['name']}: UART{module['uart_id']} (TX:{module['tx_pin']}, RX:{module['rx_pin']})")
@@ -95,8 +95,8 @@ def validate_configuration():
     errors = []
     
     # Check radar type
-    if RADAR_TYPE not in ["RCWL0516", "CQROBOT"]:
-        errors.append(f"Invalid RADAR_TYPE: {RADAR_TYPE}")
+    if radar_TYPE not in ["RCWL0516", "CQROBOT"]:
+        errors.append(f"Invalid radar_TYPE: {radar_TYPE}")
     
     # Check servo configuration
     if not (0 <= servo_PIN <= 28):
@@ -109,13 +109,13 @@ def validate_configuration():
         errors.append(f"Invalid servo_ACTIVE_POSITION: {servo_ACTIVE_POSITION}")
     
     # Check RCWL pins
-    if RADAR_TYPE == "RCWL0516":
+    if radar_TYPE == "RCWL0516":
         for pin in RCWL_PINS:
             if not (0 <= pin <= 28):
                 errors.append(f"Invalid RCWL pin: {pin}")
     
     # Check CQRobot configuration
-    if RADAR_TYPE == "CQROBOT":
+    if radar_TYPE == "CQROBOT":
         for module in CQROBOT_PINS['modules']:
             if not (0 <= module['uart_id'] <= 1):
                 errors.append(f"Invalid UART ID for {module['name']}: {module['uart_id']}")
@@ -138,12 +138,12 @@ def validate_configuration():
 # Alternative configurations for different setups
 ALTERNATIVE_CONFIGS = {
     'minimal_rcwl': {
-        'RADAR_TYPE': 'RCWL0516',
+        'radar_TYPE': 'RCWL0516',
         'RCWL_PINS': [2, 3, 4, 5],  # Only 4 sensors
         'DETECTION_THRESHOLD': 1
     },
     'dual_cqrobot': {
-        'RADAR_TYPE': 'CQROBOT',
+        'radar_TYPE': 'CQROBOT',
         'CQROBOT_PINS': {
             'modules': [
                 {'uart_id': 0, 'tx_pin': 0, 'rx_pin': 1, 'name': 'front_radar'},
@@ -152,7 +152,7 @@ ALTERNATIVE_CONFIGS = {
         }
     },
     'single_cqrobot': {
-        'RADAR_TYPE': 'CQROBOT',
+        'radar_TYPE': 'CQROBOT',
         'CQROBOT_PINS': {
             'modules': [
                 {'uart_id': 0, 'tx_pin': 0, 'rx_pin': 1, 'name': 'main_radar'}

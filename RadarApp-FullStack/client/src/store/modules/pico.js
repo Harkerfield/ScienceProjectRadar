@@ -78,7 +78,7 @@ export default {
       state.isReceivingData = isReceiving
     },
 
-    ADD_PICO_RADAR_DATA(state, data) {
+    ADD_PICO_radar_DATA(state, data) {
       // Add timestamp and source if not provided
       if (!data.timestamp) {
         data.timestamp = new Date().toISOString()
@@ -268,7 +268,7 @@ export default {
       try {
         switch (message.type) {
         case 'radar_data':
-          commit('ADD_PICO_RADAR_DATA', message.data)
+          commit('ADD_PICO_radar_DATA', message.data)
           break
 
         case 'servo_status':

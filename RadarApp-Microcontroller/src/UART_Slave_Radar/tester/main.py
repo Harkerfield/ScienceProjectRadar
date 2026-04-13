@@ -21,9 +21,9 @@ class RadarServerController:
         self.servo = ServoController(servo_PIN)
         
         # Initialize radar modules based on configuration
-        if RADAR_TYPE == "RCWL0516":
+        if radar_TYPE == "RCWL0516":
             self.radar = RadarRCWL0516(RCWL_PINS)
-        elif RADAR_TYPE == "CQROBOT":
+        elif radar_TYPE == "CQROBOT":
             self.radar = RadarCQRobot(CQROBOT_PINS)
         else:
             raise ValueError("Invalid radar type specified")

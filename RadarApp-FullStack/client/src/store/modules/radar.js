@@ -82,7 +82,7 @@ export default {
       }
     },
 
-    ADD_RADAR_DATA(state, data) {
+    ADD_radar_DATA(state, data) {
       // Add timestamp if not provided
       if (!data.timestamp) {
         data.timestamp = new Date().toISOString()
@@ -114,7 +114,7 @@ export default {
       state.calibration = { ...state.calibration, ...calibration }
     },
 
-    CLEAR_RADAR_DATA(state) {
+    CLEAR_radar_DATA(state) {
       state.radarData = []
       state.stats = {
         totalScans: 0,
@@ -246,7 +246,7 @@ export default {
           data.detected = data.strength > this.state.radar.configuration.detectionThreshold
         }
 
-        commit('ADD_RADAR_DATA', data)
+        commit('ADD_radar_DATA', data)
       } catch (error) {
         commit('ADD_error', { message: 'Failed to process radar data', type: 'data_processing' })
       }
@@ -309,7 +309,7 @@ export default {
     },
 
     clearData({ commit }) {
-      commit('CLEAR_RADAR_DATA')
+      commit('CLEAR_radar_DATA')
       localStorage.removeItem('radarData')
     },
 
@@ -337,7 +337,7 @@ export default {
       try {
         const response = await apiService.get('/device/radar/status')
         const data = response.data.data || response.data.response
-        commit('ADD_RADAR_DATA', {
+        commit('ADD_radar_DATA', {
           range: data.range,
           velocity: data.velocity,
           confidence: data.confidence,
@@ -356,7 +356,7 @@ export default {
       try {
         const response = await apiService.get('/device/radar/read')
         const data = response.data.data || response.data.response
-        commit('ADD_RADAR_DATA', {
+        commit('ADD_radar_DATA', {
           range: data.range,
           velocity: data.velocity,
           confidence: data.confidence,
@@ -376,7 +376,7 @@ export default {
         const response = await apiService.post('/device/radar/set_range', { 
           args: { centimeters } 
         })
-        commit('ADD_RADAR_DATA', {
+        commit('ADD_radar_DATA', {
           range: centimeters,
           timestamp: new Date().toISOString()
         })
@@ -399,7 +399,7 @@ export default {
         const response = await apiService.post('/device/radar/set_velocity', { 
           args: { meters_per_second: metersPerSecond } 
         })
-        commit('ADD_RADAR_DATA', {
+        commit('ADD_radar_DATA', {
           velocity: metersPerSecond,
           timestamp: new Date().toISOString()
         })

@@ -216,7 +216,7 @@ class SocketService {
 
     // Pico radar data
     this.socket.on('picoRadarData', (data) => {
-      this.store.commit('pico/ADD_PICO_RADAR_DATA', data)
+      this.store.commit('pico/ADD_PICO_radar_DATA', data)
     })
 
     // Pico servo status

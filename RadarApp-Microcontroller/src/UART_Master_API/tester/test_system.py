@@ -122,10 +122,10 @@ def test_system_integration():
         time.sleep_ms(2000)
         
         print("Testing radar reading...")
-        if RADAR_TYPE == "RCWL0516":
+        if radar_TYPE == "RCWL0516":
             radar_data = controller.radar.read_all_sensors()
             print(f"RCWL sensors read: {len(radar_data)} readings")
-        elif RADAR_TYPE == "CQROBOT":
+        elif radar_TYPE == "CQROBOT":
             radar_data = controller.radar.read_all_sensors()
             print(f"CQRobot modules read: {len(radar_data)} readings")
         
@@ -214,10 +214,10 @@ def run_all_tests():
     print()
     
     # Test radar based on configuration
-    if RADAR_TYPE == "RCWL0516":
+    if radar_TYPE == "RCWL0516":
         print("2. Testing RCWL-0516 Radar...")
         test_results['radar'] = test_rcwl_radar()
-    elif RADAR_TYPE == "CQROBOT":
+    elif radar_TYPE == "CQROBOT":
         print("2. Testing CQRobot Radar...")
         test_results['radar'] = test_cqrobot_radar()
     print()

@@ -624,11 +624,11 @@ def process_command(line, source='uart'):
             response = stepper_whoami()
         
         # ========== radar COMMANDS ==========
-        elif line == 'radar:ping' or line == 'GET_RADAR_HEARTBEAT':
+        elif line == 'radar:ping' or line == 'GET_radar_HEARTBEAT':
             response = radar_ping()
-        elif line == 'radar:read' or line == 'GET_RADAR_VALUES':
+        elif line == 'radar:read' or line == 'GET_radar_VALUES':
             response = radar_read()
-        elif line == 'radar:status' or line == 'GET_RADAR_status':
+        elif line == 'radar:status' or line == 'GET_radar_status':
             response = radar_status()
         elif line == 'radar:whoami':
             response = radar_whoami()
@@ -668,9 +668,9 @@ def process_command(line, source='uart'):
             response = get_actuator_position()
         
         # ========== LEGACY radar GET COMMANDS ==========
-        elif line == 'GET_RADAR_VALUES':
+        elif line == 'GET_radar_VALUES':
             response = get_radar_values()
-        elif line == 'GET_COMBINED_stepper_RADAR':
+        elif line == 'GET_COMBINED_stepper_radar':
             response = get_combined_stepper_radar()
         
         # ========== LEGACY stepper POST/PUT COMMANDS ==========
