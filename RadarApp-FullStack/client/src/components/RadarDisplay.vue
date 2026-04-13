@@ -32,7 +32,8 @@
       class="radar-crosshair"
       :style="{
         left: mousePosition.x + 'px',
-        top: mousePosition.y + 'px'
+        top: mousePosition.y + 'px',
+        transform: 'translate(-50%, -50%)'
       }"
     >
       <div class="crosshair-info">
@@ -510,6 +511,8 @@ canvas {
   position: absolute;
   pointer-events: none;
   z-index: 10;
+  width: 1px;
+  height: 1px;
 }
 
 .radar-crosshair::before,
@@ -522,7 +525,7 @@ canvas {
 .radar-crosshair::before {
   width: 20px;
   height: 1px;
-  top: -0.5px;
+  top: 0;
   left: -10px;
 }
 
@@ -530,13 +533,14 @@ canvas {
   width: 1px;
   height: 20px;
   top: -10px;
-  left: -0.5px;
+  left: 0;
 }
 
 .crosshair-info {
   position: absolute;
-  top: -25px;
-  left: 10px;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.9);
   color: #00ff00;
   padding: 2px 6px;
