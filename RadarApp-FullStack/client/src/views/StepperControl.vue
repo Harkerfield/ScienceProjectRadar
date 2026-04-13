@@ -82,18 +82,20 @@
 
           <div class="direction-buttons">
             <button
-              @click="raiseMotor"
-              :disabled="!allConnected"
+              @click="raiseRadar"
+              :disabled="!canRaise"
+              :title="isFullyRaised ? 'Already fully raised' : 'Raise to 360°'"
               class="btn btn-success"
             >
-              ⬆️ Raise
+              ⬆️ Raise {{ isFullyRaised ? '(MAX)' : '' }}
             </button>
             <button
-              @click="lowerMotor"
-              :disabled="!allConnected"
+              @click="lowerRadar"
+              :disabled="!canLower"
+              :title="isFullyLowered ? 'Already fully lowered' : 'Lower to 0°'"
               class="btn btn-success"
             >
-              ⬇️ Lower
+              ⬇️ Lower {{ isFullyLowered ? '(MIN)' : '' }}
             </button>
             <button
               @click="rotateClockwise"
@@ -281,6 +283,22 @@ export default {
         'state-closed': this.actuatorState === 'closed',
         'state-unknown': this.actuatorState === 'unknown'
       }
+    },
+
+    isFullyRaised() {
+      return this.currentPosition >= 360
+    },
+
+    isFullyLowered() {
+      return this.currentPosition <= 0
+    },
+
+    canRaise() {
+      return !this.isFullyRaised && this.allConnected
+    },
+
+    canLower() {
+      return !this.isFullyLowered && this.allConnected
     }
   },
 
@@ -336,14 +354,28 @@ export default {
       this.stopRotation()
     },
 
-    raiseMotor() {
-      this.raise()
-      this.open()
+    async raiseRadar() {
+      try {
+        // Move stepper first, then open actuator
+        await this.raise()
+        // Only open if raise succeeded
+        await this.open()
+      } catch (error) {
+        console.error('Raise/Open sequence failed:', error)
+        // Error notifications already dispatched by individual actions
+      }
     },
 
-    lowerMotor() {
-      this.lower()
-      this.close()
+    async lowerRadar() {
+      try {
+        // Move stepper first, then close actuator
+        await this.lower()
+        // Only close if lower succeeded
+        await this.close()
+      } catch (error) {
+        console.error('Lower/Close sequence failed:', error)
+        // Error notifications already dispatched by individual actions
+      }
     },
 
     homeMotor() {

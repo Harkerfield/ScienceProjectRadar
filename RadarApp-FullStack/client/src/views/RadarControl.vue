@@ -221,14 +221,14 @@
               </div>
               <div class="d-grid gap-2" style="grid-template-columns: 1fr 1fr;">
                 <button
-                  @click="raiseMotor"
+                  @click="raiseRadar"
                   class="btn btn-success btn-lg"
                 >
                   <i class="fas fa-arrow-up me-1"></i>
                   Raise
                 </button>
                 <button
-                  @click="lowerMotor"
+                  @click="lowerRadar"
                   class="btn btn-warning btn-lg"
                 >
                   <i class="fas fa-arrow-down me-1"></i>
@@ -603,7 +603,7 @@ export default {
       }
     },
 
-    async raiseMotor() {
+    async raiseRadar() {
       try {
         await this.$store.dispatch('stepper/raise')
         await this.$store.dispatch('actuator/open')
@@ -612,7 +612,7 @@ export default {
       }
     },
 
-    async lowerMotor() {
+    async lowerRadar() {
       try {
         await this.$store.dispatch('stepper/lower')
         await this.$store.dispatch('actuator/close')
