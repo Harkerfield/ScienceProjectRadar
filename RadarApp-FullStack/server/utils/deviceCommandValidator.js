@@ -76,16 +76,22 @@ function formatDeviceCommand(device, command, args) {
         
         if (cmdKey && args[cmdKey] !== undefined) {
             // Use positional argument format (just the value)
-            cmd += `:${args[cmdKey]}`;
+            const value = args[cmdKey];
+            cmd += `:${value}`;
+            logger.debug(`[FORMAT] Positional: ${command} uses key="${cmdKey}" with value="${value}" → ${cmd}`);
         } else {
             // Fall back to key=value format for unknown commands or multiple args
             const argPairs = Object.entries(args)
                 .map(([key, val]) => `${key}=${val}`)
                 .join(':');
             cmd += `:${argPairs}`;
+            logger.debug(`[FORMAT] Key=value: ${command} formatted as ${cmd}`);
         }
+    } else {
+        logger.debug(`[FORMAT] No args: ${command} formatted as ${cmd}`);
     }
 
+    logger.info(`[COMMAND] Final format: ${cmd}`);
     return cmd;
 }
 

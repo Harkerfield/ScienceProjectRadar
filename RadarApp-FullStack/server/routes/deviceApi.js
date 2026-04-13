@@ -172,6 +172,10 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
             const { device, command } = req.params;
             const args = req.body?.args || {};
 
+            logger.info(`[API] POST /device/${device}/${command}`);
+            logger.info(`[API] Request body: ${JSON.stringify(req.body)}`);
+            logger.debug(`[API] Extracted args: ${JSON.stringify(args)}`);
+
             // Validate command (returns normalized device/command)
             const validation = validateDeviceCommand(device, command, args);
             if (!validation.valid) {
