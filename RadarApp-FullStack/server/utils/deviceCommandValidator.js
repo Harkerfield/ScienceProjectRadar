@@ -56,13 +56,13 @@ function validateDeviceCommand(device, command, args) {
  * @param {string} device - Device name
  * @param {string} command - Command name
  * @param {object} args - Command arguments
- * @returns {string} Formatted command (DEVICE:COMMAND[:ARGS])
+ * @returns {string} Formatted command (device:command[:args])
  */
 function formatDeviceCommand(device, command, args) {
-    // Convert to uppercase for transmission to Pico Master
-    const deviceUpper = device.toUpperCase();
-    const commandUpper = command.toUpperCase();
-    let cmd = `${deviceUpper}:${commandUpper}`;
+    // Keep all lowercase for transmission to Pico Master and microcontrollers
+    const deviceLower = device.toLocaleLowerCase();
+    const commandLower = command.toLocaleLowerCase();
+    let cmd = `${deviceLower}:${commandLower}`;
     
     if (args && typeof args === 'object' && Object.keys(args).length > 0) {
         // Map of commands that use positional arguments (just the value, not key=value)
@@ -75,7 +75,7 @@ function formatDeviceCommand(device, command, args) {
             'set_velocity': 'meters_per_second'  // set_velocity:5.0
         };
 
-        const cmdKey = positionalCommands[command.toLowerCase()];
+        const cmdKey = positionalCommands[commandLower];
         
         if (cmdKey && args[cmdKey] !== undefined) {
             // Use positional argument format (just the value)

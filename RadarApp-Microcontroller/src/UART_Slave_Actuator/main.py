@@ -85,8 +85,8 @@ def send_uart_response(status_msg):
 
 def process_uart_command(cmd_text):
     """Process UART command received from master.
-    Format: servo:COMMAND[:ARGS]
-    Response: servo:status[:DATA]
+    Format: servo:command[:args]
+    Response: servo:status[:data]
     
     Supports commands: ping, status, whoami, open, close
     """
@@ -97,38 +97,38 @@ def process_uart_command(cmd_text):
             send_uart_response("error:empty_command")
             return
         
-        # Parse command format: servo:COMMAND[:ARGS]
+        # Parse command format: servo:command[:args]
         parts = cmd_text.strip().split(":", 2)  # Split on first 2 colons only
         
         if len(parts) < 2:
             send_uart_response("error:invalid_format")
             return
         
-        device = parts[0].upper()
+        device = parts[0].lower()
         if device != device_name:
             send_uart_response(f"error:wrong_device:{device}")
             return
         
-        cmd = parts[1].upper()
+        cmd = parts[1].lower()
         args = parts[2] if len(parts) > 2 else ""
         
         print(f"[UART-CMD] Device: {device}, Command: {cmd}, Args: {args}")
         
         # ========== STANDARD COMMANDS ==========
-        if cmd == "COMMANDS":
+        if cmd == "commands":
             commands = "ping,whoami,status,open,close"
-            send_uart_response(f"OK:commands={commands}")
+            send_uart_response(f"ok:commands={commands}")
         
         elif cmd == "ping":
             uptime_ms = utime.ticks_ms() - startup_time
             uptime_s = uptime_ms // 1000
-            send_uart_response(f"OK:msg=alive:uptime={uptime_s}s")
+            send_uart_response(f"ok:msg=alive:uptime={uptime_s}s")
         
         elif cmd == "whoami":
-            send_uart_response(f"OK:device=servo:type=actuator")
+            send_uart_response(f"ok:device=servo:type=actuator")
         
         elif cmd == "status":
-            send_uart_response(f"OK:state={servo_state.lower()}:device=servo")
+            send_uart_response(f"ok:state={servo_state.lower()}:device=servo")
         
         # ========== CONTROL COMMANDS ==========
         elif cmd == "open":
@@ -138,16 +138,16 @@ def process_uart_command(cmd_text):
             servo_state = "open"
             print(f"[servo] Waiting 6 seconds for movement to complete...")
             utime.sleep_ms(6000)  # Wait for servo to complete movement
-            send_uart_response(f"OK:msg=opened:state=open")
+            send_uart_response(f"ok:msg=opened:state=open")
         
         elif cmd == "close":
             print("[servo] Moving to close position")
             if servo:
                 servo.duty_u16(3276)  # ~1ms pulse (full retraction)
-            servo_state = "closeD"
+            servo_state = "closed"
             print(f"[servo] Waiting 6 seconds for movement to complete...")
             utime.sleep_ms(6000)  # Wait for servo to complete movement
-            send_uart_response(f"OK:msg=closed:state=closed")
+            send_uart_response(f"ok:msg=closed:state=closed")
         
         else:
             send_uart_response(f"error:unknown_command:{cmd}")
