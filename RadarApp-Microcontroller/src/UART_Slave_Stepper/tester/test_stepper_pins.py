@@ -4,7 +4,7 @@ from machine import Pin
 import time
 
 print("=" * 60)
-print("STEPPER MOTOR PIN SETUP TEST - Step 1")
+print("stepper MOTOR PIN SETUP TEST - Step 1")
 print("=" * 60)
 print()
 
@@ -36,17 +36,17 @@ print("✓ Pin initialization complete")
 print()
 
 # ============================================================
-# PIN STATUS DISPLAY
+# PIN status DISPLAY
 # ============================================================
 
 def display_pin_status():
     """Display current status of all pins"""
     print()
-    print("PIN STATUS:")
+    print("PIN status:")
     print("-" * 60)
     print(f"  GPIO 5 (PUL):    {pul_pin.value()} (0=LOW, 1=HIGH)")
     print(f"  GPIO 6 (DIR):    {dir_pin.value()} (0=CCW, 1=CW)")
-    print(f"  GPIO 7 (ENA):    {ena_pin.value()} (0=ENABLED, 1=DISABLED)")
+    print(f"  GPIO 7 (ENA):    {ena_pin.value()} (0=enableD, 1=disableD)")
     print(f"  GPIO 20 (SENSOR): {sensor_pin.value()} (0=METAL_DETECTED, 1=CLEAR)")
     print(f"  LED:             {led_pin.value()} (0=OFF, 1=ON)")
     print("-" * 60)
@@ -95,12 +95,12 @@ def test_enable_pin():
     print("Enabling motor (LOW)...")
     ena_pin.off()
     time.sleep(1)
-    print(f"  ENA state: {ena_pin.value()} (motor should be ENABLED)")
+    print(f"  ENA state: {ena_pin.value()} (motor should be enableD)")
     
     print("Disabling motor (HIGH)...")
     ena_pin.on()
     time.sleep(1)
-    print(f"  ENA state: {ena_pin.value()} (motor should be DISABLED)")
+    print(f"  ENA state: {ena_pin.value()} (motor should be disableD)")
     
     print("✓ Enable pin test complete")
 
@@ -142,7 +142,7 @@ def main_menu():
     """Interactive test menu"""
     while True:
         print("\n" + "=" * 60)
-        print("STEPPER MOTOR PIN SETUP - Main Menu")
+        print("stepper MOTOR PIN SETUP - Main Menu")
         print("=" * 60)
         print()
         print("1. Display pin status")
@@ -229,7 +229,7 @@ print("    - LED:     Built-in status indicator")
 print()
 
 print("Initial Safe State:")
-print(f"  Motor enabled: {ena_pin.value() == 0} (ENA={'DISABLED' if ena_pin.value() == 1 else 'ENABLED'})")
+print(f"  Motor enabled: {ena_pin.value() == 0} (ENA={'disableD' if ena_pin.value() == 1 else 'enableD'})")
 print(f"  Direction: {'CW' if dir_pin.value() == 1 else 'CCW'} (DIR={dir_pin.value()})")
 print(f"  Pulse: {pul_pin.value()}")
 print()

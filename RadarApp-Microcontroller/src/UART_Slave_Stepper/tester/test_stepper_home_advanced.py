@@ -4,7 +4,7 @@ from machine import Pin
 import utime
 
 print("=" * 60)
-print("STEPPER MOTOR HOME FINDING - Step 2")
+print("stepper MOTOR home FINDING - Step 2")
 print("=" * 60)
 print()
 
@@ -25,8 +25,8 @@ STEPS_PER_REVOLUTION = 600  # With gear reduction (3:1)
 DEGREES_PER_STEP = 0.6      # 360 / 600
 
 # Speed configuration (in microseconds for pulse duration)
-INITIAL_SPEED_US = 500      # Initial rotation speed (500µs per pulse)
-FINE_SPEED_US = 1000        # Fine-tuning speed very slow (1000µs per pulse)
+INITIAL_speed_US = 500      # Initial rotation speed (500µs per pulse)
+FINE_speed_US = 1000        # Fine-tuning speed very slow (1000µs per pulse)
 
 # Direction definitions
 CW = 1
@@ -50,8 +50,8 @@ dir_pin.on()  # CW
 print("✓ Pins initialized")
 print()
 print("Configuration:")
-print(f"  Initial speed: {INITIAL_SPEED_US}µs")
-print(f"  Fine-tuning speed: {FINE_SPEED_US}µs")
+print(f"  Initial speed: {INITIAL_speed_US}µs")
+print(f"  Fine-tuning speed: {FINE_speed_US}µs")
 print(f"  Sensor pin: GPIO {SENSOR_PIN}")
 print()
 
@@ -114,12 +114,12 @@ def rotate_to_home(direction):
     """
     print()
     print("=" * 60)
-    print("[PHASE 1] ROTATING TO HOME")
+    print("[PHASE 1] ROTATING TO home")
     print("=" * 60)
     
     dir_label = "CW" if direction == CW else "CCW"
     print(f"Direction: {dir_label}")
-    print(f"Speed: {INITIAL_SPEED_US}µs per pulse")
+    print(f"Speed: {INITIAL_speed_US}µs per pulse")
     print()
     
     # Set direction
@@ -128,7 +128,7 @@ def rotate_to_home(direction):
     
     # Check initial sensor state
     initial_sensor = get_sensor_state()
-    print(f"Initial sensor state: {initial_sensor} (1=HOME, 0=CLEAR)")
+    print(f"Initial sensor state: {initial_sensor} (1=home, 0=CLEAR)")
     
     # If already at home, move away first
     if initial_sensor == 1:
@@ -142,7 +142,7 @@ def rotate_to_home(direction):
         max_away = STEPS_PER_REVOLUTION * 2
         
         while away_steps < max_away:
-            pulse_motor(INITIAL_SPEED_US)
+            pulse_motor(INITIAL_speed_US)
             away_steps += 1
             
             if get_sensor_state() == 0:  # Sensor cleared
@@ -170,11 +170,11 @@ def rotate_to_home(direction):
     max_steps = STEPS_PER_REVOLUTION * 5  # Allow 5 revolutions max
     
     while steps < max_steps:
-        pulse_motor(INITIAL_SPEED_US)
+        pulse_motor(INITIAL_speed_US)
         steps += 1
         
         if get_sensor_state() == 1:  # Home found!
-            print(f"\n✓ HOME TRIGGERED!")
+            print(f"\n✓ home TRIGGERED!")
             angle = steps * DEGREES_PER_STEP
             print(f"  Triggered at: {steps} steps ({angle:.1f}°)")
             disable_motor()
@@ -189,7 +189,7 @@ def rotate_to_home(direction):
             angle = (steps % STEPS_PER_REVOLUTION) * DEGREES_PER_STEP
             print(f"  Progress: {revolutions:.1f}R + {angle:.1f}°", end="\r")
     
-    print(f"\n✗ HOME NOT FOUND after {max_steps} steps!")
+    print(f"\n✗ home NOT FOUND after {max_steps} steps!")
     disable_motor()
     return -1
 
@@ -214,7 +214,7 @@ def reverse_and_fine_tune(initial_direction, home_steps):
     reverse_direction = CCW if initial_direction == CW else CW
     dir_label = "CW" if reverse_direction == CW else "CCW"
     print(f"Reversing direction: {dir_label}")
-    print(f"Speed: {FINE_SPEED_US}µs per pulse (very slow)")
+    print(f"Speed: {FINE_speed_US}µs per pulse (very slow)")
     print()
     
     set_direction(reverse_direction)
@@ -226,11 +226,11 @@ def reverse_and_fine_tune(initial_direction, home_steps):
     steps = 0
     
     while steps < home_steps + 100:  # Allow some overshoot
-        pulse_motor(FINE_SPEED_US)
+        pulse_motor(FINE_speed_US)
         steps += 1
         
         if get_sensor_state() == 1:  # Home triggered!
-            print(f"\n✓ HOME RE-TRIGGERED!")
+            print(f"\n✓ home RE-TRIGGERED!")
             print(f"  Returned to home after: {steps} steps")
             disable_motor()
             led_pin.on()
@@ -256,7 +256,7 @@ def rotate_then_go_home():
     """
     print()
     print("=" * 60)
-    print("[CUSTOM] ROTATE & GO HOME")
+    print("[CUSTOM] rotate & GO home")
     print("=" * 60)
     print()
     
@@ -301,14 +301,14 @@ def rotate_then_go_home():
         # Phase 1: Rotate specified amount
         print("[PHASE 1] ROTATING")
         print(f"Target: {degrees}° ({steps_needed} steps)")
-        print(f"Speed: {INITIAL_SPEED_US}µs per pulse")
+        print(f"Speed: {INITIAL_speed_US}µs per pulse")
         print()
         
         set_direction(rotation_dir)
         enable_motor()
         
         for step in range(steps_needed):
-            pulse_motor(INITIAL_SPEED_US)
+            pulse_motor(INITIAL_speed_US)
             
             if (step + 1) % 100 == 0:
                 current_angle = (step + 1) * DEGREES_PER_STEP
@@ -324,8 +324,8 @@ def rotate_then_go_home():
         
         # Phase 2: Return to home
         print()
-        print("[PHASE 2] RETURNING TO HOME")
-        print(f"Speed: {FINE_SPEED_US}µs per pulse (very slow)")
+        print("[PHASE 2] RETURNING TO home")
+        print(f"Speed: {FINE_speed_US}µs per pulse (very slow)")
         print()
         
         # Reverse direction
@@ -342,11 +342,11 @@ def rotate_then_go_home():
         max_search = STEPS_PER_REVOLUTION * 10  # Allow searching up to 10 revolutions
         
         while home_steps < max_search:
-            pulse_motor(FINE_SPEED_US)
+            pulse_motor(FINE_speed_US)
             home_steps += 1
             
             if get_sensor_state() == 1:  # Home triggered!
-                print(f"\n✓ HOME TRIGGERED!")
+                print(f"\n✓ home TRIGGERED!")
                 print(f"  Distance to home: {home_steps} steps")
                 disable_motor()
                 led_pin.on()
@@ -355,7 +355,7 @@ def rotate_then_go_home():
                 
                 print()
                 print("=" * 60)
-                print("✓ ROTATE & GO HOME COMPLETE!")
+                print("✓ rotate & GO home COMPLETE!")
                 print("=" * 60)
                 print(f"Rotated: {degrees}°")
                 print(f"Returned to home: {home_steps} steps")
@@ -365,7 +365,7 @@ def rotate_then_go_home():
             if home_steps % 50 == 0:
                 print(f"  Searching... {home_steps} steps", end="\r")
         
-        print(f"\n✗ HOME NOT FOUND after {max_search} steps!")
+        print(f"\n✗ home NOT FOUND after {max_search} steps!")
         disable_motor()
         
     except ValueError:
@@ -383,7 +383,7 @@ def full_home_cycle():
     """
     print()
     print("=" * 60)
-    print("FULL HOME-FINDING CYCLE")
+    print("FULL home-FINDING CYCLE")
     print("=" * 60)
     print()
     
@@ -447,7 +447,7 @@ def main_menu():
     """Interactive test menu"""
     while True:
         print("\n" + "=" * 60)
-        print("STEPPER MOTOR HOME FINDING - Main Menu")
+        print("stepper MOTOR home FINDING - Main Menu")
         print("=" * 60)
         print()
         print("1. Run full home-finding cycle")
@@ -487,8 +487,8 @@ def main_menu():
                 print("=" * 60)
                 print("CONFIGURATION")
                 print("=" * 60)
-                print(f"Initial speed: {INITIAL_SPEED_US}µs per pulse")
-                print(f"Fine-tuning speed: {FINE_SPEED_US}µs per pulse")
+                print(f"Initial speed: {INITIAL_speed_US}µs per pulse")
+                print(f"Fine-tuning speed: {FINE_speed_US}µs per pulse")
                 print(f"Steps per revolution: {STEPS_PER_REVOLUTION}")
                 print(f"Degrees per step: {DEGREES_PER_STEP}°")
                 print(f"Sensor pin: GPIO {SENSOR_PIN} (active LOW)")
@@ -519,8 +519,8 @@ def main_menu():
 # ============================================================
 
 print("Speed Configuration:")
-print(f"  Initial approach: {INITIAL_SPEED_US}µs (faster)")
-print(f"  Fine-tuning: {FINE_SPEED_US}µs (very slow, precise)")
+print(f"  Initial approach: {INITIAL_speed_US}µs (faster)")
+print(f"  Fine-tuning: {FINE_speed_US}µs (very slow, precise)")
 print()
 print("Motor will:")
 print("  1. Rotate at initial speed until home sensor triggers")

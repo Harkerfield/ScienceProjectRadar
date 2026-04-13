@@ -63,7 +63,7 @@ export default {
       }
     },
 
-    MARK_NOTIFICATION_READ(state, notificationId) {
+    MARK_NOTIFICATION_read(state, notificationId) {
       const notification = state.notifications.find(n => n.id === notificationId)
       if (notification) {
         notification.read = true
@@ -166,7 +166,7 @@ export default {
     },
 
     markAsRead({ commit }, notificationId) {
-      commit('MARK_NOTIFICATION_READ', notificationId)
+      commit('MARK_NOTIFICATION_read', notificationId)
     },
 
     dismissAll({ commit }) {

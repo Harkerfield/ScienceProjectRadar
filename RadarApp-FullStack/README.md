@@ -155,15 +155,15 @@ NODE_ENV=production
 CLIENT_URL=http://localhost:8080
 
 # Hardware Configuration
-STEPPER_PINS=18,19,20,21
-STEPPER_ENABLE_PIN=22
+stepper_PINS=18,19,20,21
+stepper_enable_PIN=22
 RADAR_SERIAL_PORT=/dev/ttyUSB0
 RADAR_BAUD_RATE=115200
 
 # UART Communication with Raspberry Pi Pico
 PICO_UART_PORT=/dev/ttyAMA0
 PICO_UART_BAUD_RATE=115200
-PICO_UART_ENABLED=true
+PICO_UART_enableD=true
 PICO_DATA_TIMEOUT=5000
 
 # Logging
@@ -440,7 +440,7 @@ MIT License - see LICENSE file for details
 
 ---
 
-**This README reflects the new modular I2C master/slave architecture. For legacy single-Pico operation, see previous commits.**
+**This readME reflects the new modular I2C master/slave architecture. For legacy single-Pico operation, see previous commits.**
 
 ## Support
 

@@ -58,26 +58,26 @@ Send commands via USB serial to control the radar or query status. Available thr
 
 ### Command Reference
 
-#### READ - Get Current Sensor Values
-**Command:** `READ`  
+#### read - Get Current Sensor Values
+**Command:** `read`  
 **Response:** `{"s":"ok","range":123,"vel":4.5}`  
 **Description:** Returns current sensor readings
 
 ```python
-ser.write(b'READ\n')
+ser.write(b'read\n')
 response = ser.readline().decode()
 print(response)  # {"s":"ok","range":123,"vel":4.5}
 ```
 
 ---
 
-#### STATUS - System Status Check
-**Command:** `STATUS`  
+#### status - System Status Check
+**Command:** `status`  
 **Response:** `{"s":"ok","msg":"operational","range":123,"vel":4.5}`  
 **Description:** Verifies radar is operational
 
 ```python
-ser.write(b'STATUS\n')
+ser.write(b'status\n')
 response = ser.readline().decode()
 # Output: {"s":"ok","msg":"operational","range":123,"vel":4.5}
 ```
@@ -110,13 +110,13 @@ response = ser.readline().decode()
 
 ---
 
-#### PING - Verify Online Status
-**Command:** `PING`  
+#### ping - Verify Online Status
+**Command:** `ping`  
 **Response:** `{"s":"ok","msg":"alive","addr":"0x20"}`  
 **Description:** Confirms radar slave is responsive
 
 ```python
-ser.write(b'PING\n')
+ser.write(b'ping\n')
 response = ser.readline().decode()
 # Output: {"s":"ok","msg":"alive","addr":"0x20"}
 ```
@@ -131,7 +131,7 @@ response = ser.readline().decode()
 ```python
 ser.write(b'HELP\n')
 response = ser.readline().decode()
-# Output: Commands: RANGE:<cm>|VEL:<m/s>|READ|STATUS|PING|HELP
+# Output: Commands: RANGE:<cm>|VEL:<m/s>|read|status|ping|HELP
 ```
 
 ---
@@ -171,7 +171,7 @@ Slave: (every 100ms) → {"s":"ok","range":120,"vel":4.6}\n
 
 ### Request-Response Flow (USB)
 ```
-Master: (sends) → READ\n
+Master: (sends) → read\n
 Slave:  (receives command)
 Slave:  (processes)
 Slave:  (sends response) → {"s":"ok","range":123,"vel":4.5}\n
@@ -244,7 +244,7 @@ class RadarController:
         Send USB command to radar
         
         Args:
-            command: Command string (e.g., "READ", "STATUS")
+            command: Command string (e.g., "read", "status")
             
         Returns:
             Parsed JSON response as dict
@@ -268,7 +268,7 @@ class RadarController:
     
     def read_status(self):
         """Request status via USB command"""
-        response = self.send_command("STATUS")
+        response = self.send_command("status")
         if response.get("s") == "ok":
             range_val = response.get("range", "?")
             vel_val = response.get("vel", "?")
@@ -300,7 +300,7 @@ class RadarController:
     
     def ping(self):
         """Check if radar is online"""
-        response = self.send_command("PING")
+        response = self.send_command("ping")
         if response.get("s") == "ok":
             print(f"✓ Radar is online ({response.get('addr')})")
             return True

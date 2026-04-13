@@ -112,7 +112,7 @@ class SerialComm {
 
     /**
      * Send command to serial device
-     * @param {string} deviceCommand - Full command string (e.g., "STEPPER:STATUS")
+     * @param {string} deviceCommand - Full command string (e.g., "stepper:status")
      * @param {number} timeout - Optional timeout override (ms)
      * @returns {Promise<object>} Response from device
      */

@@ -32,8 +32,8 @@ router.get('/', (req, res) => {
             sendCommand: 'POST /api/device/:device/:command',
             examples: {
                 listAll: '/api/device/commands',
-                listDevice: '/api/device/STEPPER/info',
-                sendCommand: 'POST /api/device/STEPPER/SPIN with body {"args":{"speed_us":"1500"}}'
+                listDevice: '/api/device/stepper/info',
+                sendCommand: 'POST /api/device/stepper/spin with body {"args":{"speed_us":"1500"}}'
             }
         }
     });

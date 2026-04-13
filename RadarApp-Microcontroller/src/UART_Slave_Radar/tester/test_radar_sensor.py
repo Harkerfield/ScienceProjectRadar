@@ -15,14 +15,14 @@ print()
 uart_test = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))
 utime.sleep_ms(100)
 
-DEVICE_NAME = "RADAR"
+device_name = "RADAR"
 
 def send_command(cmd, args=""):
     """Send command to radar and get response"""
     if args:
-        full_cmd = f"{DEVICE_NAME}:{cmd}:{args}\n"
+        full_cmd = f"{device_name}:{cmd}:{args}\n"
     else:
-        full_cmd = f"{DEVICE_NAME}:{cmd}\n"
+        full_cmd = f"{device_name}:{cmd}\n"
     
     print(f"\n>>> Sending: {full_cmd.strip()}")
     uart_test.write(full_cmd.encode())
@@ -68,7 +68,7 @@ def display_radar_status(response):
         return
     
     print("\n" + "=" * 60)
-    print("RADAR SENSOR STATUS")
+    print("RADAR SENSOR status")
     print("=" * 60)
     
     for key, val in parsed["data"].items():
@@ -96,50 +96,50 @@ def display_radar_status(response):
 def run_test_sequence():
     """Run through test commands"""
     
-    print("\n[TEST 1] PING - Check if radar is alive")
-    response = send_command("PING")
+    print("\n[TEST 1] ping - Check if radar is alive")
+    response = send_command("ping")
     if response:
         display_radar_status(response)
     
     utime.sleep_ms(500)
     
-    print("\n[TEST 2] WHOAMI - Identify device")
-    response = send_command("WHOAMI")
+    print("\n[TEST 2] whoami - Identify device")
+    response = send_command("whoami")
     if response:
         display_radar_status(response)
     
     utime.sleep_ms(500)
     
-    print("\n[TEST 3] READ - Get current sensor readings")
-    response = send_command("READ")
+    print("\n[TEST 3] read - Get current sensor readings")
+    response = send_command("read")
     if response:
         display_radar_status(response)
     
     utime.sleep_ms(500)
     
-    print("\n[TEST 4] STATUS - Get detailed status")
-    response = send_command("STATUS")
+    print("\n[TEST 4] status - Get detailed status")
+    response = send_command("status")
     if response:
         display_radar_status(response)
     
     utime.sleep_ms(500)
     
-    print("\n[TEST 5] SET_RANGE - Simulate new distance reading (250cm)")
-    response = send_command("SET_RANGE", "250")
+    print("\n[TEST 5] set_range - Simulate new distance reading (250cm)")
+    response = send_command("set_range", "250")
     if response:
         display_radar_status(response)
     
     utime.sleep_ms(500)
     
-    print("\n[TEST 6] SET_VELOCITY - Simulate new velocity reading (8.5 m/s)")
-    response = send_command("SET_VELOCITY", "8.5")
+    print("\n[TEST 6] set_velocity - Simulate new velocity reading (8.5 m/s)")
+    response = send_command("set_velocity", "8.5")
     if response:
         display_radar_status(response)
     
     utime.sleep_ms(500)
     
-    print("\n[TEST 7] READ - Get updated sensor readings")
-    response = send_command("READ")
+    print("\n[TEST 7] read - Get updated sensor readings")
+    response = send_command("read")
     if response:
         display_radar_status(response)
 
@@ -153,8 +153,8 @@ def run_continuous_loop():
         print(f"CONTINUOUS MONITORING - Iteration {iteration}")
         print(f"{'='*60}")
         
-        # Run READ command continuously
-        response = send_command("READ")
+        # Run read command continuously
+        response = send_command("read")
         if response:
             display_radar_status(response)
         
@@ -195,28 +195,28 @@ def run_interactive_mode():
                 break
             elif cmd == "TEST":
                 run_test_sequence()
-            elif cmd == "PING":
-                response = send_command("PING")
+            elif cmd == "ping":
+                response = send_command("ping")
                 if response:
                     display_radar_status(response)
-            elif cmd == "WHOAMI":
-                response = send_command("WHOAMI")
+            elif cmd == "whoami":
+                response = send_command("whoami")
                 if response:
                     display_radar_status(response)
-            elif cmd == "READ":
-                response = send_command("READ")
+            elif cmd == "read":
+                response = send_command("read")
                 if response:
                     display_radar_status(response)
-            elif cmd == "STATUS":
-                response = send_command("STATUS")
+            elif cmd == "status":
+                response = send_command("status")
                 if response:
                     display_radar_status(response)
             elif cmd == "RANGE" and arg:
-                response = send_command("SET_RANGE", arg)
+                response = send_command("set_range", arg)
                 if response:
                     display_radar_status(response)
             elif cmd == "VELOCITY" and arg:
-                response = send_command("SET_VELOCITY", arg)
+                response = send_command("set_velocity", arg)
                 if response:
                     display_radar_status(response)
             else:
@@ -231,7 +231,7 @@ def run_interactive_mode():
 
 # Main - Continuous Testing Loop
 print("\nRadar Pico Firmware Test")
-print(f"Device: {DEVICE_NAME}")
+print(f"Device: {device_name}")
 print(f"UART Baud Rate: 115200")
 print()
 
@@ -241,7 +241,7 @@ try:
     print("TEST MODE SELECTION")
     print("=" * 60)
     print("1. One-time test sequence (all 7 tests once)")
-    print("2. Continuous READ loop (stream sensor data forever)")
+    print("2. Continuous read loop (stream sensor data forever)")
     print("3. Interactive command mode")
     print("=" * 60)
     print("\nDefault: Press Enter for Continuous Loop")

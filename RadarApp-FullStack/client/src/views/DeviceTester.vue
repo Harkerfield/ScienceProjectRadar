@@ -28,9 +28,9 @@
             :disabled="!allConnected"
           >
             <option value="">-- Select Device --</option>
-            <option value="MASTER">MASTER</option>
-            <option value="STEPPER">STEPPER</option>
-            <option value="SERVO">SERVO</option>
+            <option value="master">master</option>
+            <option value="stepper">stepper</option>
+            <option value="servo">servo</option>
             <option value="RADAR">RADAR</option>
           </select>
         </div>
@@ -170,23 +170,23 @@ export default {
       selectedHistoryIndex: -1,
       isSending: false,
       deviceCommands: {
-        MASTER: ['PING', 'STATUS', 'WHOAMI'],
-        STEPPER: ['PING', 'STATUS', 'WHOAMI', 'SPEED', 'SPIN', 'STOP', 'MOVE', 'HOME', 'ENABLE', 'DISABLE', 'ROTATE'],
-        SERVO: ['PING', 'STATUS', 'WHOAMI', 'OPEN', 'CLOSE'],
-        RADAR: ['PING', 'STATUS', 'WHOAMI', 'READ', 'SET_RANGE', 'SET_VELOCITY']
+        master: ['ping', 'status', 'whoami'],
+        stepper: ['ping', 'status', 'whoami', 'speed', 'spin', 'stop', 'move', 'home', 'enable', 'disable', 'rotate'],
+        servo: ['ping', 'status', 'whoami', 'open', 'close'],
+        RADAR: ['ping', 'status', 'whoami', 'read', 'set_range', 'set_velocity']
       },
       commandParamTemplates: {
-        SPEED: { speed_us: '' },
-        SPIN: { speed_us: '' },
-        MOVE: { degrees: '' },
-        ROTATE: { delta_degrees: '' },
-        SET_RANGE: { centimeters: '' },
-        SET_VELOCITY: { meters_per_second: '' }
+        speed: { speed_us: '' },
+        spin: { speed_us: '' },
+        move: { degrees: '' },
+        rotate: { delta_degrees: '' },
+        set_range: { centimeters: '' },
+        set_velocity: { meters_per_second: '' }
       },
       masterCommandEndpointMap: {
-        PING: 'GET /health',
-        STATUS: 'GET /status',
-        WHOAMI: 'GET /api'
+        ping: 'GET /health',
+        status: 'GET /status',
+        whoami: 'GET /api'
       }
     }
   },
@@ -201,7 +201,7 @@ export default {
 
   methods: {
     commandDisplayLabel(command) {
-      if (this.selectedDevice !== 'MASTER') {
+      if (this.selectedDevice !== 'master') {
         return command
       }
 
@@ -240,16 +240,16 @@ export default {
       try {
         let response
 
-        // MASTER routes are API-level endpoints, not /device endpoints.
-        if (this.selectedDevice === 'MASTER') {
-          if (this.selectedCommand === 'PING') {
+        // master routes are API-level endpoints, not /device endpoints.
+        if (this.selectedDevice === 'master') {
+          if (this.selectedCommand === 'ping') {
             response = await apiService.get('/health')
-          } else if (this.selectedCommand === 'STATUS') {
+          } else if (this.selectedCommand === 'status') {
             response = await apiService.get('/status')
-          } else if (this.selectedCommand === 'WHOAMI') {
+          } else if (this.selectedCommand === 'whoami') {
             response = await apiService.get('/api')
           } else {
-            throw new Error(`Unsupported MASTER command: ${this.selectedCommand}`)
+            throw new Error(`Unsupported master command: ${this.selectedCommand}`)
           }
         } else {
           const endpoint = `/device/${this.selectedDevice}/${this.selectedCommand}`

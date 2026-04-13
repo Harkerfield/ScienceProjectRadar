@@ -6,9 +6,9 @@ This tests the EXACT json_response function end-to-end
 
 # Test data
 test_cases = [
-    ("PING response", {"s": "ok", "msg": "alive", "addr": "0x12"}),
-    ("OPEN response", {"s": "ok", "msg": "opened", "pos": 100, "state": "open"}),
-    ("STATUS response", {"s": "ok", "pos": 50, "state": "moving", "moving": 1}),
+    ("ping response", {"s": "ok", "msg": "alive", "addr": "0x12"}),
+    ("open response", {"s": "ok", "msg": "opened", "pos": 100, "state": "open"}),
+    ("status response", {"s": "ok", "pos": 50, "state": "moving", "moving": 1}),
     ("Error response", {"s": "error", "msg": "unknown_command"}),
 ]
 
@@ -27,8 +27,8 @@ def validate_json_response():
             from src.i2c_Slave_Actuator.main import json_response
             device_name = "Actuator (0x12)"
         except Exception as import_err:
-            print(f"[ERROR] Could not import json_response: {import_err}")
-            print("[ERROR] Make sure this script is run from the device directory")
+            print(f"[error] Could not import json_response: {import_err}")
+            print("[error] Make sure this script is run from the device directory")
             return False
     
     print(f"[OK] Loaded json_response from {device_name}")
@@ -38,7 +38,7 @@ def validate_json_response():
     failed = 0
     
     # Test 1: Basic response generation
-    print("Test 1: Basic PING Response")
+    print("Test 1: Basic ping Response")
     print("-" * 40)
     try:
         resp = json_response("ok", msg="alive", addr="0x12")
@@ -178,9 +178,9 @@ def test_json_parsing():
             return
     
     test_cases = [
-        ("PING", json_response("ok", msg="alive", addr="0x12")),
-        ("OPEN", json_response("ok", msg="opened", pos=100, state="open")),
-        ("ERROR", json_response("error", msg="unknown_command")),
+        ("ping", json_response("ok", msg="alive", addr="0x12")),
+        ("open", json_response("ok", msg="opened", pos=100, state="open")),
+        ("error", json_response("error", msg="unknown_command")),
     ]
     
     for name, resp_str in test_cases:

@@ -27,9 +27,9 @@ while True:
         
         # Create test message
         test_messages = [
-            f"TEST:PING:{counter}",
-            f"SERVO:STATUS:OK",
-            f"STEPPER:SPEED:100",
+            f"TEST:ping:{counter}",
+            f"servo:status:OK",
+            f"stepper:speed:100",
             f"RADAR:DISTANCE:45",
         ]
         
@@ -45,6 +45,6 @@ while True:
         sleep(2)
         
     except Exception as e:
-        print(f"[ERROR] {e}")
+        print(f"[error] {e}")
         led.on()
         sleep(1)

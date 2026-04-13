@@ -6,12 +6,12 @@
 # REQUEST-RESPONSE ARCHITECTURE: Server -> Master -> Slaves -> Master -> Server
 #
 # UART Slaves (on shared UART1 bus with device addressing):
-#   - SERVO: OPEN|CLOSE|STATUS|WHOAMI|PING
-#   - STEPPER: SPIN|STOP|STATUS|WHOAMI|PING
-#   - RADAR: READ|STATUS|WHOAMI|PING
+#   - servo: open|close|status|whoami|ping
+#   - stepper: spin|stop|status|whoami|ping
+#   - RADAR: read|status|whoami|ping
 #
 # Command Format: DEVICE:COMMAND[:ARGS]
-# Response Format: DEVICE:STATUS[:DATA]
+# Response Format: DEVICE:status[:DATA]
 #
 # UART Connections:
 #   - UART0: Server communication (TX=Pin(16), RX=Pin(17))
@@ -36,13 +36,13 @@ uart_slaves = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))
 
 # Slave device definitions
 SLAVES = {
-    "SERVO": {"timeout_ms": 8000, "description": "Servo Actuator"},
-    "STEPPER": {"timeout_ms": 5000, "description": "Stepper Motor"},
+    "servo": {"timeout_ms": 8000, "description": "Servo Actuator"},
+    "stepper": {"timeout_ms": 5000, "description": "Stepper Motor"},
     "RADAR": {"timeout_ms": 2000, "description": "Radar Sensor"},
 }
 
 # Device command registry - populated at startup
-device_commands = {}  # Format: {"SERVO": ["PING", "OPEN", "CLOSE", ...], ...}
+device_commands = {}  # Format: {"servo": ["ping", "open", "close", ...], ...}
 devices_initialized = False  # Flag to track if device discovery is complete
 initialization_attempts = 0  # Track retry attempts
 
@@ -63,8 +63,8 @@ def send_device_command(device, cmd, timeout_ms=None):
     Send device-addressed command to slave and wait for response.
     
     Args:
-        device: Device name (e.g., "SERVO", "STEPPER", "RADAR")
-        cmd: Command (e.g., "OPEN", "SPIN:50", "READ")
+        device: Device name (e.g., "servo", "stepper", "RADAR")
+        cmd: Command (e.g., "open", "spin:50", "read")
         timeout_ms: Response timeout (uses device default if None)
     
     Returns:
@@ -203,7 +203,7 @@ def get_device_commands(device_name):
     If not in registry, query device and cache result.
     
     Args:
-        device_name: Name of device (e.g., "STEPPER")
+        device_name: Name of device (e.g., "stepper")
     
     Returns:
         List of command strings or None if device not found
@@ -242,10 +242,10 @@ def get_device_commands(device_name):
 
 def parse_device_response(response_str, device):
     """
-    Parse response from device in format: DEVICE:STATUS[:KEY=VALUE:KEY=VALUE...]
+    Parse response from device in format: DEVICE:status[:KEY=VALUE:KEY=VALUE...]
     
-    Example input: STEPPER:OK:position=45:calibrated=1:enabled=0
-    Example output: {"s": "ok", "device": "STEPPER", "data": {"position": 45, "calibrated": 1, "enabled": 0}}
+    Example input: stepper:OK:position=45:calibrated=1:enabled=0
+    Example output: {"s": "ok", "device": "stepper", "data": {"position": 45, "calibrated": 1, "enabled": 0}}
     
     Returns:
         Dictionary with parsed response or error
@@ -264,7 +264,7 @@ def parse_device_response(response_str, device):
             return {"s": "error", "msg": "invalid_format"}
         
         # parts[0] = device name (already verified)
-        # parts[1] = status (OK or ERROR or other)
+        # parts[1] = status (OK or error or other)
         status = parts[1].upper()
         
         # Parse KEY=VALUE pairs (parts[2:])
@@ -294,7 +294,7 @@ def parse_device_response(response_str, device):
                 "data": data,
                 "raw": response_str
             }
-        elif status == "ERROR":
+        elif status == "error":
             error_msg = data.get("msg") or data.get("error") or "Unknown error"
             return {
                 "s": "error",
@@ -318,82 +318,82 @@ def parse_device_response(response_str, device):
 
 # ============ API ENDPOINTS ============
 
-# ========== SERVO/ACTUATOR ENDPOINTS ==========
+# ========== servo/servo ENDPOINTS ==========
 def servo_ping():
     """GET: Servo alive check"""
-    resp = send_device_command("SERVO", "PING")
-    return parse_device_response(resp, "SERVO") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("servo", "ping")
+    return parse_device_response(resp, "servo") if resp else {"s": "error", "msg": "timeout"}
 
 def servo_open():
     """POST: Open/extend servo actuator"""
-    resp = send_device_command("SERVO", "OPEN", timeout_ms=8000)
-    return parse_device_response(resp, "SERVO") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("servo", "open", timeout_ms=8000)
+    return parse_device_response(resp, "servo") if resp else {"s": "error", "msg": "timeout"}
 
 def servo_close():
     """POST: Close/retract servo actuator"""
-    resp = send_device_command("SERVO", "CLOSE", timeout_ms=8000)
-    return parse_device_response(resp, "SERVO") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("servo", "close", timeout_ms=8000)
+    return parse_device_response(resp, "servo") if resp else {"s": "error", "msg": "timeout"}
 
 def servo_status():
     """GET: Servo current status"""
-    resp = send_device_command("SERVO", "STATUS")
-    return parse_device_response(resp, "SERVO") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("servo", "status")
+    return parse_device_response(resp, "servo") if resp else {"s": "error", "msg": "timeout"}
 
 def servo_whoami():
     """GET: Servo identification"""
-    resp = send_device_command("SERVO", "WHOAMI")
-    return parse_device_response(resp, "SERVO") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("servo", "whoami")
+    return parse_device_response(resp, "servo") if resp else {"s": "error", "msg": "timeout"}
 
-# ========== STEPPER ENDPOINTS ==========
+# ========== stepper ENDPOINTS ==========
 def stepper_ping():
     """GET: Stepper alive check"""
-    resp = send_device_command("STEPPER", "PING")
-    return parse_device_response(resp, "STEPPER") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("stepper", "ping")
+    return parse_device_response(resp, "stepper") if resp else {"s": "error", "msg": "timeout"}
 
 def stepper_spin(speed):
     """POST: Start stepper spinning at speed (microseconds per pulse)"""
-    resp = send_device_command("STEPPER", f"SPIN:{speed}")
-    return parse_device_response(resp, "STEPPER") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("stepper", f"spin:{speed}")
+    return parse_device_response(resp, "stepper") if resp else {"s": "error", "msg": "timeout"}
 
 def stepper_move(degrees):
     """POST: Move stepper to absolute angle (degrees)"""
-    resp = send_device_command("STEPPER", f"MOVE:{degrees}")
-    return parse_device_response(resp, "STEPPER") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("stepper", f"move:{degrees}")
+    return parse_device_response(resp, "stepper") if resp else {"s": "error", "msg": "timeout"}
 
 def stepper_rotate(delta_degrees):
     """POST: Rotate stepper by relative angle (degrees)"""
-    resp = send_device_command("STEPPER", f"ROTATE:{delta_degrees}")
-    return parse_device_response(resp, "STEPPER") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("stepper", f"rotate:{delta_degrees}")
+    return parse_device_response(resp, "stepper") if resp else {"s": "error", "msg": "timeout"}
 
 def stepper_stop():
     """POST: Stop stepper motion"""
-    resp = send_device_command("STEPPER", "STOP")
-    return parse_device_response(resp, "STEPPER") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("stepper", "stop")
+    return parse_device_response(resp, "stepper") if resp else {"s": "error", "msg": "timeout"}
 
 def stepper_status():
     """GET: Stepper current status"""
-    resp = send_device_command("STEPPER", "STATUS")
-    return parse_device_response(resp, "STEPPER") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("stepper", "status")
+    return parse_device_response(resp, "stepper") if resp else {"s": "error", "msg": "timeout"}
 
 def stepper_whoami():
     """GET: Stepper identification"""
-    resp = send_device_command("STEPPER", "WHOAMI")
-    return parse_device_response(resp, "STEPPER") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("stepper", "whoami")
+    return parse_device_response(resp, "stepper") if resp else {"s": "error", "msg": "timeout"}
 
 # ========== RADAR ENDPOINTS ==========
 def radar_ping():
     """GET: Radar alive check"""
-    resp = send_device_command("RADAR", "PING")
+    resp = send_device_command("RADAR", "ping")
     return parse_device_response(resp, "RADAR") if resp else {"s": "error", "msg": "timeout"}
 
 def radar_read():
     """GET: Read radar values"""
-    resp = send_device_command("RADAR", "READ")
+    resp = send_device_command("RADAR", "read")
     return parse_device_response(resp, "RADAR") if resp else {"s": "error", "msg": "timeout"}
 
 def radar_status():
     """GET: Radar status"""
-    resp = send_device_command("RADAR", "STATUS")
+    resp = send_device_command("RADAR", "status")
     return parse_device_response(resp, "RADAR") if resp else {"s": "error", "msg": "timeout"}
 
 def get_combined_status():
@@ -410,14 +410,14 @@ def get_combined_status():
         "timestamp": utime.ticks_ms()
     }
 
-# ========== MASTER STATUS ENDPOINTS ==========
+# ========== master status ENDPOINTS ==========
 def master_ping():
     """GET: Master alive check"""
     return {"s": "ok", "msg": "Master ready", "type": "pico_master"}
 
 def master_whoami():
     """GET: Master device identification"""
-    return {"s": "ok", "device": "MASTER", "type": "pico_master", "msg": "Pico Master Controller"}
+    return {"s": "ok", "device": "master", "type": "pico_master", "msg": "Pico Master Controller"}
 
 def master_status():
     """GET: Master and slave status"""
@@ -527,13 +527,13 @@ def process_command(line, source='uart'):
         # Route command to appropriate endpoint
         response = None
         
-        # ========== MASTER COMMANDS ==========
-        if line == 'MASTER:PING' or line == 'PING':
+        # ========== master COMMANDS ==========
+        if line == 'master:ping' or line == 'ping':
             response = master_ping()
-        elif line == 'MASTER:COMMANDS':
+        elif line == 'master:COMMANDS':
             # List all devices and their available commands
             commands_by_device = {
-                "MASTER": ["PING", "WHOAMI", "STATUS", "COMMANDS", "HELP"]
+                "master": ["ping", "whoami", "status", "COMMANDS", "HELP"]
             }
             if device_commands:
                 # Add all slave device commands
@@ -545,97 +545,97 @@ def process_command(line, source='uart'):
             
             response = {
                 "s": "ok",
-                "device": "MASTER",
+                "device": "master",
                 "msg": "All available device commands",
                 "commands": commands_by_device,
                 "registry_initialized": devices_initialized,
                 "total_devices": len(SLAVES),
                 "discovered_devices": len(device_commands)
             }
-        elif line == 'MASTER:WHOAMI' or line == 'WHOAMI':
+        elif line == 'master:whoami' or line == 'whoami':
             response = master_whoami()
-        elif line == 'MASTER:STATUS' or line == 'STATUS':
+        elif line == 'master:status' or line == 'status':
             response = master_status()
         
-        # ========== SERVO COMMANDS ==========
-        elif line == 'SERVO:OPEN':
+        # ========== servo COMMANDS ==========
+        elif line == 'servo:open':
             response = servo_open()
-        elif line == 'SERVO:CLOSE':
+        elif line == 'servo:close':
             response = servo_close()
-        elif line == 'SERVO:STATUS' or line == 'GET_SERVO_STATUS':
+        elif line == 'servo:status' or line == 'GET_servo_status':
             response = servo_status()
-        elif line == 'SERVO:PING' or line == 'GET_SERVO_HEARTBEAT':
+        elif line == 'servo:ping' or line == 'GET_servo_HEARTBEAT':
             response = servo_ping()
-        elif line == 'SERVO:WHOAMI':
+        elif line == 'servo:whoami':
             response = servo_whoami()
         
-        # ========== STEPPER COMMANDS ==========
-        elif line == 'STEPPER:PING' or line == 'GET_STEPPER_HEARTBEAT':
+        # ========== stepper COMMANDS ==========
+        elif line == 'stepper:ping' or line == 'GET_stepper_HEARTBEAT':
             response = stepper_ping()
-        elif line == 'STEPPER:STATUS' or line == 'GET_STEPPER_STATUS':
+        elif line == 'stepper:status' or line == 'GET_stepper_status':
             response = stepper_status()
-        elif line.startswith('STEPPER:SPIN:') or line.startswith('SET_STEPPER_SPEED:'):
+        elif line.startswith('stepper:spin:') or line.startswith('SET_stepper_speed:'):
             try:
                 speed = int(line.split(':')[-1])
                 response = stepper_spin(speed)
             except:
                 response = {"s": "error", "msg": "Invalid speed value"}
-        # Map SPEED command to SPIN (client compatibility)
-        elif line.startswith('STEPPER:SPEED:'):
+        # Map speed command to spin (client compatibility)
+        elif line.startswith('stepper:speed:'):
             try:
-                # Extract speed_us parameter: "STEPPER:SPEED:3445" or "STEPPER:SPEED:speed_us=3445"
+                # Extract speed_us parameter: "stepper:speed:3445" or "stepper:speed:speed_us=3445"
                 value_str = line.split(':')[-1].strip()
                 # Handle both positional (3445) and named (speed_us=3445) formats
                 speed = int(value_str.split('=')[-1])
                 response = stepper_spin(speed)
             except:
                 response = {"s": "error", "msg": "Invalid speed value"}
-        # Map MOVE command to proper movement (absolute position)
-        elif line.startswith('STEPPER:MOVE:'):
+        # Map move command to proper movement (absolute position)
+        elif line.startswith('stepper:move:'):
             try:
-                # Extract degrees parameter: "STEPPER:MOVE:180" or "STEPPER:MOVE:degrees=180"
+                # Extract degrees parameter: "stepper:move:180" or "stepper:move:degrees=180"
                 value_str = line.split(':')[-1].strip()
                 # Handle both positional (180) and named (degrees=180) formats
                 degrees = float(value_str.split('=')[-1])
                 response = stepper_move(degrees)
             except:
                 response = {"s": "error", "msg": "Invalid move value"}
-        # Map HOME command (simplified)
-        elif line == 'STEPPER:HOME':
-            response = {"s": "ok", "device": "STEPPER", "status": "OK", "data": {"moved_to_home": 1}}
-        # Map ENABLE/DISABLE commands (simplified)
-        elif line == 'STEPPER:ENABLE':
-            response = {"s": "ok", "device": "STEPPER", "status": "OK", "data": {"enabled": 1}}
-        elif line == 'STEPPER:DISABLE':
-            response = {"s": "ok", "device": "STEPPER", "status": "OK", "data": {"enabled": 0}}
-        # Map ROTATE command
-        elif line.startswith('STEPPER:ROTATE:'):
+        # Map home command (simplified)
+        elif line == 'stepper:home':
+            response = {"s": "ok", "device": "stepper", "status": "OK", "data": {"moved_to_home": 1}}
+        # Map enable/disable commands (simplified)
+        elif line == 'stepper:enable':
+            response = {"s": "ok", "device": "stepper", "status": "OK", "data": {"enabled": 1}}
+        elif line == 'stepper:disable':
+            response = {"s": "ok", "device": "stepper", "status": "OK", "data": {"enabled": 0}}
+        # Map rotate command
+        elif line.startswith('stepper:rotate:'):
             try:
-                # Extract degrees parameter: "STEPPER:ROTATE:45" or "STEPPER:ROTATE:delta_degrees=45"
+                # Extract degrees parameter: "stepper:rotate:45" or "stepper:rotate:delta_degrees=45"
                 value_str = line.split(':')[-1].strip()
                 # Handle both positional (45) and named (delta_degrees=45) formats
                 delta_degrees = float(value_str.split('=')[-1])
                 response = stepper_rotate(delta_degrees)
             except:
                 response = {"s": "error", "msg": "Invalid rotate value"}
-        elif line == 'STEPPER:STOP':
+        elif line == 'stepper:stop':
             response = stepper_stop()
-        elif line == 'STEPPER:WHOAMI':
+        elif line == 'stepper:whoami':
             response = stepper_whoami()
         
         # ========== RADAR COMMANDS ==========
-        elif line == 'RADAR:PING' or line == 'GET_RADAR_HEARTBEAT':
+        elif line == 'RADAR:ping' or line == 'GET_RADAR_HEARTBEAT':
             response = radar_ping()
-        elif line == 'RADAR:READ' or line == 'GET_RADAR_VALUES':
+        elif line == 'RADAR:read' or line == 'GET_RADAR_VALUES':
             response = radar_read()
-        elif line == 'RADAR:STATUS' or line == 'GET_RADAR_STATUS':
+        elif line == 'RADAR:status' or line == 'GET_RADAR_status':
             response = radar_status()
-        elif line == 'RADAR:WHOAMI':
+        elif line == 'RADAR:whoami':
             response = radar_whoami()
-        # Map SET_RANGE command (store the value for later use)
-        elif line.startswith('RADAR:SET_RANGE:'):
+        # Map set_range command (store the value for later use)
+        elif line.startswith('RADAR:set_range:'):
             try:
-                # Extract centimeters parameter: "RADAR:SET_RANGE:100" or "RADAR:SET_RANGE:centimeters=100"
+                # Extract centimeters parameter: "RADAR:set_range:100" or "RADAR:set_range:centimeters=100"
                 value_str = line.split(':')[-1].strip()
                 # Handle both positional (100) and named (centimeters=100) formats
                 centimeters = int(value_str.split('=')[-1])
@@ -643,10 +643,10 @@ def process_command(line, source='uart'):
                 response = {"s": "ok", "device": "RADAR", "status": "OK", "data": {"range_cm": centimeters}}
             except:
                 response = {"s": "error", "msg": "Invalid range value"}
-        # Map SET_VELOCITY command (store the value for later use)
-        elif line.startswith('RADAR:SET_VELOCITY:'):
+        # Map set_velocity command (store the value for later use)
+        elif line.startswith('RADAR:set_velocity:'):
             try:
-                # Extract velocity parameter: "RADAR:SET_VELOCITY:5.0" or "RADAR:SET_VELOCITY:meters_per_second=5.0"
+                # Extract velocity parameter: "RADAR:set_velocity:5.0" or "RADAR:set_velocity:meters_per_second=5.0"
                 value_str = line.split(':')[-1].strip()
                 # Handle both positional (5.0) and named (meters_per_second=5.0) formats
                 velocity = float(value_str.split('=')[-1])
@@ -655,48 +655,48 @@ def process_command(line, source='uart'):
             except:
                 response = {"s": "error", "msg": "Invalid velocity value"}
         
-        # ========== LEGACY STEPPER GET COMMANDS ==========
-        elif line == 'GET_STEPPER_HEARTBEAT':
+        # ========== LEGACY stepper GET COMMANDS ==========
+        elif line == 'GET_stepper_HEARTBEAT':
             response = get_stepper_heartbeat()
-        elif line == 'GET_STEPPER_SPEED' or line == 'GET_STEPPER_POSITION' or line == 'GET_STEPPER_STATUS':
+        elif line == 'GET_stepper_speed' or line == 'GET_stepper_POSITION' or line == 'GET_stepper_status':
             response = get_stepper_speed()
         
-        # ========== LEGACY ACTUATOR GET COMMANDS ==========
-        elif line == 'GET_ACTUATOR_HEARTBEAT':
+        # ========== LEGACY servo GET COMMANDS ==========
+        elif line == 'GET_servo_HEARTBEAT':
             response = get_actuator_heartbeat()
-        elif line == 'GET_ACTUATOR_POSITION':
+        elif line == 'GET_servo_POSITION':
             response = get_actuator_position()
         
         # ========== LEGACY RADAR GET COMMANDS ==========
         elif line == 'GET_RADAR_VALUES':
             response = get_radar_values()
-        elif line == 'GET_COMBINED_STEPPER_RADAR':
+        elif line == 'GET_COMBINED_stepper_RADAR':
             response = get_combined_stepper_radar()
         
-        # ========== LEGACY STEPPER POST/PUT COMMANDS ==========
-        elif line.startswith('POST_STEPPER_SPEED:') or line.startswith('PUT_STEPPER_SPEED:'):
+        # ========== LEGACY stepper POST/PUT COMMANDS ==========
+        elif line.startswith('POST_stepper_speed:') or line.startswith('PUT_stepper_speed:'):
             try:
                 speed = line.split(':')[1]
                 response = set_stepper_speed(speed)
             except:
                 response = {"s": "error", "msg": "Invalid format"}
-        elif line.startswith('POST_STEPPER_ENABLE:') or line.startswith('PUT_STEPPER_ENABLE:'):
+        elif line.startswith('POST_stepper_enable:') or line.startswith('PUT_stepper_enable:'):
             try:
                 enabled = line.split(':')[1].lower() == 'true'
                 response = set_stepper_enable(enabled)
             except:
                 response = {"s": "error", "msg": "Invalid format"}
-        elif line.startswith('POST_STEPPER_POSITION:') or line.startswith('PUT_STEPPER_POSITION:'):
+        elif line.startswith('POST_stepper_POSITION:') or line.startswith('PUT_stepper_POSITION:'):
             try:
                 angle = line.split(':')[1]
                 response = set_stepper_position(angle)
             except:
                 response = {"s": "error", "msg": "Invalid format"}
         
-        # ========== LEGACY ACTUATOR POST/PUT COMMANDS ==========
-        elif line == 'POST_ACTUATOR_OPEN' or line == 'PUT_ACTUATOR_OPEN':
+        # ========== LEGACY servo POST/PUT COMMANDS ==========
+        elif line == 'POST_servo_open' or line == 'PUT_servo_open':
             response = set_actuator_open()
-        elif line == 'POST_ACTUATOR_CLOSE' or line == 'PUT_ACTUATOR_CLOSE':
+        elif line == 'POST_servo_close' or line == 'PUT_servo_close':
             response = set_actuator_close()
         
         # ========== HELP COMMAND ==========
@@ -704,43 +704,43 @@ def process_command(line, source='uart'):
             help_text = (
                 "Master Pico API - UART Device Bus\n\n"
                 "=== DEVICE DISCOVERY ===\n"
-                "  MASTER:COMMANDS    - List device commands (dynamic routing)\n"
+                "  master:COMMANDS    - List device commands (dynamic routing)\n"
                 "  DEVICE:COMMANDS    - Query any device for its supported commands\n\n"
                 "=== GENERIC ROUTING ===\n"
                 "  DEVICE:COMMAND[:ARGS] - Pass any command to any device\n"
-                "  Example: STEPPER:MOVE:90   - Move stepper to 90°\n"
-                "  Example: RADAR:SET_RANGE:150  - Set radar range to 150cm\n"
-                "  Case-insensitive device names (servo, SERVO, Servo all work)\n\n"
-                "=== MASTER ===\n"
-                "  MASTER:PING     - Master alive check\n"
-                "  MASTER:WHOAMI   - Master device identification\n"
-                "  MASTER:STATUS   - Get master and slaves status\n"
-                "  PING            - Alias for MASTER:PING\n"
-                "  WHOAMI          - Alias for MASTER:WHOAMI\n"
-                "  STATUS          - Alias for MASTER:STATUS\n\n"
-                "=== SERVO (Device: SERVO) ===\n"
-                "  SERVO:OPEN        - Extend actuator\n"
-                "  SERVO:CLOSE       - Retract actuator\n"
-                "  SERVO:STATUS      - Get current state\n"
-                "  SERVO:PING        - Check connection\n"
-                "  SERVO:WHOAMI      - Identify device\n"
-                "  SERVO:COMMANDS    - List available commands\n\n"
-                "=== STEPPER (Device: STEPPER) ===\n"
-                "  STEPPER:PING      - Check connection\n"
-                "  STEPPER:SPIN:<speed>   - Start spinning\n"
-                "  STEPPER:STOP      - Stop motion\n"
-                "  STEPPER:STATUS    - Get current state\n"
-                "  STEPPER:WHOAMI    - Identify device\n"
-                "  STEPPER:COMMANDS  - List available commands\n"
-                "  STEPPER:MOVE:<angle> - Move to absolute angle\n"
-                "  STEPPER:ROTATE:<delta> - Rotate by relative amount\n"
-                "  STEPPER:HOME      - Find home position\n"
-                "  STEPPER:SPEED:<us> - Set motor speed\n\n"
+                "  Example: stepper:move:90   - Move stepper to 90°\n"
+                "  Example: RADAR:set_range:150  - Set radar range to 150cm\n"
+                "  Case-insensitive device names (servo, servo, Servo all work)\n\n"
+                "=== master ===\n"
+                "  master:ping     - Master alive check\n"
+                "  master:whoami   - Master device identification\n"
+                "  master:status   - Get master and slaves status\n"
+                "  ping            - Alias for master:ping\n"
+                "  whoami          - Alias for master:whoami\n"
+                "  status          - Alias for master:status\n\n"
+                "=== servo (Device: servo) ===\n"
+                "  servo:open        - Extend actuator\n"
+                "  servo:close       - Retract actuator\n"
+                "  servo:status      - Get current state\n"
+                "  servo:ping        - Check connection\n"
+                "  servo:whoami      - Identify device\n"
+                "  servo:COMMANDS    - List available commands\n\n"
+                "=== stepper (Device: stepper) ===\n"
+                "  stepper:ping      - Check connection\n"
+                "  stepper:spin:<speed>   - Start spinning\n"
+                "  stepper:stop      - Stop motion\n"
+                "  stepper:status    - Get current state\n"
+                "  stepper:whoami    - Identify device\n"
+                "  stepper:COMMANDS  - List available commands\n"
+                "  stepper:move:<angle> - Move to absolute angle\n"
+                "  stepper:rotate:<delta> - Rotate by relative amount\n"
+                "  stepper:home      - Find home position\n"
+                "  stepper:speed:<us> - Set motor speed\n\n"
                 "=== RADAR (Device: RADAR) ===\n"
-                "  RADAR:PING        - Check connection\n"
-                "  RADAR:READ        - Read sensor data\n"
-                "  RADAR:STATUS      - Get current state\n"
-                "  RADAR:WHOAMI      - Identify device\n"
+                "  RADAR:ping        - Check connection\n"
+                "  RADAR:read        - Read sensor data\n"
+                "  RADAR:status      - Get current state\n"
+                "  RADAR:whoami      - Identify device\n"
                 "  RADAR:COMMANDS    - List available commands\n\n"
                 "=== System ===\n"
                 "  HELP               - Show this help\n\n"
@@ -823,8 +823,8 @@ def process_command(line, source='uart'):
         return response
         
     except Exception as e:
-        print(f"[MASTER-ERR] Processing error: {e}")
-        return b'ERROR\n'
+        print(f"[master-ERR] Processing error: {e}")
+        return b'error\n'
 
 # ============ MAIN EVENT LOOP ============
 # Implements full request-response architecture:
@@ -866,7 +866,7 @@ while True:
                 print(f"[UART-SENT] Response sent to server\n")
         except Exception as e:
             print(f"[UART-ERR] Failed to process server command: {e}")
-            uart_server.write(b'ERROR\n')
+            uart_server.write(b'error\n')
 
     # ========== REQUEST FROM USB SERIAL (for testing/debug) ==========
     # Secondary input for development/testing

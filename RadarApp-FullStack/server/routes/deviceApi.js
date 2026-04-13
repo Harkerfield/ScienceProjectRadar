@@ -40,23 +40,23 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
                 })),
                 examples: {
                     stepper: {
-                        discoverCommands: '/api/device/STEPPER',
-                        getStatus: '/api/device/STEPPER/STATUS',
+                        discoverCommands: '/api/device/stepper',
+                        getStatus: '/api/device/stepper/status',
                         spin: {
                             method: 'POST',
-                            url: '/api/device/STEPPER/SPIN',
+                            url: '/api/device/stepper/spin',
                             body: { args: { speed_us: 1500 } }
                         }
                     },
                     radar: {
                         discoverCommands: '/api/device/RADAR',
-                        getStatus: '/api/device/RADAR/STATUS',
-                        read: 'POST /api/device/RADAR/READ'
+                        getStatus: '/api/device/RADAR/status',
+                        read: 'POST /api/device/RADAR/read'
                     },
                     servo: {
-                        discoverCommands: '/api/device/SERVO',
-                        open: 'POST /api/device/SERVO/OPEN',
-                        close: 'POST /api/device/SERVO/CLOSE'
+                        discoverCommands: '/api/device/servo',
+                        open: 'POST /api/device/servo/open',
+                        close: 'POST /api/device/servo/close'
                     }
                 }
             });
@@ -65,7 +65,7 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
             res.status(500).json({
                 success: false,
                 error: error.message,
-                code: 'SERVER_ERROR'
+                code: 'SERVER_error'
             });
         }
     });
@@ -86,7 +86,7 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
             res.status(500).json({
                 success: false,
                 error: error.message,
-                code: 'SERVER_ERROR'
+                code: 'SERVER_error'
             });
         }
     });
@@ -125,7 +125,7 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
             res.status(500).json({
                 success: false,
                 error: error.message,
-                code: 'SERVER_ERROR'
+                code: 'SERVER_error'
             });
         }
     });
@@ -156,7 +156,7 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
             res.status(500).json({
                 success: false,
                 error: error.message,
-                code: 'SERVER_ERROR'
+                code: 'SERVER_error'
             });
         }
     });
@@ -205,21 +205,21 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
             res.status(500).json({
                 success: false,
                 error: error.message,
-                code: 'EXECUTION_ERROR'
+                code: 'EXECUTION_error'
             });
         }
     });
 
     /**
      * GET /api/device/:device/:command
-     * Alternative to POST for read-only commands (STATUS)
+     * Alternative to POST for read-only commands (status)
      */
     router.get('/:device/:command', async (req, res) => {
         try {
             const { device, command } = req.params;
             
             // Only allow read-only commands via GET
-            const readOnlyCommands = ['STATUS', 'INFO', 'HEARTBEAT', 'ENABLE', 'INFO'];
+            const readOnlyCommands = ['status', 'INFO', 'HEARTBEAT', 'enable', 'ping'];
             if (!readOnlyCommands.includes(command.toUpperCase())) {
                 return res.status(405).json({
                     success: false,
@@ -257,7 +257,7 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
             res.status(500).json({
                 success: false,
                 error: error.message,
-                code: 'EXECUTION_ERROR'
+                code: 'EXECUTION_error'
             });
         }
     });

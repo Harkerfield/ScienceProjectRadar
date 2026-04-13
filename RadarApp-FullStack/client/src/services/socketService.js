@@ -197,7 +197,7 @@ class SocketService {
     })
 
     this.socket.on('radarError', (data) => {
-      this.store.commit('radar/ADD_ERROR', data)
+      this.store.commit('radar/ADD_error', data)
       this.store.dispatch('notifications/addNotification', {
         type: 'error',
         title: 'Radar Error',
@@ -221,12 +221,12 @@ class SocketService {
 
     // Pico servo status
     this.socket.on('picoServoStatus', (data) => {
-      this.store.commit('pico/UPDATE_SERVO_STATUS', data)
+      this.store.commit('pico/UPDATE_servo_status', data)
     })
 
     // Pico general status
     this.socket.on('picoStatus', (data) => {
-      this.store.commit('pico/UPDATE_PICO_STATUS', data)
+      this.store.commit('pico/UPDATE_PICO_status', data)
     })
 
     // Pico command responses

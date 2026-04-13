@@ -3,8 +3,8 @@ const deviceCommands = require('../config/deviceCommands.json');
 
 /**
  * Validate if a device command is valid
- * @param {string} device - Device name (STEPPER, RADAR, ACTUATOR) - case-insensitive
- * @param {string} command - Command name (STATUS, START, etc) - case-insensitive
+ * @param {string} device - Device name (stepper, RADAR, servo) - case-insensitive
+ * @param {string} command - Command name (status, START, etc) - case-insensitive
  * @param {any} args - Command arguments
  * @returns {object} { valid: boolean, error?: string, device?: string, command?: string }
  */
@@ -64,12 +64,12 @@ function formatDeviceCommand(device, command, args) {
     if (args && typeof args === 'object' && Object.keys(args).length > 0) {
         // Map of commands that use positional arguments (just the value, not key=value)
         const positionalCommands = {
-            'MOVE': 'degrees',           // MOVE:90
-            'ROTATE': 'delta_degrees',   // ROTATE:45
-            'SPIN': 'speed_us',          // SPIN:2000
-            'SPEED': 'speed_us',         // SPEED:2000
-            'SET_RANGE': 'centimeters',  // SET_RANGE:100
-            'SET_VELOCITY': 'meters_per_second'  // SET_VELOCITY:5.0
+            'move': 'degrees',           // move:90
+            'rotate': 'delta_degrees',   // rotate:45
+            'spin': 'speed_us',          // spin:2000
+            'speed': 'speed_us',         // speed:2000
+            'set_range': 'centimeters',  // set_range:100
+            'set_velocity': 'meters_per_second'  // set_velocity:5.0
         };
 
         const cmdKey = positionalCommands[command];

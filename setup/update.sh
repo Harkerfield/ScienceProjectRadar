@@ -69,19 +69,19 @@ echo ""
 echo -e "${BLUE}Service Status:${NC}"
 echo ""
 
-SERVER_STATUS=$(sudo systemctl is-active radar-server 2>/dev/null || echo "inactive")
-CLIENT_STATUS=$(sudo systemctl is-active radar-client 2>/dev/null || echo "inactive")
+SERVER_status=$(sudo systemctl is-active radar-server 2>/dev/null || echo "inactive")
+CLIENT_status=$(sudo systemctl is-active radar-client 2>/dev/null || echo "inactive")
 
-if [ "$SERVER_STATUS" = "active" ]; then
+if [ "$SERVER_status" = "active" ]; then
     echo -e "${GREEN}✓ Server: active${NC}"
 else
-    echo -e "${RED}✗ Server: $SERVER_STATUS${NC}"
+    echo -e "${RED}✗ Server: $SERVER_status${NC}"
 fi
 
-if [ "$CLIENT_STATUS" = "active" ]; then
+if [ "$CLIENT_status" = "active" ]; then
     echo -e "${GREEN}✓ Client: active${NC}"
 else
-    echo -e "${RED}✗ Client: $CLIENT_STATUS${NC}"
+    echo -e "${RED}✗ Client: $CLIENT_status${NC}"
 fi
 
 echo ""
@@ -104,7 +104,7 @@ echo "  • Stop:      sudo systemctl stop radar-server radar-client"
 echo "  • Restart:   sudo systemctl restart radar-server"
 echo ""
 
-if [ "$SERVER_STATUS" != "active" ]; then
+if [ "$SERVER_status" != "active" ]; then
     echo -e "${RED}⚠️  Server not running. Check logs:${NC}"
     echo "  sudo journalctl -u radar-server -n 50"
     echo ""

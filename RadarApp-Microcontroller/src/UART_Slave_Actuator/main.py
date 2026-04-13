@@ -2,9 +2,9 @@
 # NOTE: This code runs on Raspberry Pi Pico only, not on standard Python
 # Requires MicroPython firmware installed on Pico
 # UART Slave (on shared UART1 bus with device addressing)
-# Command Format: SERVO:COMMAND[:ARGS]
-# Response Format: SERVO:STATUS[:DATA]
-# Commands: PING, STATUS, WHOAMI, OPEN, CLOSE
+# Command Format: servo:COMMAND[:ARGS]
+# Response Format: servo:status[:DATA]
+# Commands: ping, status, whoami, open, close
 
 from machine import UART, Pin, PWM
 import utime
@@ -34,32 +34,32 @@ print("[INIT] LED turned ON")
 # ============================================================
 # UART CONFIGURATION
 # ============================================================
-# UART1: Slave communication bus (shared with STEPPER and RADAR)
+# UART1: Slave communication bus (shared with stepper and RADAR)
 uart_slaves = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))
 print("[STARTUP] UART slave initialized (TX=GPIO4, RX=GPIO5)")
 
 # ============ DEVICE IDENTIFICATION ============
-DEVICE_NAME = "SERVO"
+device_name = "servo"
 
 # ============================================================
-# SERVO CONFIGURATION
+# servo CONFIGURATION
 # ============================================================
 # Initialize servo motor PWM on GPIO 2
 try:
     servo = PWM(Pin(2))
     servo.freq(50)  # 50Hz for RC servo
-    servo.duty_u16(3276)  # Start in CLOSED position (~1ms pulse)
+    servo.duty_u16(3276)  # Start in closeD position (~1ms pulse)
     print("[INIT] Servo PWM initialized on GPIO 2 (closed position)")
 except Exception as e:
-    print(f"[ERROR] Servo init failed: {e}")
+    print(f"[error] Servo init failed: {e}")
     servo = None
 
 
-print("[READY] Waiting for commands on shared UART1 bus")
+print("[readY] Waiting for commands on shared UART1 bus")
 print("=" * 50 + "\n")
 
 # Track servo state
-servo_state = "CLOSED"  # Start in CLOSED position
+servo_state = "closeD"  # Start in closeD position
 startup_time = utime.ticks_ms()  # Record startup time for uptime tracking
 
 # ============ UART COMMUNICATION LAYER ============
@@ -73,40 +73,40 @@ def flush_uart_buffer():
 def send_uart_response(status_msg):
     """
     Send device-addressed response via UART.
-    Format: SERVO:OK:key=val:key=val\n
+    Format: servo:OK:key=val:key=val\n
     
     Args:
-        status_msg: Status message (e.g., "OK:state=open" or "ERROR:invalid_command")
+        status_msg: Status message (e.g., "OK:state=open" or "error:invalid_command")
     """
-    response = f"{DEVICE_NAME}:{status_msg}\n"
+    response = f"{device_name}:{status_msg}\n"
     uart_slaves.write(response.encode())
     print(f"[UART-SEND] {response.strip()}")
     return response
 
 def process_uart_command(cmd_text):
     """Process UART command received from master.
-    Format: SERVO:COMMAND[:ARGS]
-    Response: SERVO:STATUS[:DATA]
+    Format: servo:COMMAND[:ARGS]
+    Response: servo:status[:DATA]
     
-    Supports commands: PING, STATUS, WHOAMI, OPEN, CLOSE
+    Supports commands: ping, status, whoami, open, close
     """
     global servo_state
     
     try:
         if not cmd_text:
-            send_uart_response("ERROR:empty_command")
+            send_uart_response("error:empty_command")
             return
         
-        # Parse command format: SERVO:COMMAND[:ARGS]
+        # Parse command format: servo:COMMAND[:ARGS]
         parts = cmd_text.strip().split(":", 2)  # Split on first 2 colons only
         
         if len(parts) < 2:
-            send_uart_response("ERROR:invalid_format")
+            send_uart_response("error:invalid_format")
             return
         
         device = parts[0].upper()
-        if device != DEVICE_NAME:
-            send_uart_response(f"ERROR:wrong_device:{device}")
+        if device != device_name:
+            send_uart_response(f"error:wrong_device:{device}")
             return
         
         cmd = parts[1].upper()
@@ -116,69 +116,69 @@ def process_uart_command(cmd_text):
         
         # ========== STANDARD COMMANDS ==========
         if cmd == "COMMANDS":
-            commands = "PING,WHOAMI,STATUS,OPEN,CLOSE"
+            commands = "ping,whoami,status,open,close"
             send_uart_response(f"OK:commands={commands}")
         
-        elif cmd == "PING":
+        elif cmd == "ping":
             uptime_ms = utime.ticks_ms() - startup_time
             uptime_s = uptime_ms // 1000
             send_uart_response(f"OK:msg=alive:uptime={uptime_s}s")
         
-        elif cmd == "WHOAMI":
-            send_uart_response(f"OK:device=SERVO:type=actuator")
+        elif cmd == "whoami":
+            send_uart_response(f"OK:device=servo:type=actuator")
         
-        elif cmd == "STATUS":
+        elif cmd == "status":
             send_uart_response(f"OK:state={servo_state.lower()}:device=servo")
         
         # ========== CONTROL COMMANDS ==========
-        elif cmd == "OPEN":
-            print("[SERVO] Moving to OPEN position")
+        elif cmd == "open":
+            print("[servo] Moving to open position")
             if servo:
                 servo.duty_u16(6553)  # ~2ms pulse (full extension)
-            servo_state = "OPEN"
-            print(f"[SERVO] Waiting 6 seconds for movement to complete...")
+            servo_state = "open"
+            print(f"[servo] Waiting 6 seconds for movement to complete...")
             utime.sleep_ms(6000)  # Wait for servo to complete movement
             send_uart_response(f"OK:msg=opened:state=open")
         
-        elif cmd == "CLOSE":
-            print("[SERVO] Moving to CLOSE position")
+        elif cmd == "close":
+            print("[servo] Moving to close position")
             if servo:
                 servo.duty_u16(3276)  # ~1ms pulse (full retraction)
-            servo_state = "CLOSED"
-            print(f"[SERVO] Waiting 6 seconds for movement to complete...")
+            servo_state = "closeD"
+            print(f"[servo] Waiting 6 seconds for movement to complete...")
             utime.sleep_ms(6000)  # Wait for servo to complete movement
             send_uart_response(f"OK:msg=closed:state=closed")
         
         else:
-            send_uart_response(f"ERROR:unknown_command:{cmd}")
+            send_uart_response(f"error:unknown_command:{cmd}")
     
     except Exception as e:
         print(f"[UART-ERR] Command processing error: {type(e).__name__}: {e}")
-        send_uart_response(f"ERROR:command_error:{str(e)[:30]}")
+        send_uart_response(f"error:command_error:{str(e)[:30]}")
 
 print("=" * 50)
 print("Servo Actuator Pico Firmware - UART REST API Compatible")
 print("=" * 50)
-print(f"[READY] UART Slave ({DEVICE_NAME}) initialized")
-print("[SERVO] Servo control via PWM on GPIO 2")
+print(f"[readY] UART Slave ({device_name}) initialized")
+print("[servo] Servo control via PWM on GPIO 2")
 print(f"[WIRING] PWM on GPIO 2, UART on UART1 (shared bus)")
 print()
-print("UART Protocol (shared bus with STEPPER and RADAR):")
-print("  Format: SERVO:COMMAND[:ARGS]")
-print("  Response: SERVO:STATUS[:DATA]")
+print("UART Protocol (shared bus with stepper and RADAR):")
+print("  Format: servo:COMMAND[:ARGS]")
+print("  Response: servo:status[:DATA]")
 print()
 print("Available Commands:")
-print("  PING           - Alive check")
-print("  STATUS         - Get servo status (current state)")
-print("  WHOAMI         - Device identification")
-print("  OPEN           - Extend/open servo actuator")
-print("  CLOSE          - Retract/close servo actuator")
+print("  ping           - Alive check")
+print("  status         - Get servo status (current state)")
+print("  whoami         - Device identification")
+print("  open           - Extend/open servo actuator")
+print("  close          - Retract/close servo actuator")
 print()
 print("Examples:")
-print("  SERVO:PING")
-print("  SERVO:STATUS")
-print("  SERVO:OPEN")
-print("  SERVO:CLOSE")
+print("  servo:ping")
+print("  servo:status")
+print("  servo:open")
+print("  servo:close")
 print("=" * 50)
 print()
 
@@ -214,6 +214,6 @@ while True:
             # Prevent buffer overflow
             if len(uart_buffer) > 256:
                 uart_buffer = b""
-                send_uart_response("ERROR:buffer_overflow")
+                send_uart_response("error:buffer_overflow")
     
     utime.sleep_ms(10)

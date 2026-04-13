@@ -32,7 +32,7 @@
                 :disabled="!allConnected"
               >
                 <i class="fas fa-stop me-1"></i>
-                EMERGENCY STOP
+                EMERGENCY stop
               </button>
             </div>
           </div>
@@ -664,12 +664,12 @@ export default {
 
     async emergencyStop() {
       try {
-        if (confirm('Are you sure you want to trigger EMERGENCY STOP? This will stop all radar operations immediately!')) {
+        if (confirm('Are you sure you want to trigger EMERGENCY stop? This will stop all radar operations immediately!')) {
           await this.stopRadar()
           await this.close()
           this.addNotification({
             type: 'emergency',
-            title: '🛑 EMERGENCY STOP ACTIVATED',
+            title: '🛑 EMERGENCY stop ACTIVATED',
             message: 'All systems halted. Click "Clear" to acknowledge.',
             persistent: true
           })

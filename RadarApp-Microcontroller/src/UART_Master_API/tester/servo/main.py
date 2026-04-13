@@ -14,7 +14,7 @@ except Exception as e:
     print(f"[WARN] WiFi disable failed: {e}")
 
 print("=" * 60)
-print("UART SERVO SLAVE - Waiting for commands")
+print("UART servo SLAVE - Waiting for commands")
 print("=" * 60)
 
 # LED for activity indication
@@ -26,10 +26,10 @@ print("[INIT] LED turned ON")
 try:
     servo = PWM(Pin(2))
     servo.freq(50)  # 50Hz for RC servo
-    servo.duty_u16(3276)  # Start in CLOSED position (~1ms pulse)
+    servo.duty_u16(3276)  # Start in closeD position (~1ms pulse)
     print("[INIT] Servo PWM initialized on GPIO 2 (closed position)")
 except Exception as e:
-    print(f"[ERROR] Servo init failed: {e}")
+    print(f"[error] Servo init failed: {e}")
     servo = None
 
 # Initialize UART0 (TX=Pin(0), RX=Pin(1), 115200 baud)
@@ -37,14 +37,14 @@ try:
     uart = UART(0, baudrate=115200, tx=Pin(0), rx=Pin(1))
     print("[INIT] UART initialized on UART0")
 except Exception as e:
-    print(f"[ERROR] UART init failed: {e}")
+    print(f"[error] UART init failed: {e}")
     uart = None
 
-print("[READY] Waiting for commands: PING, OPEN, CLOSE, WHOAMI, STATUS")
+print("[readY] Waiting for commands: ping, open, close, whoami, status")
 print("=" * 60 + "\n")
 
 # Track servo state
-servo_state = "CLOSED"  # Start in CLOSED position
+servo_state = "closeD"  # Start in closeD position
 startup_time = utime.ticks_ms()  # Record startup time for uptime tracking
 
 def send_response(response_str):
@@ -55,7 +55,7 @@ def send_response(response_str):
         print(f"[SEND] {response_str}")
         return True
     except Exception as e:
-        print(f"[ERROR] Failed to send response: {e}")
+        print(f"[error] Failed to send response: {e}")
         return False
 
 def read_command(timeout_ms=500):
@@ -91,8 +91,8 @@ def process_command(cmd_text):
         command = cmd_text
     
     # Check if this command is for us
-    if device_id != "SERVO":
-        print(f"[IGNORE] Command is for {device_id}, not SERVO")
+    if device_id != "servo":
+        print(f"[IGNORE] Command is for {device_id}, not servo")
         return
     
     print(f"[CMD] {command}")
@@ -100,37 +100,37 @@ def process_command(cmd_text):
     response = None
     action_wait_ms = 0  # Time to wait before sending response
     
-    if command == "PING":
+    if command == "ping":
         uptime_ms = utime.ticks_ms() - startup_time
         uptime_s = uptime_ms // 1000
-        response = f"SERVO:PING:OK:UPTIME={uptime_s}s"
+        response = f"servo:ping:OK:UPTIME={uptime_s}s"
         
-    elif command == "OPEN":
-        print("[SERVO] Moving to OPEN position")
+    elif command == "open":
+        print("[servo] Moving to open position")
         if servo:
             servo.duty_u16(6553)  # ~2ms pulse (full extension)
-        servo_state = "OPEN"
-        response = "SERVO:OPEN:OK"
+        servo_state = "open"
+        response = "servo:open:OK"
         action_wait_ms = 6000  # Wait 6 seconds for servo to complete movement
-        print(f"[SERVO] Waiting 6 seconds for movement to complete...")
+        print(f"[servo] Waiting 6 seconds for movement to complete...")
         
-    elif command == "CLOSE":
-        print("[SERVO] Moving to CLOSE position")
+    elif command == "close":
+        print("[servo] Moving to close position")
         if servo:
             servo.duty_u16(3276)  # ~1ms pulse (full retraction)
-        servo_state = "CLOSED"
-        response = "SERVO:CLOSE:OK"
+        servo_state = "closeD"
+        response = "servo:close:OK"
         action_wait_ms = 6000  # Wait 6 seconds for servo to complete movement
-        print(f"[SERVO] Waiting 6 seconds for movement to complete...")
+        print(f"[servo] Waiting 6 seconds for movement to complete...")
     
-    elif command == "WHOAMI":
-        response = "SERVO:WHOAMI:ACTUATOR"
+    elif command == "whoami":
+        response = "servo:whoami:servo"
     
-    elif command == "STATUS":
-        response = f"SERVO:STATUS:{servo_state}"
+    elif command == "status":
+        response = f"servo:status:{servo_state}"
         
     else:
-        response = f"SERVO:ERROR:UNKNOWN_CMD:{command}"
+        response = f"servo:error:UNKNOWN_CMD:{command}"
     
     # Wait for action to complete if needed
     if action_wait_ms > 0:
@@ -164,7 +164,7 @@ while True:
                 cmd_text = cmd_data.decode()
                 process_command(cmd_text)
             except Exception as e:
-                print(f"[ERROR] Failed to process command: {e}")
-                send_response("ERROR:DECODE_FAILED")
+                print(f"[error] Failed to process command: {e}")
+                send_response("error:DECODE_FAILED")
     
     utime.sleep_ms(10)

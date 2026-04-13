@@ -27,7 +27,7 @@ Complete master and endpoint communication pinouts for the Radar Project system.
 │    (Server + Debug)   │  │  GPIO5: PUL               │   │ │        │
 │  UART1: GPIO4(TX) ┐   │  │  GPIO6: DIR               │   │ │        │
 │         GPIO5(RX) └───┼──┼─ GPIO7: ENA               │   │ │        │
-│                       │  │  GPIO20: HOME_SENSOR      │   │ │        │
+│                       │  │  GPIO20: home_SENSOR      │   │ │        │
 │                       │  └───────────────────────────────┘ │        │
 │                       │                                    │        │
 │                       │  ┌─── Actuator Pico──────────┐     │        │
@@ -176,7 +176,7 @@ Complete master and endpoint communication pinouts for the Radar Project system.
 
 | Pin | GPIO | Type | Function | Details |
 |-----|------|------|----------|---------|
-| HOME | 20 | Input | Home Sensor | OMRON LJ12A3-4Z/BY (PNP) |
+| home | 20 | Input | Home Sensor | OMRON LJ12A3-4Z/BY (PNP) |
 
 **Sensor Wiring:**
 - Brown wire: 6-36V DC external power
@@ -357,7 +357,7 @@ GND ─────────────────── GND
              │ GPIO Pins
              │
 ┌────────────┴──────────────────────────────────────────────┐
-│ MASTER PICO - Central Control Hub                         │
+│ master PICO - Central Control Hub                         │
 │                                                           │
 │  I2C Bus (100kHz)              UART Connections          │
 │  ├─ GPIO0 (SDA) ────┬──────┐   ├─ UART0 (460800)        │
@@ -370,7 +370,7 @@ GND ─────────────────── GND
           ┌───────────┴─┐    ├─────────────┐
           │             │    │             │
       ┌───┴────┐   ┌────┴──┐│  ┌─────────┴──────┐
-      │STEPPER │   │ACTUATOR   │RADAR           │
+      │stepper │   │servo   │RADAR           │
       │ 0x10   │   │  0x12     │(UART Slave)    │
       │Motors  │   │ Servo     │                │
       │Sensors │   │ Control   │Sensor Data     │
@@ -437,7 +437,7 @@ GPIO13 ─│20                                 21 │── GND
 | 8 | 5 | PUL | Stepper Driver | Pulse (Step) |
 | 11 | 7 | ENA | Stepper Driver | Enable |
 | 10 | 6 | DIR | Stepper Driver | Direction |
-| 31 | 20 | HOME_SENSOR | OMRON | Inductive sensor |
+| 31 | 20 | home_SENSOR | OMRON | Inductive sensor |
 | 40 | - | VBUS | Power | 5V |
 | 39 | - | 3V3OUT | Power | 3.3V |
 
@@ -686,7 +686,7 @@ response = bus.read_i2c_block_data(0x10, 0, 3)
 print(f"Position: {(response[1] << 8) | response[2]}°")
 
 # Move stepper to 90°
-data = [0x04, 0x01, 0x00, 0x5A]  # MOVE to 90
+data = [0x04, 0x01, 0x00, 0x5A]  # move to 90
 bus.write_i2c_block_data(0x10, 0, data)
 ```
 

@@ -8,44 +8,44 @@ import sys
 
 # I2C Configuration
 I2C_BUS = 1
-I2C_SLAVE_STEPPER = 0x10
-I2C_SLAVE_SERVO = 0x12
+I2C_SLAVE_stepper = 0x10
+I2C_SLAVE_servo = 0x12
 
 # Command test definitions matching client API calls
 COMMAND_TESTS = {
-    'STEPPER': [
-        {'cmd': 'PING', 'expected': 'OK', 'timeout': 2, 'description': 'Stepper alive check'},
-        {'cmd': 'WHOAMI', 'expected': 'OK', 'timeout': 2, 'description': 'Stepper identification'},
-        {'cmd': 'STATUS', 'expected': 'OK', 'timeout': 2, 'description': 'Get stepper status'},
-        {'cmd': 'ENABLE', 'expected': 'OK', 'timeout': 2, 'description': 'Enable motor'},
-        {'cmd': 'HOME', 'expected': 'OK', 'timeout': 5, 'description': 'Calibrate home position'},
-        {'cmd': 'SPEED:2000', 'expected': 'OK', 'timeout': 2, 'description': 'Set speed (2000µs)'},
-        {'cmd': 'MOVE:0', 'expected': 'OK', 'timeout': 5, 'description': 'Move to 0° (home)'},
-        {'cmd': 'MOVE:90', 'expected': 'OK', 'timeout': 5, 'description': 'Move to 90°'},
-        {'cmd': 'MOVE:180', 'expected': 'OK', 'timeout': 5, 'description': 'Move to 180°'},
-        {'cmd': 'MOVE:360', 'expected': 'OK', 'timeout': 5, 'description': 'Move to 360° (raise)'},
-        {'cmd': 'ROTATE:45', 'expected': 'OK', 'timeout': 3, 'description': 'Rotate +45°'},
-        {'cmd': 'ROTATE:-45', 'expected': 'OK', 'timeout': 3, 'description': 'Rotate -45°'},
-        {'cmd': 'SPIN:2000', 'expected': 'OK', 'timeout': 2, 'description': 'Start spinning at 2000µs'},
-        {'cmd': 'STOP', 'expected': 'OK', 'timeout': 2, 'description': 'Stop motion'},
-        {'cmd': 'DISABLE', 'expected': 'OK', 'timeout': 2, 'description': 'Disable motor'},
+    'stepper': [
+        {'cmd': 'ping', 'expected': 'OK', 'timeout': 2, 'description': 'Stepper alive check'},
+        {'cmd': 'whoami', 'expected': 'OK', 'timeout': 2, 'description': 'Stepper identification'},
+        {'cmd': 'status', 'expected': 'OK', 'timeout': 2, 'description': 'Get stepper status'},
+        {'cmd': 'enable', 'expected': 'OK', 'timeout': 2, 'description': 'Enable motor'},
+        {'cmd': 'home', 'expected': 'OK', 'timeout': 5, 'description': 'Calibrate home position'},
+        {'cmd': 'speed:2000', 'expected': 'OK', 'timeout': 2, 'description': 'Set speed (2000µs)'},
+        {'cmd': 'move:0', 'expected': 'OK', 'timeout': 5, 'description': 'Move to 0° (home)'},
+        {'cmd': 'move:90', 'expected': 'OK', 'timeout': 5, 'description': 'Move to 90°'},
+        {'cmd': 'move:180', 'expected': 'OK', 'timeout': 5, 'description': 'Move to 180°'},
+        {'cmd': 'move:360', 'expected': 'OK', 'timeout': 5, 'description': 'Move to 360° (raise)'},
+        {'cmd': 'rotate:45', 'expected': 'OK', 'timeout': 3, 'description': 'Rotate +45°'},
+        {'cmd': 'rotate:-45', 'expected': 'OK', 'timeout': 3, 'description': 'Rotate -45°'},
+        {'cmd': 'spin:2000', 'expected': 'OK', 'timeout': 2, 'description': 'Start spinning at 2000µs'},
+        {'cmd': 'stop', 'expected': 'OK', 'timeout': 2, 'description': 'Stop motion'},
+        {'cmd': 'disable', 'expected': 'OK', 'timeout': 2, 'description': 'Disable motor'},
     ],
-    'SERVO': [
-        {'cmd': 'PING', 'expected': 'OK', 'timeout': 2, 'description': 'Servo alive check'},
-        {'cmd': 'WHOAMI', 'expected': 'OK', 'timeout': 2, 'description': 'Servo identification'},
-        {'cmd': 'STATUS', 'expected': 'OK', 'timeout': 2, 'description': 'Get servo status'},
-        {'cmd': 'OPEN', 'expected': 'OK', 'timeout': 8, 'description': 'Open/extend servo (6 seconds)'},
-        {'cmd': 'STATUS', 'expected': 'OK', 'timeout': 2, 'description': 'Get servo status (verify open)'},
-        {'cmd': 'CLOSE', 'expected': 'OK', 'timeout': 8, 'description': 'Close/retract servo (6 seconds)'},
-        {'cmd': 'STATUS', 'expected': 'OK', 'timeout': 2, 'description': 'Get servo status (verify closed)'},
+    'servo': [
+        {'cmd': 'ping', 'expected': 'OK', 'timeout': 2, 'description': 'Servo alive check'},
+        {'cmd': 'whoami', 'expected': 'OK', 'timeout': 2, 'description': 'Servo identification'},
+        {'cmd': 'status', 'expected': 'OK', 'timeout': 2, 'description': 'Get servo status'},
+        {'cmd': 'open', 'expected': 'OK', 'timeout': 8, 'description': 'Open/extend servo (6 seconds)'},
+        {'cmd': 'status', 'expected': 'OK', 'timeout': 2, 'description': 'Get servo status (verify open)'},
+        {'cmd': 'close', 'expected': 'OK', 'timeout': 8, 'description': 'Close/retract servo (6 seconds)'},
+        {'cmd': 'status', 'expected': 'OK', 'timeout': 2, 'description': 'Get servo status (verify closed)'},
     ],
     'RADAR': [
-        {'cmd': 'PING', 'expected': 'OK', 'timeout': 2, 'description': 'Radar alive check'},
-        {'cmd': 'WHOAMI', 'expected': 'OK', 'timeout': 2, 'description': 'Radar identification'},
-        {'cmd': 'STATUS', 'expected': 'OK', 'timeout': 2, 'description': 'Get radar status'},
-        {'cmd': 'READ', 'expected': 'OK', 'timeout': 2, 'description': 'Read radar measurements'},
-        {'cmd': 'SET_RANGE:100', 'expected': 'OK', 'timeout': 2, 'description': 'Set range to 100cm'},
-        {'cmd': 'SET_VELOCITY:5.0', 'expected': 'OK', 'timeout': 2, 'description': 'Set velocity to 5.0 m/s'},
+        {'cmd': 'ping', 'expected': 'OK', 'timeout': 2, 'description': 'Radar alive check'},
+        {'cmd': 'whoami', 'expected': 'OK', 'timeout': 2, 'description': 'Radar identification'},
+        {'cmd': 'status', 'expected': 'OK', 'timeout': 2, 'description': 'Get radar status'},
+        {'cmd': 'read', 'expected': 'OK', 'timeout': 2, 'description': 'Read radar measurements'},
+        {'cmd': 'set_range:100', 'expected': 'OK', 'timeout': 2, 'description': 'Set range to 100cm'},
+        {'cmd': 'set_velocity:5.0', 'expected': 'OK', 'timeout': 2, 'description': 'Set velocity to 5.0 m/s'},
     ]
 }
 
@@ -96,7 +96,7 @@ class APITester:
             bus.close()
             return response_str
         except Exception as e:
-            return f"I2C_ERROR: {e}"
+            return f"I2C_error: {e}"
     
     def test_command(self, device, test_case):
         """Test a single command"""
@@ -138,7 +138,7 @@ class APITester:
         print("=" * 80)
         print()
         
-        for device in ['STEPPER', 'SERVO', 'RADAR']:
+        for device in ['stepper', 'servo', 'RADAR']:
             print(f"\n{'='*80}")
             print(f"DEVICE: {device}")
             print(f"{'='*80}")
@@ -171,7 +171,7 @@ class APITester:
         print("=" * 80)
         print()
         
-        for device in ['STEPPER', 'SERVO', 'RADAR']:
+        for device in ['stepper', 'servo', 'RADAR']:
             result = self.results[device]
             passed = result['passed']
             failed = result['failed']
@@ -211,19 +211,19 @@ def print_api_specification():
     print("Command Format: DEVICE:COMMAND[:ARGS]")
     print()
     print("Positional Argument Commands (value only, no key name):")
-    print("  - MOVE:degrees → e.g., MOVE:360")
-    print("  - ROTATE:delta_degrees → e.g., ROTATE:45")
-    print("  - SPIN:speed_us → e.g., SPIN:2000")
-    print("  - SPEED:speed_us → e.g., SPEED:2000")
-    print("  - SET_RANGE:centimeters → e.g., SET_RANGE:100")
-    print("  - SET_VELOCITY:meters_per_second → e.g., SET_VELOCITY:5.0")
+    print("  - move:degrees → e.g., move:360")
+    print("  - rotate:delta_degrees → e.g., rotate:45")
+    print("  - spin:speed_us → e.g., spin:2000")
+    print("  - speed:speed_us → e.g., speed:2000")
+    print("  - set_range:centimeters → e.g., set_range:100")
+    print("  - set_velocity:meters_per_second → e.g., set_velocity:5.0")
     print()
-    print("STEPPER Commands:")
-    for test in COMMAND_TESTS['STEPPER']:
+    print("stepper Commands:")
+    for test in COMMAND_TESTS['stepper']:
         print(f"  - {test['cmd']:20s} → {test['description']}")
     print()
-    print("SERVO Commands:")
-    for test in COMMAND_TESTS['SERVO']:
+    print("servo Commands:")
+    for test in COMMAND_TESTS['servo']:
         print(f"  - {test['cmd']:20s} → {test['description']}")
     print()
     print("RADAR Commands:")

@@ -74,7 +74,7 @@ class UARTController:
         Send command to Pico Master and receive response
         
         Command format: "DEVICE:COMMAND" or "DEVICE:COMMAND:ARGS"
-        Response format: "DEVICE:STATUS[:DATA]"
+        Response format: "DEVICE:status[:DATA]"
         """
         # Auto-reconnect if not connected
         if not self.connected:

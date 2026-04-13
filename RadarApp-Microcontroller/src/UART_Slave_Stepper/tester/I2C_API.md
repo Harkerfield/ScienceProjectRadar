@@ -31,10 +31,10 @@ All commands follow this format:
 
 | Command | Hex | Purpose | Parameters | Response |
 |---------|-----|---------|-----------|----------|
-| SET | 0x01 | Set a configuration setting | [SETTING_ID][VALUE_BYTES] | [STATUS] |
-| GET | 0x02 | Get a configuration setting | [SETTING_ID] | [STATUS][VALUE_BYTES] |
-| STATUS | 0x03 | Get all settings (bulk read) | None | [STATUS][ALL_SETTINGS] |
-| ACTION | 0x04 | Execute a motor action | [ACTION_ID][PARAMS] | [STATUS] |
+| SET | 0x01 | Set a configuration setting | [SETTING_ID][VALUE_BYTES] | [status] |
+| GET | 0x02 | Get a configuration setting | [SETTING_ID] | [status][VALUE_BYTES] |
+| status | 0x03 | Get all settings (bulk read) | None | [status][ALL_SETTINGS] |
+| ACTION | 0x04 | Execute a motor action | [ACTION_ID][PARAMS] | [status] |
 | HEARTBEAT | 0x05 | Verify slave is online | None | [0x01][COUNTER_HI][COUNTER_LO] |
 
 ---
@@ -118,7 +118,7 @@ Meaning:  Set enabled (0x07) = 1 (motor on)
 
 #### Response Format
 ```
-[STATUS] [VALUE_BYTES...]
+[status] [VALUE_BYTES...]
 ```
 
 #### Examples
@@ -167,7 +167,7 @@ Meaning:  Status OK, sensor_state = 1 (clear, no metal detected)
 
 ---
 
-### 3. STATUS Command (0x03)
+### 3. status Command (0x03)
 
 **Get all settings and current status in one bulk read.**
 
@@ -178,7 +178,7 @@ Meaning:  Status OK, sensor_state = 1 (clear, no metal detected)
 
 #### Response Format
 ```
-[STATUS] [BULK_DATA...]
+[status] [BULK_DATA...]
 ```
 
 Response data (12 bytes):
@@ -210,7 +210,7 @@ Meaning:  OK | Pos=180° | AtHome=1 | Sensor=1(clear) | Dir=1(CW) | Speed=500µs
 
 ### 4. ACTION Command (0x04)
 
-**Execute a motor action (MOVE, HOME, ENABLE, DISABLE).**
+**Execute a motor action (move, home, enable, disable).**
 
 #### Format
 ```
@@ -221,10 +221,10 @@ Meaning:  OK | Pos=180° | AtHome=1 | Sensor=1(clear) | Dir=1(CW) | Speed=500µs
 
 | Action | Hex | Parameters | Description |
 |--------|-----|-----------|-------------|
-| MOVE | 0x01 | [ANGLE_MSB][ANGLE_LSB] | Move to specified angle (0-360°) |
-| HOME | 0x02 | None | Find and lock home position |
-| ENABLE | 0x03 | None | Enable motor driver |
-| DISABLE | 0x04 | None | Disable motor driver |
+| move | 0x01 | [ANGLE_MSB][ANGLE_LSB] | Move to specified angle (0-360°) |
+| home | 0x02 | None | Find and lock home position |
+| enable | 0x03 | None | Enable motor driver |
+| disable | 0x04 | None | Disable motor driver |
 
 #### Examples
 
@@ -232,21 +232,21 @@ Meaning:  OK | Pos=180° | AtHome=1 | Sensor=1(clear) | Dir=1(CW) | Speed=500µs
 ```
 Request:  [0x04] [0x01] [0x00] [0x5A]
 Response: [0x01]
-Meaning:  Action MOVE to 0x005A = 90 degrees. Status OK.
+Meaning:  Action move to 0x005A = 90 degrees. Status OK.
 ```
 
 **Move to 180 degrees:**
 ```
 Request:  [0x04] [0x01] [0x00] [0xB4]
 Response: [0x01]
-Meaning:  Action MOVE to 0x00B4 = 180 degrees. Status OK.
+Meaning:  Action move to 0x00B4 = 180 degrees. Status OK.
 ```
 
 **Find Home:**
 ```
 Request:  [0x04] [0x02]
 Response: [0x01]
-Meaning:  Action FIND HOME started. Status OK when complete.
+Meaning:  Action FIND home started. Status OK when complete.
 ```
 
 **Enable Motor:**
@@ -320,7 +320,7 @@ Master should send heartbeat at regular intervals (e.g., 100ms - 1s) to detect c
 | Code | Hex | Meaning |
 |------|-----|---------|
 | SUCCESS | 0x01 | Command executed successfully |
-| ERROR | 0xFF | Command failed or invalid |
+| error | 0xFF | Command failed or invalid |
 
 ---
 
@@ -360,11 +360,11 @@ Value: 65535    → [0xFF] [0xFF]
    Request:  [0x01] [0x01] [0x01]
    Response: [0x01]
    
-3. ENABLE Motor
+3. enable Motor
    Request:  [0x04] [0x03]
    Response: [0x01]
    
-4. MOVE to 90°
+4. move to 90°
    Request:  [0x04] [0x01] [0x00] [0x5A]
    Response: [0x01]
    
@@ -376,7 +376,7 @@ Value: 65535    → [0xFF] [0xFF]
    Request:  [0x03]
    Response: [0x01] [0x00] [0x5A] [0x01] [0x01] [0x01] [0x01] [0xF4] [0x01] [0x00] [0x00] [0x00] [0x00]
    
-7. FIND HOME
+7. FIND home
    Request:  [0x04] [0x02]
    Response: [0x01]  (blocks until home found)
    
@@ -468,41 +468,41 @@ import time
 
 # Create I2C bus interface
 bus = smbus.SMBus(1)  # Bus 1 on Raspberry Pi
-STEPPER_ADDR = 0x10
+stepper_ADDR = 0x10
 
 # SET speed to 500µs
 def set_speed(speed_us):
     data = [0x01, 0x02, (speed_us >> 8) & 0xFF, speed_us & 0xFF]
-    bus.write_i2c_block_data(STEPPER_ADDR, 0, data)
-    response = bus.read_i2c_block_data(STEPPER_ADDR, 0, 1)
+    bus.write_i2c_block_data(stepper_ADDR, 0, data)
+    response = bus.read_i2c_block_data(stepper_ADDR, 0, 1)
     return response[0] == 0x01
 
 # GET current position
 def get_position():
-    bus.write_i2c_block_data(STEPPER_ADDR, 0, [0x02, 0x10])
-    response = bus.read_i2c_block_data(STEPPER_ADDR, 0, 3)
+    bus.write_i2c_block_data(stepper_ADDR, 0, [0x02, 0x10])
+    response = bus.read_i2c_block_data(stepper_ADDR, 0, 3)
     if response[0] == 0x01:
         position = (response[1] << 8) | response[2]
         return position
     return None
 
-# ACTION: MOVE to angle
+# ACTION: move to angle
 def move_to(angle):
     data = [0x04, 0x01, (angle >> 8) & 0xFF, angle & 0xFF]
-    bus.write_i2c_block_data(STEPPER_ADDR, 0, data)
-    response = bus.read_i2c_block_data(STEPPER_ADDR, 0, 1)
+    bus.write_i2c_block_data(stepper_ADDR, 0, data)
+    response = bus.read_i2c_block_data(stepper_ADDR, 0, 1)
     return response[0] == 0x01
 
-# ACTION: FIND HOME
+# ACTION: FIND home
 def find_home():
-    bus.write_i2c_block_data(STEPPER_ADDR, 0, [0x04, 0x02])
-    response = bus.read_i2c_block_data(STEPPER_ADDR, 0, 1)
+    bus.write_i2c_block_data(stepper_ADDR, 0, [0x04, 0x02])
+    response = bus.read_i2c_block_data(stepper_ADDR, 0, 1)
     return response[0] == 0x01
 
 # Get all status
 def get_all_status():
-    bus.write_i2c_block_data(STEPPER_ADDR, 0, [0x03])
-    response = bus.read_i2c_block_data(STEPPER_ADDR, 0, 13)
+    bus.write_i2c_block_data(stepper_ADDR, 0, [0x03])
+    response = bus.read_i2c_block_data(stepper_ADDR, 0, 13)
     if response[0] == 0x01:
         return {
             'position': (response[1] << 8) | response[2],
@@ -534,53 +534,53 @@ if __name__ == '__main__':
 
 const i2c = require('i2c-bus');
 const bus = i2c.openSync(1); // Bus 1
-const STEPPER_ADDR = 0x10;
+const stepper_ADDR = 0x10;
 
 // SET speed to 500µs
 async function setSpeed(speedUs) {
     const data = Buffer.from([0x01, 0x02, (speedUs >> 8) & 0xFF, speedUs & 0xFF]);
-    await bus.i2cWrite(STEPPER_ADDR, data.length, data);
+    await bus.i2cWrite(stepper_ADDR, data.length, data);
     const response = Buffer.alloc(1);
-    await bus.i2cRead(STEPPER_ADDR, 1, response);
+    await bus.i2cRead(stepper_ADDR, 1, response);
     return response[0] === 0x01;
 }
 
 // GET current position
 async function getPosition() {
     const cmd = Buffer.from([0x02, 0x10]);
-    await bus.i2cWrite(STEPPER_ADDR, cmd.length, cmd);
+    await bus.i2cWrite(stepper_ADDR, cmd.length, cmd);
     const response = Buffer.alloc(3);
-    await bus.i2cRead(STEPPER_ADDR, 3, response);
+    await bus.i2cRead(stepper_ADDR, 3, response);
     if (response[0] === 0x01) {
         return (response[1] << 8) | response[2];
     }
     return null;
 }
 
-// ACTION: MOVE to angle
+// ACTION: move to angle
 async function moveTo(angle) {
     const data = Buffer.from([0x04, 0x01, (angle >> 8) & 0xFF, angle & 0xFF]);
-    await bus.i2cWrite(STEPPER_ADDR, data.length, data);
+    await bus.i2cWrite(stepper_ADDR, data.length, data);
     const response = Buffer.alloc(1);
-    await bus.i2cRead(STEPPER_ADDR, 1, response);
+    await bus.i2cRead(stepper_ADDR, 1, response);
     return response[0] === 0x01;
 }
 
-// ACTION: FIND HOME
+// ACTION: FIND home
 async function findHome() {
     const cmd = Buffer.from([0x04, 0x02]);
-    await bus.i2cWrite(STEPPER_ADDR, cmd.length, cmd);
+    await bus.i2cWrite(stepper_ADDR, cmd.length, cmd);
     const response = Buffer.alloc(1);
-    await bus.i2cRead(STEPPER_ADDR, 1, response);
+    await bus.i2cRead(stepper_ADDR, 1, response);
     return response[0] === 0x01;
 }
 
 // Get all status
 async function getAllStatus() {
     const cmd = Buffer.from([0x03]);
-    await bus.i2cWrite(STEPPER_ADDR, cmd.length, cmd);
+    await bus.i2cWrite(stepper_ADDR, cmd.length, cmd);
     const response = Buffer.alloc(13);
-    await bus.i2cRead(STEPPER_ADDR, 13, response);
+    await bus.i2cRead(stepper_ADDR, 13, response);
     
     if (response[0] === 0x01) {
         return {
@@ -616,7 +616,7 @@ async function getAllStatus() {
 1. Verify I2C address: `i2cdetect -y 1`
 2. Check GPIO connections
 3. Ensure 3.3V/GND power connections
-4. Test with simple STATUS command (0x03)
+4. Test with simple status command (0x03)
 
 ### Sensor Not Detecting
 1. Verify GPIO 20 wiring

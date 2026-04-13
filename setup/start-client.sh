@@ -51,7 +51,7 @@ LOG="/tmp/radar-client.log"
     # Check if server is running
     if command -v curl &> /dev/null; then
         if ! curl -s "$SERVER" >/dev/null 2>&1; then
-            echo "[$(date)] ERROR: Server not responding at $SERVER"
+            echo "[$(date)] error: Server not responding at $SERVER"
             echo "[$(date)] Chromium will attempt to connect when server is ready"
         fi
     fi
@@ -76,7 +76,7 @@ LOG="/tmp/radar-client.log"
     done
     
     if [ -z "$CHROMIUM_BIN" ]; then
-        echo "[$(date)] ERROR: Chromium browser not found at any known location"
+        echo "[$(date)] error: Chromium browser not found at any known location"
         echo "[$(date)] Tried: /usr/bin/chromium-browser, /usr/bin/chromium, /snap/bin/chromium, /usr/bin/google-chrome"
         echo "[$(date)] Install with: sudo apt-get install chromium-browser"
         exit 1

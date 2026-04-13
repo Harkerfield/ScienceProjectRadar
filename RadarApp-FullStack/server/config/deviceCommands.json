@@ -1,104 +1,104 @@
 {
-  "MASTER": {
-    "PING": {
+  "master": {
+    "ping": {
       "description": "Master alive check",
       "responseFormat": "ok:msg=Master ready"
     },
-    "WHOAMI": {
+    "whoami": {
       "description": "Master device identification",
-      "responseFormat": "ok:device=MASTER:type=pico_master"
+      "responseFormat": "ok:device=master:type=pico_master"
     },
-    "STATUS": {
+    "status": {
       "description": "Get master and all slave status",
       "responseFormat": "ok:master=ready:slaves_configured=X"
     }
   },
-  "STEPPER": {
-    "PING": {
+  "stepper": {
+    "ping": {
       "description": "Stepper alive check"
     },
-    "WHOAMI": {
+    "whoami": {
       "description": "Stepper device identification"
     },
-    "STATUS": {
+    "status": {
       "description": "Get stepper status",
       "responseFormat": "ok:position=X:calibrated=X:enabled=X:at_home=X"
     },
-    "ENABLE": {
+    "enable": {
       "description": "Enable stepper motor"
     },
-    "DISABLE": {
+    "disable": {
       "description": "Disable stepper motor"
     },
-    "HOME": {
+    "home": {
       "description": "Find and calibrate home position"
     },
-    "MOVE": {
+    "move": {
       "description": "Move to absolute angle",
       "args": ["degrees"],
       "notes": "Angle in degrees (0-360)"
     },
-    "ROTATE": {
+    "rotate": {
       "description": "Rotate by relative amount",
       "args": ["delta_degrees"],
       "notes": "Positive = CW, Negative = CCW"
     },
-    "SPIN": {
+    "spin": {
       "description": "Start continuous rotation",
       "args": ["speed_us"],
       "notes": "Speed in microseconds (500-10000)"
     },
-    "STOP": {
+    "stop": {
       "description": "Stop continuous rotation"
     },
-    "SPEED": {
+    "speed": {
       "description": "Set motor speed",
       "args": ["speed_us"],
       "notes": "Pulse duration in microseconds"
     }
   },
   "RADAR": {
-    "PING": {
+    "ping": {
       "description": "Radar alive check"
     },
-    "WHOAMI": {
+    "whoami": {
       "description": "Radar device identification"
     },
-    "STATUS": {
+    "status": {
       "description": "Get radar status and readings",
       "responseFormat": "ok:range=X:velocity=X:confidence=X:movement=X"
     },
-    "READ": {
+    "read": {
       "description": "Read radar measurements",
       "responseFormat": "ok:range=X:velocity=X:confidence=X:movement=X"
     },
-    "SET_RANGE": {
+    "set_range": {
       "description": "Set distance reading (simulation)",
       "args": ["centimeters"],
       "notes": "0-500 cm range"
     },
-    "SET_VELOCITY": {
+    "set_velocity": {
       "description": "Set velocity reading (simulation)",
       "args": ["meters_per_second"],
       "notes": "0.0-50.0 m/s range"
     }
   },
-  "SERVO": {
-    "PING": {
+  "servo": {
+    "ping": {
       "description": "Servo alive check"
     },
-    "WHOAMI": {
+    "whoami": {
       "description": "Servo device identification"
     },
-    "STATUS": {
+    "status": {
       "description": "Get servo current state",
       "responseFormat": "ok:state=X"
     },
-    "OPEN": {
+    "open": {
       "description": "Extend/open servo actuator",
       "notes": "Takes ~6 seconds to complete"
     },
-    "CLOSE": {
+    "close": {
       "description": "Retract/close servo actuator",
       "notes": "Takes ~6 seconds to complete"
     }

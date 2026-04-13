@@ -14,10 +14,10 @@ UART_TO_PI4_BAUDRATE = 115200  # Baud rate for Pi4 communication
 UART_DATA_INTERVAL_MS = 250  # Send data to Pi4 every 250ms
 
 # Servo Configuration
-SERVO_PIN = 16  # GPIO pin for servo control
-SERVO_NEUTRAL_POSITION = 90  # Neutral position in degrees
-SERVO_ACTIVE_POSITION = 45   # Active position in degrees
-SERVO_FREQUENCY = 50  # PWM frequency for servo (50Hz standard)
+servo_PIN = 16  # GPIO pin for servo control
+servo_NEUTRAL_POSITION = 90  # Neutral position in degrees
+servo_ACTIVE_POSITION = 45   # Active position in degrees
+servo_FREQUENCY = 50  # PWM frequency for servo (50Hz standard)
 
 # Radar Type Configuration - Choose one
 RADAR_TYPE = "RCWL0516"  # Options: "RCWL0516" or "CQROBOT"
@@ -62,7 +62,7 @@ VERBOSE_LOGGING = False  # Enable verbose logging
 
 # Pin Assignments Summary
 PIN_ASSIGNMENTS = {
-    'servo': SERVO_PIN,
+    'servo': servo_PIN,
     'status_led': LED_PIN,
     'rcwl_sensors': RCWL_PINS,
     'cqrobot_uart0_tx': CQROBOT_PINS['modules'][0]['tx_pin'],
@@ -77,7 +77,7 @@ def print_configuration():
     """Print current configuration for debugging"""
     print("=== Radar Controller Configuration ===")
     print(f"Radar Type: {RADAR_TYPE}")
-    print(f"Servo Pin: {SERVO_PIN}")
+    print(f"Servo Pin: {servo_PIN}")
     print(f"Scan Interval: {SCAN_INTERVAL_MS}ms")
     print(f"Detection Threshold: {DETECTION_THRESHOLD}")
     
@@ -99,14 +99,14 @@ def validate_configuration():
         errors.append(f"Invalid RADAR_TYPE: {RADAR_TYPE}")
     
     # Check servo configuration
-    if not (0 <= SERVO_PIN <= 28):
-        errors.append(f"Invalid SERVO_PIN: {SERVO_PIN}")
+    if not (0 <= servo_PIN <= 28):
+        errors.append(f"Invalid servo_PIN: {servo_PIN}")
     
-    if not (0 <= SERVO_NEUTRAL_POSITION <= 180):
-        errors.append(f"Invalid SERVO_NEUTRAL_POSITION: {SERVO_NEUTRAL_POSITION}")
+    if not (0 <= servo_NEUTRAL_POSITION <= 180):
+        errors.append(f"Invalid servo_NEUTRAL_POSITION: {servo_NEUTRAL_POSITION}")
     
-    if not (0 <= SERVO_ACTIVE_POSITION <= 180):
-        errors.append(f"Invalid SERVO_ACTIVE_POSITION: {SERVO_ACTIVE_POSITION}")
+    if not (0 <= servo_ACTIVE_POSITION <= 180):
+        errors.append(f"Invalid servo_ACTIVE_POSITION: {servo_ACTIVE_POSITION}")
     
     # Check RCWL pins
     if RADAR_TYPE == "RCWL0516":

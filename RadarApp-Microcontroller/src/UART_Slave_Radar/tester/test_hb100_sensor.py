@@ -44,7 +44,7 @@ print("=" * 70)
 print()
 
 # ============================================================
-# SENSOR READING FUNCTIONS
+# SENSOR readING FUNCTIONS
 # ============================================================
 
 class HB100Sensor:
@@ -176,7 +176,7 @@ def display_sensor_reading(reading, doppler, motion):
         motion: digital motion pin reading (or None)
     """
     print("=" * 70)
-    print("HB100 SENSOR READING")
+    print("HB100 SENSOR readING")
     print("=" * 70)
     
     # IF Signal

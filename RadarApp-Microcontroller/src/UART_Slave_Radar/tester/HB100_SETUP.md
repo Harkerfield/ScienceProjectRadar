@@ -267,4 +267,4 @@ Once sensor works with this test:
 4. Send results via UART protocol
 5. Monitor in Node.js dashboard
 
-See [README.md](README.md) for UART protocol details.
+See [readME.md](readME.md) for UART protocol details.

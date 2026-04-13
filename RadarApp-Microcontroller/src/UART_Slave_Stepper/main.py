@@ -2,9 +2,9 @@
 # NOTE: This code runs on Raspberry Pi Pico only, not on standard Python
 # Requires MicroPython firmware installed on Pico
 # UART Slave (on shared UART1 bus with device addressing)
-# Command Format: STEPPER:COMMAND[:ARGS]
-# Response Format: STEPPER:STATUS[:DATA]
-# Commands: PING, STATUS, WHOAMI, SPIN:<speed>, STOP, HOME, MOVE:<angle>, ROTATE:<degrees>, ENABLE, DISABLE, SPEED:<us>
+# Command Format: stepper:COMMAND[:ARGS]
+# Response Format: stepper:status[:DATA]
+# Commands: ping, status, whoami, spin:<speed>, stop, home, move:<angle>, rotate:<degrees>, enable, disable, speed:<us>
 
 from machine import UART, Pin
 import utime
@@ -20,7 +20,7 @@ print("=" * 50)
 # ============================================================
 # UART CONFIGURATION
 # ============================================================
-# UART1: Slave communication bus (shared with SERVO and RADAR)
+# UART1: Slave communication bus (shared with servo and RADAR)
 uart_slaves = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))
 print("[STARTUP] UART slave initialized (TX=GPIO4, RX=GPIO5)")
 
@@ -70,10 +70,10 @@ STEPS_PER_REVOLUTION = 600       # With gear reduction (200 * 3:1 = 600)
 DEGREES_PER_STEP = 0.6           # 360 / 600
 
 # Speed configuration (in microseconds for pulse duration)
-INITIAL_SPEED_US = 2000          # Initial rotation speed (2000µs per pulse) - SLOW for torque
-FINE_SPEED_US = 3000             # Fine-tuning speed (3000µs per pulse) - even slower
-MIN_SPEED_US = 500               # Minimum speed (fastest: 500µs per pulse)
-MAX_SPEED_US = 10000             # Maximum speed (slowest: 10000µs per pulse)
+INITIAL_speed_US = 2000          # Initial rotation speed (2000µs per pulse) - SLOW for torque
+FINE_speed_US = 3000             # Fine-tuning speed (3000µs per pulse) - even slower
+MIN_speed_US = 500               # Minimum speed (fastest: 500µs per pulse)
+MAX_speed_US = 10000             # Maximum speed (slowest: 10000µs per pulse)
 
 # Direction definitions
 CW = 1
@@ -83,7 +83,7 @@ CCW = 0
 stepper_position = 0             # Current position in degrees (calculated from home)
 stepper_enabled = False          # Motor enabled state
 stepper_at_home = False          # At home flag
-current_speed_us = INITIAL_SPEED_US  # Current speed setting
+current_speed_us = INITIAL_speed_US  # Current speed setting
 home_calibrated = False          # Whether home has been found and calibrated
 
 # Continuous rotation state
@@ -96,7 +96,7 @@ home_last_state = 0              # Track last sensor state to detect changes
 # Store all configurable settings
 stepper_settings = {
     'direction': 0,              # 0=CCW, 1=CW
-    'speed': INITIAL_SPEED_US,   # pulse microseconds
+    'speed': INITIAL_speed_US,   # pulse microseconds
     'acceleration': 0,           # 0=no acceleration
     'home_position': 0,          # Home angle in degrees
     'max_speed': 100,            # minimum pulse time in us
@@ -108,7 +108,7 @@ stepper_settings = {
 }
 
 # ============ DEVICE IDENTIFICATION ============
-DEVICE_NAME = "STEPPER"
+device_name = "stepper"
 
 # Track startup time for uptime reporting
 startup_time = utime.ticks_ms()
@@ -124,20 +124,20 @@ def flush_uart_buffer():
 def send_uart_response(status_msg):
     """
     Send device-addressed response via UART.
-    Format: STEPPER:OK:key=val:key=val\n
+    Format: stepper:OK:key=val:key=val\n
     
     Args:
-        status_msg: Status message (e.g., "OK:POS=45" or "ERROR:not_calibrated")
+        status_msg: Status message (e.g., "OK:POS=45" or "error:not_calibrated")
     """
-    response = f"{DEVICE_NAME}:{status_msg}\n"
+    response = f"{device_name}:{status_msg}\n"
     uart_slaves.write(response.encode())
     print(f"[UART-SEND] {response.strip()}")
     return response
 
 def simple_response(cmd, status, **kwargs):
     """Create simple text response - colon-separated format
-    Format: COMMAND:STATUS:key=val:key=val
-    Example: STATUS:OK:ANGLE=45:ENABLED=1
+    Format: COMMAND:status:key=val:key=val
+    Example: status:OK:ANGLE=45:enableD=1
     """
     parts = [status]
     for k, v in kwargs.items():
@@ -153,8 +153,8 @@ def simple_response(cmd, status, **kwargs):
 #   0x04 = ACTION (move, home, etc.)
 #
 # ACTION IDs (for command 0x04):
-#   0x01 = FIND HOME
-#   0x02 = MOVE to angle
+#   0x01 = FIND home
+#   0x02 = move to angle
 
 # ============================================================
 # HELPER FUNCTIONS
@@ -173,7 +173,7 @@ def enable_motor():
     ena_pin.off()  # LOW enables motor
     stepper_enabled = True
     stepper_settings['enabled'] = 1
-    print("[STEPPER] Motor enabled")
+    print("[stepper] Motor enabled")
 
 def disable_motor():
     """Disable stepper motor"""
@@ -182,14 +182,14 @@ def disable_motor():
     pul_pin.off()
     stepper_enabled = False
     stepper_settings['enabled'] = 0
-    print("[STEPPER] Motor disabled")
+    print("[stepper] Motor disabled")
 
 def set_direction(direction):
     """Set motor direction: CW (1) or CCW (0)"""
     dir_pin.value(direction)
     stepper_settings['direction'] = direction
     dir_label = "CW" if direction == CW else "CCW"
-    print(f"[STEPPER] Direction: {dir_label}")
+    print(f"[stepper] Direction: {dir_label}")
 
 def get_sensor_state():
     """Read sensor state: 1=triggered, 0=clear"""
@@ -200,7 +200,7 @@ def rotate_stepper_relative(delta_angle):
     global stepper_position, stepper_at_home, current_speed_us
     
     if not home_calibrated:
-        print("[STEPPER] ERROR: Must find home first before rotating!")
+        print("[stepper] error: Must find home first before rotating!")
         return False
     
     # Calculate target angle
@@ -210,7 +210,7 @@ def rotate_stepper_relative(delta_angle):
     steps_needed = int(abs(delta_angle) / DEGREES_PER_STEP)
     
     if steps_needed == 0:
-        print(f"[STEPPER] Rotation too small ({delta_angle}°)")
+        print(f"[stepper] Rotation too small ({delta_angle}°)")
         return True
     
     # Set direction
@@ -221,7 +221,7 @@ def rotate_stepper_relative(delta_angle):
     enable_motor()
     
     # Generate pulses and count steps
-    print(f"[STEPPER] Rotating {delta_angle:.1f}° ({steps_needed} steps)")
+    print(f"[stepper] Rotating {delta_angle:.1f}° ({steps_needed} steps)")
     for _ in range(steps_needed):
         pulse_motor(current_speed_us)
         # Update position in real-time
@@ -235,7 +235,7 @@ def rotate_stepper_relative(delta_angle):
     stepper_settings['position'] = int(stepper_position)
     stepper_settings['at_home'] = 1 if stepper_at_home else 0
     
-    print(f"[STEPPER] Rotated to {stepper_position:.1f}°")
+    print(f"[stepper] Rotated to {stepper_position:.1f}°")
     return True
 
 def move_stepper_direct(angle):
@@ -243,7 +243,7 @@ def move_stepper_direct(angle):
     global stepper_position, stepper_at_home, current_speed_us
     
     if not home_calibrated:
-        print("[STEPPER] ERROR: Must find home first before moving!")
+        print("[stepper] error: Must find home first before moving!")
         return False
     
     # Normalize angles
@@ -261,7 +261,7 @@ def move_stepper_direct(angle):
     steps_needed = int(abs(delta) / DEGREES_PER_STEP)
     
     if steps_needed == 0:
-        print(f"[STEPPER] Already at {stepper_position}°")
+        print(f"[stepper] Already at {stepper_position}°")
         stepper_at_home = (stepper_position == 0)
         return True
     
@@ -273,7 +273,7 @@ def move_stepper_direct(angle):
     enable_motor()
     
     # Generate pulses and count steps to calculate position
-    print(f"[STEPPER] Moving {steps_needed} steps ({delta:.1f}°)")
+    print(f"[stepper] Moving {steps_needed} steps ({delta:.1f}°)")
     for _ in range(steps_needed):
         pulse_motor(current_speed_us)
         # Update position in real-time
@@ -287,14 +287,14 @@ def move_stepper_direct(angle):
     stepper_settings['position'] = int(stepper_position)
     stepper_settings['at_home'] = 1 if stepper_at_home else 0
     
-    print(f"[STEPPER] Arrived at {stepper_position:.1f}°")
+    print(f"[stepper] Arrived at {stepper_position:.1f}°")
     return True
 
 def find_home_complete():
     """Complete home-finding cycle (2-phase) - calibrates position to 0°"""
     global stepper_position, stepper_at_home, home_calibrated
     
-    print("[HOME] Starting complete home-finding sequence...")
+    print("[home] Starting complete home-finding sequence...")
     print()
     
     # PHASE 1: Fast search
@@ -303,7 +303,7 @@ def find_home_complete():
     enable_motor()
     
     initial_sensor = get_sensor_state()
-    print(f"Initial sensor: {initial_sensor} (1=HOME, 0=CLEAR)")
+    print(f"Initial sensor: {initial_sensor} (1=home, 0=CLEAR)")
     
     # If already at home, move away first
     if initial_sensor == 1:
@@ -313,7 +313,7 @@ def find_home_complete():
         max_away = STEPS_PER_REVOLUTION * 2
         
         while away_steps < max_away:
-            pulse_motor(INITIAL_SPEED_US)
+            pulse_motor(INITIAL_speed_US)
             away_steps += 1
             
             if get_sensor_state() == 0:  # Cleared
@@ -333,11 +333,11 @@ def find_home_complete():
     print(f"Searching up to {max_steps} steps...")
     
     while phase1_steps < max_steps:
-        pulse_motor(INITIAL_SPEED_US)
+        pulse_motor(INITIAL_speed_US)
         phase1_steps += 1
         
         if get_sensor_state() == 1:  # Home found!
-            print(f"HOME TRIGGERED at {phase1_steps} steps!")
+            print(f"home TRIGGERED at {phase1_steps} steps!")
             angle = phase1_steps * DEGREES_PER_STEP
             print(f"  Angle: {angle:.1f}°")
             break
@@ -348,7 +348,7 @@ def find_home_complete():
             print(f"  Progress: {revs:.1f}R + {angle:.1f}°")
     
     if phase1_steps == max_steps:
-        print("HOME NOT FOUND after max steps!")
+        print("home NOT FOUND after max steps!")
         disable_motor()
         return False
     
@@ -365,11 +365,11 @@ def find_home_complete():
     print(f"Slowly approaching home...")
     
     while phase2_steps < max_fine:
-        pulse_motor(FINE_SPEED_US)
+        pulse_motor(FINE_speed_US)
         phase2_steps += 1
         
         if get_sensor_state() == 1:  # Home re-triggered!
-            print(f"HOME RE-TRIGGERED at {phase2_steps} steps!")
+            print(f"home RE-TRIGGERED at {phase2_steps} steps!")
             led.on()
             utime.sleep_ms(500)
             led.off()
@@ -384,7 +384,7 @@ def find_home_complete():
             
             print()
             print("=" * 60)
-            print("HOME FINDING COMPLETE!")
+            print("home FINDING COMPLETE!")
             print(f"Phase 1: {phase1_steps} steps")
             print(f"Phase 2: {phase2_steps} steps")
             print("Position set to 0° (home)")
@@ -403,7 +403,7 @@ def find_home_fast():
     """Quick home finding (phase 1 only) - calibrates position to 0°"""
     global stepper_position, stepper_at_home, home_calibrated
     
-    print("[HOME] Quick home search...")
+    print("[home] Quick home search...")
     set_direction(CCW)
     enable_motor()
     
@@ -411,11 +411,11 @@ def find_home_fast():
     max_steps = STEPS_PER_REVOLUTION * 5
     
     while steps < max_steps:
-        pulse_motor(INITIAL_SPEED_US)
+        pulse_motor(INITIAL_speed_US)
         steps += 1
         
         if get_sensor_state() == 1:  # Found!
-            print(f"HOME FOUND at {steps} steps")
+            print(f"home FOUND at {steps} steps")
             stepper_position = 0
             stepper_at_home = True
             home_calibrated = True  # Home is now calibrated
@@ -428,7 +428,7 @@ def find_home_fast():
         if steps % 100 == 0:
             print(f"  Searching... {steps} steps")
     
-    print("HOME NOT FOUND")
+    print("home NOT FOUND")
     disable_motor()
     return False
 
@@ -439,7 +439,7 @@ def run_continuous_rotation():
     if not stepper_enabled:
         enable_motor()
     
-    print(f"[ROTATE] Continuous rotation started, direction: {'CW' if continuous_direction==CW else 'CCW'}")
+    print(f"[rotate] Continuous rotation started, direction: {'CW' if continuous_direction==CW else 'CCW'}")
     
     try:
         while continuous_rotating:
@@ -467,40 +467,40 @@ def run_continuous_rotation():
             current_sensor = get_sensor_state()
             # Home detected messages disabled during continuous rotation
             # if current_sensor == 1 and home_last_state == 0:
-            #     print(f"[SENSOR] HOME DETECTED at {stepper_position:.1f}° (Rev {continuous_revolutions})")
+            #     print(f"[SENSOR] home DETECTED at {stepper_position:.1f}° (Rev {continuous_revolutions})")
             home_last_state = current_sensor
             
     finally:
         disable_motor()
-        print("[ROTATE] Continuous rotation stopped")
+        print("[rotate] Continuous rotation stopped")
 
 
 
 def process_uart_command(cmd_text):
     """Process UART command received from master.
-    Format: STEPPER:COMMAND[:ARGS]
-    Response: STEPPER:STATUS[:DATA]
+    Format: stepper:COMMAND[:ARGS]
+    Response: stepper:status[:DATA]
     
-    Supports commands: PING, STATUS, WHOAMI, SPIN:<speed>, STOP, HOME, MOVE:<angle>, 
-                       ROTATE:<degrees>, ENABLE, DISABLE, SPEED:<us>
+    Supports commands: ping, status, whoami, spin:<speed>, stop, home, move:<angle>, 
+                       rotate:<degrees>, enable, disable, speed:<us>
     """
     global stepper_position, stepper_enabled, stepper_at_home, continuous_rotating, continuous_direction, continuous_revolutions, home_last_state, current_speed_us
     
     try:
         if not cmd_text:
-            send_uart_response("ERROR:empty_command")
+            send_uart_response("error:empty_command")
             return
         
-        # Parse command format: STEPPER:COMMAND[:ARGS]
+        # Parse command format: stepper:COMMAND[:ARGS]
         parts = cmd_text.strip().split(":", 2)  # Split on first 2 colons only
         
         if len(parts) < 2:
-            send_uart_response("ERROR:invalid_format")
+            send_uart_response("error:invalid_format")
             return
         
         device = parts[0].upper()
-        if device != DEVICE_NAME:
-            send_uart_response(f"ERROR:wrong_device:{device}")
+        if device != device_name:
+            send_uart_response(f"error:wrong_device:{device}")
             return
         
         cmd = parts[1].upper()
@@ -510,137 +510,137 @@ def process_uart_command(cmd_text):
         
         # ========== STANDARD COMMANDS ==========
         if cmd == "COMMANDS":
-            commands = "PING,WHOAMI,STATUS,HOME,MOVE,ROTATE,SPIN,STOP,ENABLE,DISABLE,SPEED"
+            commands = "ping,whoami,status,home,move,rotate,spin,stop,enable,disable,speed"
             send_uart_response(f"OK:commands={commands}")
         
-        elif cmd == "PING":
+        elif cmd == "ping":
             uptime_ms = utime.ticks_ms() - startup_time
             uptime_s = uptime_ms // 1000
             send_uart_response(f"OK:msg=alive:uptime={uptime_s}s")
         
-        elif cmd == "WHOAMI":
-            send_uart_response(f"OK:device=STEPPER:type=motor_controller")
+        elif cmd == "whoami":
+            send_uart_response(f"OK:device=stepper:type=motor_controller")
         
-        elif cmd == "STATUS":
-            state = "HOME" if stepper_at_home else "ROTATING" if continuous_rotating else "IDLE"
+        elif cmd == "status":
+            state = "home" if stepper_at_home else "ROTATING" if continuous_rotating else "IDLE"
             send_uart_response(f"OK:state={state}:position={int(stepper_position)}:calibrated={1 if home_calibrated else 0}")
         
         # ========== MOTOR CONTROL COMMANDS ==========
-        elif cmd == "SPIN":
+        elif cmd == "spin":
             # Start spinning (continuation rotation)
             if args:
                 try:
                     speed = int(args)
-                    if MIN_SPEED_US <= speed <= MAX_SPEED_US:
+                    if MIN_speed_US <= speed <= MAX_speed_US:
                         current_speed_us = speed
                         continuous_rotating = True
                         continuous_direction = CW
                         enable_motor()
                         send_uart_response(f"OK:msg=spin_started:speed={speed}:direction=CW")
                     else:
-                        send_uart_response(f"ERROR:speed_out_of_range:min={MIN_SPEED_US}:max={MAX_SPEED_US}")
+                        send_uart_response(f"error:speed_out_of_range:min={MIN_speed_US}:max={MAX_speed_US}")
                 except ValueError:
-                    send_uart_response("ERROR:invalid_speed")
+                    send_uart_response("error:invalid_speed")
             else:
-                send_uart_response("ERROR:speed_required")
+                send_uart_response("error:speed_required")
         
-        elif cmd == "STOP":
+        elif cmd == "stop":
             if continuous_rotating:
                 continuous_rotating = False
                 disable_motor()
                 send_uart_response(f"OK:msg=stopped:pos={int(stepper_position)}:revolutions={continuous_revolutions}")
             else:
-                send_uart_response("ERROR:not_rotating")
+                send_uart_response("error:not_rotating")
         
-        elif cmd == "SPEED":
+        elif cmd == "speed":
             if args:
                 try:
                     speed = int(args)
-                    if MIN_SPEED_US <= speed <= MAX_SPEED_US:
+                    if MIN_speed_US <= speed <= MAX_speed_US:
                         current_speed_us = speed
                         stepper_settings['speed'] = speed
                         send_uart_response(f"OK:msg=speed_set:speed={speed}")
                     else:
-                        send_uart_response(f"ERROR:speed_out_of_range:min={MIN_SPEED_US}:max={MAX_SPEED_US}")
+                        send_uart_response(f"error:speed_out_of_range:min={MIN_speed_US}:max={MAX_speed_US}")
                 except ValueError:
-                    send_uart_response("ERROR:invalid_speed")
+                    send_uart_response("error:invalid_speed")
             else:
                 send_uart_response(f"OK:msg=current_speed:speed={current_speed_us}")
         
-        elif cmd == "HOME":
+        elif cmd == "home":
             # Start home finding process
             continuous_rotating = False
             result = find_home_complete()
             if result:
                 send_uart_response(f"OK:msg=home_found:pos=0:calib=1")
             else:
-                send_uart_response("ERROR:home_not_found")
+                send_uart_response("error:home_not_found")
         
-        elif cmd == "MOVE":
+        elif cmd == "move":
             if args:
                 try:
                     angle = float(args)
                     continuous_rotating = False
                     if not home_calibrated:
-                        send_uart_response("ERROR:not_calibrated")
+                        send_uart_response("error:not_calibrated")
                     else:
                         result = move_stepper_direct(angle)
                         if result:
                             send_uart_response(f"OK:msg=moved:pos={int(stepper_position)}:target={int(angle)}")
                         else:
-                            send_uart_response("ERROR:move_failed")
+                            send_uart_response("error:move_failed")
                 except ValueError:
-                    send_uart_response("ERROR:invalid_angle")
+                    send_uart_response("error:invalid_angle")
             else:
-                send_uart_response("ERROR:angle_required")
+                send_uart_response("error:angle_required")
         
-        elif cmd == "ROTATE":
+        elif cmd == "rotate":
             if args:
                 try:
                     delta = float(args)
                     continuous_rotating = False
                     if not home_calibrated:
-                        send_uart_response("ERROR:not_calibrated")
+                        send_uart_response("error:not_calibrated")
                     else:
                         result = rotate_stepper_relative(delta)
                         if result:
                             send_uart_response(f"OK:msg=rotated:pos={int(stepper_position)}:delta={int(delta)}")
                         else:
-                            send_uart_response("ERROR:rotate_failed")
+                            send_uart_response("error:rotate_failed")
                 except ValueError:
-                    send_uart_response("ERROR:invalid_delta")
+                    send_uart_response("error:invalid_delta")
             else:
-                send_uart_response("ERROR:delta_required")
+                send_uart_response("error:delta_required")
         
-        elif cmd == "ENABLE":
+        elif cmd == "enable":
             enable_motor()
             send_uart_response("OK:msg=enabled:enabled=1")
         
-        elif cmd == "DISABLE":
+        elif cmd == "disable":
             disable_motor()
             send_uart_response("OK:msg=disabled:enabled=0")
         
         else:
-            send_uart_response(f"ERROR:unknown_command:{cmd}")
+            send_uart_response(f"error:unknown_command:{cmd}")
     
     except Exception as e:
         print(f"[UART-ERR] Command processing error: {type(e).__name__}: {e}")
-        send_uart_response(f"ERROR:command_error:{str(e)[:30]}")
+        send_uart_response(f"error:command_error:{str(e)[:30]}")
 
 def process_i2c_command(cmd_bytes):
     """Process I2C command from master - Simple text protocol
     
     Supports text commands with simple responses:
-    - PING → PING:OK
-    - STATUS → STATUS:OK:POS=45:STATE=idle
-    - POSITION → POSITION:OK:POS=90:HOME=0
-    - WHOAMI → WHOAMI:OK:STEPPER
+    - ping → ping:OK
+    - status → status:OK:POS=45:STATE=idle
+    - POSITION → POSITION:OK:POS=90:home=0
+    - whoami → whoami:OK:stepper
     """
     global stepper_position, current_speed_us, home_calibrated
     
     try:
         if len(cmd_bytes) == 0:
-            result = b"ERROR:EMPTY_CMD"
+            result = b"error:EMPTY_CMD"
             print(f"[CMD] Empty command response: {result}")
             return result
         
@@ -649,103 +649,103 @@ def process_i2c_command(cmd_bytes):
             cmd = cmd_bytes.decode().strip().upper()
         except Exception as de:
             print(f"[CMD] Decode error: {de}")
-            result = b"ERROR:DECODE_FAILED"
+            result = b"error:DECODE_FAILED"
             print(f"[CMD] Decode error response: {result}")
             return result
         
         print(f"[CMD] Processing: {cmd}")
         
-        # PING - Alive check
-        if cmd == 'PING':
-            result = simple_response("PING", "OK").encode()
-            print(f"[CMD] PING response: {result}")
+        # ping - Alive check
+        if cmd == 'ping':
+            result = simple_response("ping", "OK").encode()
+            print(f"[CMD] ping response: {result}")
             return result
         
-        # STATUS - Get current status
-        elif cmd == 'STATUS':
-            state = 'HOME' if stepper_at_home else 'ROTATING' if continuous_rotating else 'IDLE'
-            result = simple_response("STATUS", "OK",
+        # status - Get current status
+        elif cmd == 'status':
+            state = 'home' if stepper_at_home else 'ROTATING' if continuous_rotating else 'IDLE'
+            result = simple_response("status", "OK",
                 POS=int(stepper_position),
                 STATE=state,
-                ENABLED=1 if stepper_enabled else 0,
+                enableD=1 if stepper_enabled else 0,
                 CALIB=1 if home_calibrated else 0).encode()
-            print(f"[CMD] STATUS response: {result}")
+            print(f"[CMD] status response: {result}")
             return result
         
         # POSITION - Get current position
         elif cmd == 'POSITION':
             result = simple_response("POSITION", "OK",
                 POS=int(stepper_position),
-                HOME=1 if stepper_at_home else 0).encode()
+                home=1 if stepper_at_home else 0).encode()
             print(f"[CMD] POSITION response: {result}")
             return result
         
-        # SPEED - Get current speed
-        elif cmd == 'SPEED':
-            result = simple_response("SPEED", "OK", SPEED=current_speed_us).encode()
-            print(f"[CMD] SPEED response: {result}")
+        # speed - Get current speed
+        elif cmd == 'speed':
+            result = simple_response("speed", "OK", speed=current_speed_us).encode()
+            print(f"[CMD] speed response: {result}")
             return result
         
-        # SPEED:value - Set speed
-        elif cmd.startswith('SPEED:'):
+        # speed:value - Set speed
+        elif cmd.startswith('speed:'):
             try:
                 speed = int(cmd.split(':')[1])
-                if MIN_SPEED_US <= speed <= MAX_SPEED_US:
+                if MIN_speed_US <= speed <= MAX_speed_US:
                     current_speed_us = speed
-                    result = simple_response("SPEED", "OK", SET=speed).encode()
-                    print(f"[CMD] SPEED set response: {result}")
+                    result = simple_response("speed", "OK", SET=speed).encode()
+                    print(f"[CMD] speed set response: {result}")
                     return result
                 else:
-                    result = b"ERROR:SPEED_OUT_OF_RANGE"
+                    result = b"error:speed_OUT_OF_RANGE"
                     print(f"[CMD] Speed out of range response: {result}")
                     return result
             except Exception as se:
                 print(f"[CMD] Speed parse error: {se}")
-                result = b"ERROR:INVALID_SPEED"
+                result = b"error:INVALID_speed"
                 print(f"[CMD] Invalid speed response: {result}")
                 return result
         
-        # FIND_HOME - Calibrate home position
-        elif cmd == 'FIND_HOME':
-            result = simple_response("FIND_HOME", "OK", STATUS="STARTED").encode()
-            print(f"[CMD] FIND_HOME response: {result}")
+        # FIND_home - Calibrate home position
+        elif cmd == 'FIND_home':
+            result = simple_response("FIND_home", "OK", status="STARTED").encode()
+            print(f"[CMD] FIND_home response: {result}")
             return result
         
-        # ENABLE - Enable motor
-        elif cmd == 'ENABLE':
+        # enable - Enable motor
+        elif cmd == 'enable':
             enable_motor()
-            result = simple_response("ENABLE", "OK", ENABLED=1).encode()
-            print(f"[CMD] ENABLE response: {result}")
+            result = simple_response("enable", "OK", enableD=1).encode()
+            print(f"[CMD] enable response: {result}")
             return result
         
-        # DISABLE - Disable motor
-        elif cmd == 'DISABLE':
+        # disable - Disable motor
+        elif cmd == 'disable':
             disable_motor()
-            result = simple_response("DISABLE", "OK", ENABLED=0).encode()
-            print(f"[CMD] DISABLE response: {result}")
+            result = simple_response("disable", "OK", enableD=0).encode()
+            print(f"[CMD] disable response: {result}")
             return result
         
-        # WHOAMI - Device identification
-        elif cmd == 'WHOAMI':
-            result = simple_response("WHOAMI", "OK", DEVICE="STEPPER", ADDR="0x10").encode()
-            print(f"[CMD] WHOAMI response: {result}")
+        # whoami - Device identification
+        elif cmd == 'whoami':
+            result = simple_response("whoami", "OK", DEVICE="stepper", ADDR="0x10").encode()
+            print(f"[CMD] whoami response: {result}")
             return result
         
         else:
-            result = simple_response("ERROR", "UNKNOWN_CMD", CMD=cmd).encode()
+            result = simple_response("error", "UNKNOWN_CMD", CMD=cmd).encode()
             print(f"[CMD] Unknown command response: {result}")
             return result
     
     except Exception as e:
         print(f"[CMD] Exception: {type(e).__name__}: {e}")
-        result = b"ERROR:COMMAND_EXCEPTION"
+        result = b"error:COMMAND_EXCEPTION"
         print(f"[CMD] Exception response: {result}")
         return result
 
 def simple_response(cmd, status, **kwargs):
     """Create simple text response - no JSON parsing needed
     Format: COMMAND:OK:key1=val1:key2=val2
-    Example: STATUS:OK:ANGLE=45:ENABLED=1
+    Example: status:OK:ANGLE=45:enableD=1
     """
     parts = [cmd, status]
     for k, v in kwargs.items():
@@ -763,14 +763,14 @@ def process_usb_command(line):
         # HELP - list available commands or show detailed help for a command
         if cmd == 'HELP':
             print("=" * 60)
-            print("STEPPER MOTOR CONTROLLER - Command Reference")
+            print("stepper MOTOR CONTROLLER - Command Reference")
             print("=" * 60)
             print("Type HELP <command> for detailed help on a command")
             print()
             print("Available Commands:")
-            print("  FIND_HOME, MOVE, ROTATE, START_ROTATE, STOP_ROTATE, SET_DIRECTION")
-            print("  POSITION, STATUS, AT_HOME, SENSOR")
-            print("  SPEED, PING, ENABLE, DISABLE, HELP")
+            print("  FIND_home, move, rotate, START_rotate, stop_rotate, SET_DIRECTION")
+            print("  POSITION, status, AT_home, SENSOR")
+            print("  speed, ping, enable, disable, HELP")
             print("=" * 60)
             return "OK: Help displayed"
         
@@ -778,11 +778,11 @@ def process_usb_command(line):
         elif cmd.startswith('HELP '):
             help_cmd = cmd.split(' ', 1)[1].strip().upper()
             
-            if help_cmd == 'FIND_HOME':
+            if help_cmd == 'FIND_home':
                 print("=" * 60)
-                print("FIND_HOME - Calibrate home position")
+                print("FIND_home - Calibrate home position")
                 print("=" * 60)
-                print("Usage: FIND_HOME")
+                print("Usage: FIND_home")
                 print()
                 print("Description:")
                 print("  Finds and calibrates the home position (0°)")
@@ -796,66 +796,66 @@ def process_usb_command(line):
                 print()
                 print("Notes:")
                 print("  - Position is set to 0° after calibration")
-                print("  - Required before using MOVE or ROTATE")
+                print("  - Required before using move or rotate")
                 print("=" * 60)
-                return "OK: FIND_HOME help displayed"
+                return "OK: FIND_home help displayed"
             
-            elif help_cmd == 'MOVE':
+            elif help_cmd == 'move':
                 print("=" * 60)
-                print("MOVE - Move to absolute angle")
+                print("move - Move to absolute angle")
                 print("=" * 60)
-                print("Usage: MOVE:<angle>")
-                print("Example: MOVE:90")
+                print("Usage: move:<angle>")
+                print("Example: move:90")
                 print()
                 print("Description:")
                 print("  Moves stepper to absolute angle (0-360°)")
                 print("  Always takes shortest path to target")
                 print()
                 print("Requirements:")
-                print("  - FIND_HOME must be called first")
+                print("  - FIND_home must be called first")
                 print("  - Motor must be enabled")
                 print()
                 print("Examples:")
-                print("  MOVE:0   - Move to 0° (home)")
-                print("  MOVE:90  - Move to 90°")
-                print("  MOVE:180 - Move to 180°")
+                print("  move:0   - Move to 0° (home)")
+                print("  move:90  - Move to 90°")
+                print("  move:180 - Move to 180°")
                 print("=" * 60)
-                return "OK: MOVE help displayed"
+                return "OK: move help displayed"
             
-            elif help_cmd == 'ROTATE':
+            elif help_cmd == 'rotate':
                 print("=" * 60)
-                print("ROTATE - Rotate by relative amount")
+                print("rotate - Rotate by relative amount")
                 print("=" * 60)
-                print("Usage: ROTATE:<degrees>")
-                print("Example: ROTATE:45")
+                print("Usage: rotate:<degrees>")
+                print("Example: rotate:45")
                 print()
                 print("Description:")
                 print("  Rotates stepper by relative amount from current position")
                 print("  Positive values = clockwise, Negative values = counter-clockwise")
                 print()
                 print("Requirements:")
-                print("  - FIND_HOME must be called first")
+                print("  - FIND_home must be called first")
                 print("  - Motor must be enabled")
                 print()
                 print("Examples:")
-                print("  ROTATE:45   - Rotate 45° clockwise")
-                print("  ROTATE:-30  - Rotate 30° counter-clockwise")
-                print("  ROTATE:360  - Rotate one full revolution")
+                print("  rotate:45   - Rotate 45° clockwise")
+                print("  rotate:-30  - Rotate 30° counter-clockwise")
+                print("  rotate:360  - Rotate one full revolution")
                 print("=" * 60)
-                return "OK: ROTATE help displayed"
+                return "OK: rotate help displayed"
             
-            elif help_cmd == 'START_ROTATE':
+            elif help_cmd == 'START_rotate':
                 print("=" * 60)
-                print("START_ROTATE - Start continuous rotation")
+                print("START_rotate - Start continuous rotation")
                 print("=" * 60)
-                print("Usage: START_ROTATE or START_ROTATE:<direction>")
-                print("Example: START_ROTATE  or  START_ROTATE:CW")
+                print("Usage: START_rotate or START_rotate:<direction>")
+                print("Example: START_rotate  or  START_rotate:CW")
                 print()
                 print("Description:")
                 print("  Starts continuous rotation")
                 print("  If direction is omitted, uses currently set direction")
                 print("  If direction is specified, sets it before starting")
-                print("  Rotation continues until STOP_ROTATE is issued")
+                print("  Rotation continues until stop_rotate is issued")
                 print("  Position is tracked and updated continuously")
                 print()
                 print("Directions:")
@@ -863,32 +863,32 @@ def process_usb_command(line):
                 print("  CCW - Counter-clockwise rotation")
                 print()
                 print("Examples:")
-                print("  START_ROTATE      - Rotate in current direction")
-                print("  START_ROTATE:CW   - Rotate clockwise continuously")
-                print("  START_ROTATE:CCW  - Rotate counter-clockwise continuously")
+                print("  START_rotate      - Rotate in current direction")
+                print("  START_rotate:CW   - Rotate clockwise continuously")
+                print("  START_rotate:CCW  - Rotate counter-clockwise continuously")
                 print()
                 print("Change direction with:")
                 print("  SET_DIRECTION:CW  or  SET_DIRECTION:CCW")
                 print()
                 print("Stop with:")
-                print("  STOP_ROTATE")
+                print("  stop_rotate")
                 print("=" * 60)
-                return "OK: START_ROTATE help displayed"
+                return "OK: START_rotate help displayed"
             
-            elif help_cmd == 'STOP_ROTATE':
+            elif help_cmd == 'stop_rotate':
                 print("=" * 60)
-                print("STOP_ROTATE - Stop continuous rotation")
+                print("stop_rotate - Stop continuous rotation")
                 print("=" * 60)
-                print("Usage: STOP_ROTATE")
+                print("Usage: stop_rotate")
                 print()
                 print("Description:")
-                print("  Stops continuous rotation started by START_ROTATE")
+                print("  Stops continuous rotation started by START_rotate")
                 print("  Motor is disabled and position is locked")
                 print()
                 print("Examples:")
-                print("  STOP_ROTATE - Stop current rotation")
+                print("  stop_rotate - Stop current rotation")
                 print("=" * 60)
-                return "OK: STOP_ROTATE help displayed"
+                return "OK: stop_rotate help displayed"
             
             elif help_cmd == 'SET_DIRECTION':
                 print("=" * 60)
@@ -899,7 +899,7 @@ def process_usb_command(line):
                 print()
                 print("Description:")
                 print("  Sets or changes the rotation direction")
-                print("  Can be used before START_ROTATE or during rotation")
+                print("  Can be used before START_rotate or during rotation")
                 print("  Always updates the motor pin immediately")
                 print()
                 print("Directions:")
@@ -927,11 +927,11 @@ def process_usb_command(line):
                 print("=" * 60)
                 return "OK: POSITION help displayed"
             
-            elif help_cmd == 'STATUS':
+            elif help_cmd == 'status':
                 print("=" * 60)
-                print("STATUS - Get full system status")
+                print("status - Get full system status")
                 print("=" * 60)
-                print("Usage: STATUS")
+                print("Usage: status")
                 print()
                 print("Description:")
                 print("  Returns comprehensive system status including:")
@@ -941,16 +941,16 @@ def process_usb_command(line):
                 print("  - Calibration status")
                 print()
                 print("Example output:")
-                print("  Position: 45.0°, Home: NOT_HOME, Sensor: CLEAR, Status: CALIBRATED")
+                print("  Position: 45.0°, Home: NOT_home, Sensor: CLEAR, Status: CALIBRATED")
                 print("=" * 60)
-                return "OK: STATUS help displayed"
+                return "OK: status help displayed"
             
-            elif help_cmd == 'SPEED':
+            elif help_cmd == 'speed':
                 print("=" * 60)
-                print("SPEED - Adjust motor speed")
+                print("speed - Adjust motor speed")
                 print("=" * 60)
-                print("Usage: SPEED:<microseconds>")
-                print("Example: SPEED:2000")
+                print("Usage: speed:<microseconds>")
+                print("Example: speed:2000")
                 print()
                 print("Description:")
                 print("  Sets pulse duration in microseconds")
@@ -958,21 +958,21 @@ def process_usb_command(line):
                 print("  Lower values = faster speed = weaker torque")
                 print()
                 print("Valid Range:")
-                print(f"  {MIN_SPEED_US}µs (fastest) to {MAX_SPEED_US}µs (slowest)")
+                print(f"  {MIN_speed_US}µs (fastest) to {MAX_speed_US}µs (slowest)")
                 print()
                 print("Examples:")
-                print("  SPEED:500  - Fast (weak holding)")
-                print("  SPEED:1000 - Medium")
-                print("  SPEED:2000 - Slow (good holding)")
-                print("  SPEED:5000 - Very slow (strong holding)")
+                print("  speed:500  - Fast (weak holding)")
+                print("  speed:1000 - Medium")
+                print("  speed:2000 - Slow (good holding)")
+                print("  speed:5000 - Very slow (strong holding)")
                 print("="*60)
-                return "OK: SPEED help displayed"
+                return "OK: speed help displayed"
             
-            elif help_cmd == 'PING':
+            elif help_cmd == 'ping':
                 print("=" * 60)
-                print("PING - Alive check")
+                print("ping - Alive check")
                 print("=" * 60)
-                print("Usage: PING")
+                print("Usage: ping")
                 print()
                 print("Description:")
                 print("  Verify slave is alive and responding")
@@ -984,73 +984,73 @@ def process_usb_command(line):
                 print("Example:")
                 print("  {\"s\":\"ok\",\"msg\":\"alive\",\"addr\":\"0x10\"}")
                 print("="*60)
-                return "OK: PING help displayed"
+                return "OK: ping help displayed"
             else:
                 print("Unknown command for help. Available:")
-                print("  HELP FIND_HOME - Calibrate home")
-                print("  HELP MOVE - Move to angle")
-                print("  HELP ROTATE - Rotate by amount")
-                print("  HELP START_ROTATE - Start continuous rotation")
-                print("  HELP STOP_ROTATE - Stop rotation")
+                print("  HELP FIND_home - Calibrate home")
+                print("  HELP move - Move to angle")
+                print("  HELP rotate - Rotate by amount")
+                print("  HELP START_rotate - Start continuous rotation")
+                print("  HELP stop_rotate - Stop rotation")
                 print("  HELP SET_DIRECTION - Change rotation direction")
-                print("  HELP SPEED - Adjust speed")
-                print("  HELP PING - Alive check")
+                print("  HELP speed - Adjust speed")
+                print("  HELP ping - Alive check")
                 print("  HELP POSITION - Get position")
-                print("  HELP STATUS - Get status")
+                print("  HELP status - Get status")
                 return f"Unknown command: {help_cmd}"
         
-        # STATUS - get full status
-        elif cmd == 'STATUS':
-            return simple_response("STATUS", "OK",
+        # status - get full status
+        elif cmd == 'status':
+            return simple_response("status", "OK",
                 POS=round(stepper_position, 1),
-                HOME=1 if stepper_at_home else 0,
+                home=1 if stepper_at_home else 0,
                 SENSOR=home_sensor.value(),
                 CALIB=1 if home_calibrated else 0,
-                ENABLED=1 if stepper_enabled else 0,
-                SPEED=current_speed_us)
+                enableD=1 if stepper_enabled else 0,
+                speed=current_speed_us)
         
-        # MOVE:<angle> - move to specific angle (requires home calibration)
-        elif cmd.startswith('MOVE:'):
+        # move:<angle> - move to specific angle (requires home calibration)
+        elif cmd.startswith('move:'):
             try:
                 angle = float(cmd.split(':')[1])
                 # Stop continuous rotation if running
                 continuous_rotating = False
                 if not home_calibrated:
-                    return simple_response("ERROR", "NOT_CALIBRATED")
-                print(f"[USB] ACTION: MOVE to {angle}°")
+                    return simple_response("error", "NOT_CALIBRATED")
+                print(f"[USB] ACTION: move to {angle}°")
                 result = move_stepper_direct(angle)
-                return simple_response("MOVE", "OK", POS=round(stepper_position, 1)) if result else simple_response("MOVE", "ERROR", MSG="move_failed")
+                return simple_response("move", "OK", POS=round(stepper_position, 1)) if result else simple_response("move", "error", MSG="move_failed")
             except:
-                return simple_response("ERROR", "INVALID_MOVE_FORMAT")
+                return simple_response("error", "INVALID_move_FORMAT")
         
-        # ROTATE:<degrees> - rotate by relative amount from current position
-        elif cmd.startswith('ROTATE:'):
+        # rotate:<degrees> - rotate by relative amount from current position
+        elif cmd.startswith('rotate:'):
             try:
                 delta_angle = float(cmd.split(':')[1])
                 # Stop continuous rotation if running
                 continuous_rotating = False
                 if not home_calibrated:
-                    return simple_response("ERROR", "NOT_CALIBRATED")
-                print(f"[USB] ACTION: ROTATE by {delta_angle}°")
+                    return simple_response("error", "NOT_CALIBRATED")
+                print(f"[USB] ACTION: rotate by {delta_angle}°")
                 result = rotate_stepper_relative(delta_angle)
-                return simple_response("ROTATE", "OK", POS=round(stepper_position, 1)) if result else simple_response("ROTATE", "ERROR", MSG="rotate_failed")
+                return simple_response("rotate", "OK", POS=round(stepper_position, 1)) if result else simple_response("rotate", "error", MSG="rotate_failed")
             except:
-                return simple_response("ERROR", "INVALID_ROTATE_FORMAT")
+                return simple_response("error", "INVALID_rotate_FORMAT")
         
-        # START_ROTATE or START_ROTATE:<direction> - start continuous rotation
-        elif cmd == 'START_ROTATE' or cmd.startswith('START_ROTATE:'):
+        # START_rotate or START_rotate:<direction> - start continuous rotation
+        elif cmd == 'START_rotate' or cmd.startswith('START_rotate:'):
             if not home_calibrated:
-                return simple_response("ERROR", "NOT_CALIBRATED")
+                return simple_response("error", "NOT_CALIBRATED")
             
             # Parse optional direction argument
-            if cmd.startswith('START_ROTATE:'):
+            if cmd.startswith('START_rotate:'):
                 direction_str = cmd.split(':')[1].strip().upper()
                 if direction_str == 'CW':
                     continuous_direction = CW
                 elif direction_str == 'CCW':
                     continuous_direction = CCW
                 else:
-                    return simple_response("ERROR", "INVALID_DIRECTION")
+                    return simple_response("error", "INVALID_DIRECTION")
             else:
                 # Use already-set direction
                 direction_str = "CW" if continuous_direction == CW else "CCW"
@@ -1058,8 +1058,8 @@ def process_usb_command(line):
             # Set flag and let main loop handle rotation (non-blocking)
             continuous_rotating = True
             enable_motor()
-            print(f"[ROTATE] Continuous rotation started, direction: {direction_str}")
-            return simple_response("START_ROTATE", "OK", DIR=direction_str)
+            print(f"[rotate] Continuous rotation started, direction: {direction_str}")
+            return simple_response("START_rotate", "OK", DIR=direction_str)
         
         # SET_DIRECTION:<direction> - change rotation direction (during or before rotation)
         elif cmd.startswith('SET_DIRECTION:'):
@@ -1069,83 +1069,83 @@ def process_usb_command(line):
             elif direction_str == 'CCW':
                 continuous_direction = CCW
             else:
-                return simple_response("ERROR", "INVALID_DIRECTION")
+                return simple_response("error", "INVALID_DIRECTION")
             set_direction(continuous_direction)
-            print(f"[ROTATE] Direction set to: {direction_str}")
+            print(f"[rotate] Direction set to: {direction_str}")
             return simple_response("SET_DIRECTION", "OK", DIR=direction_str)
         
-        # STOP_ROTATE - stop continuous rotation
-        elif cmd == 'STOP_ROTATE':
+        # stop_rotate - stop continuous rotation
+        elif cmd == 'stop_rotate':
             if continuous_rotating:
                 continuous_rotating = False
                 disable_motor()
-                print(f"[USB] ACTION: STOP CONTINUOUS ROTATION")
+                print(f"[USB] ACTION: stop CONTINUOUS ROTATION")
                 print(f"  Final position: {stepper_position:.1f}°")
                 print(f"  Total revolutions: {continuous_revolutions}")
                 total = continuous_revolutions * 360 + stepper_position
-                return simple_response("STOP_ROTATE", "OK", POS=round(stepper_position, 1), REV=continuous_revolutions, TOTAL=round(total, 1))
+                return simple_response("stop_rotate", "OK", POS=round(stepper_position, 1), REV=continuous_revolutions, TOTAL=round(total, 1))
             else:
-                return simple_response("ERROR", "NOT_ROTATING")
+                return simple_response("error", "NOT_ROTATING")
         
         # POSITION - get current position
         elif cmd == 'POSITION':
             total = continuous_revolutions * 360 + stepper_position if continuous_rotating else stepper_position
             return simple_response("POSITION", "OK", POS=round(stepper_position, 1), REV=continuous_revolutions, TOTAL=round(total, 1), CALIB=1 if home_calibrated else 0)
         
-        # FIND_HOME - find home position
-        elif cmd == 'FIND_HOME':
-            print(f"[USB] ACTION: FIND HOME")
+        # FIND_home - find home position
+        elif cmd == 'FIND_home':
+            print(f"[USB] ACTION: FIND home")
             result = find_home_complete()
-            return simple_response("FIND_HOME", "OK", POS=0, CALIB=1) if result else simple_response("FIND_HOME", "ERROR", MSG="home_not_found")
+            return simple_response("FIND_home", "OK", POS=0, CALIB=1) if result else simple_response("FIND_home", "error", MSG="home_not_found")
         
-        # AT_HOME - check if at home
-        elif cmd == 'AT_HOME':
-            return simple_response("AT_HOME", "OK", STATUS=1 if stepper_at_home else 0)
+        # AT_home - check if at home
+        elif cmd == 'AT_home':
+            return simple_response("AT_home", "OK", status=1 if stepper_at_home else 0)
         
         # SENSOR - get sensor state
         elif cmd == 'SENSOR':
             return simple_response("SENSOR", "OK", STATE=home_sensor.value())
         
-        # ENABLE - enable motor
-        elif cmd == 'ENABLE':
-            print(f"[USB] ACTION: ENABLE motor")
+        # enable - enable motor
+        elif cmd == 'enable':
+            print(f"[USB] ACTION: enable motor")
             enable_motor()
-            return simple_response("ENABLE", "OK")
+            return simple_response("enable", "OK")
         
-        # DISABLE - disable motor
-        elif cmd == 'DISABLE':
-            print(f"[USB] ACTION: DISABLE motor")
+        # disable - disable motor
+        elif cmd == 'disable':
+            print(f"[USB] ACTION: disable motor")
             disable_motor()
-            return simple_response("DISABLE", "OK")
+            return simple_response("disable", "OK")
         
-        # SPEED:<microseconds> - set motor speed
-        elif cmd.startswith('SPEED:'):
+        # speed:<microseconds> - set motor speed
+        elif cmd.startswith('speed:'):
             try:
                 speed_str = cmd.split(':')[1].strip()
                 speed_us = int(speed_str)
                 
-                if speed_us < MIN_SPEED_US or speed_us > MAX_SPEED_US:
-                    return simple_response("ERROR", "SPEED_OUT_OF_RANGE", MIN=MIN_SPEED_US, MAX=MAX_SPEED_US)
+                if speed_us < MIN_speed_US or speed_us > MAX_speed_US:
+                    return simple_response("error", "speed_OUT_OF_RANGE", MIN=MIN_speed_US, MAX=MAX_speed_US)
                 
                 current_speed_us = speed_us
                 stepper_settings['speed'] = speed_us
-                print(f"[USB] ACTION: SET SPEED to {speed_us}µs")
-                return simple_response("SPEED", "OK", SET=speed_us)
+                print(f"[USB] ACTION: SET speed to {speed_us}µs")
+                return simple_response("speed", "OK", SET=speed_us)
             except ValueError:
-                return simple_response("ERROR", "INVALID_SPEED_FORMAT")
+                return simple_response("error", "INVALID_speed_FORMAT")
         
-        # PING - verify slave is online (simple alive check)
-        elif cmd == 'PING':
+        # ping - verify slave is online (simple alive check)
+        elif cmd == 'ping':
             uptime_ms = utime.ticks_ms() - startup_time
             uptime_s = uptime_ms // 1000
-            return simple_response("PING", "OK", UPTIME=f"{uptime_s}s")
+            return simple_response("ping", "OK", UPTIME=f"{uptime_s}s")
         
-        # WHOAMI - Device identification
-        elif cmd == 'WHOAMI':
-            return simple_response("WHOAMI", "OK", DEVICE="STEPPER", TYPE="motor_controller")
+        # whoami - Device identification
+        elif cmd == 'whoami':
+            return simple_response("whoami", "OK", DEVICE="stepper", TYPE="motor_controller")
         
         else:
-            return simple_response("ERROR", "UNKNOWN_CMD", CMD=cmd)
+            return simple_response("error", "UNKNOWN_CMD", CMD=cmd)
     
     except Exception as e:
         return f"Error: {e}"
@@ -1186,9 +1186,9 @@ print("=" * 50)
 print("[INIT] Finding home position...")
 result = find_home_fast()
 if result:
-    print("[STEPPER] Homed to 0° (position: 0°)")
+    print("[stepper] Homed to 0° (position: 0°)")
 else:
-    print("[STEPPER] WARNING: Home finding failed")
+    print("[stepper] WARNING: Home finding failed")
 print("[INIT] Initialization complete!")
 print("=" * 50)
 print()
@@ -1196,33 +1196,33 @@ print()
 print("=" * 50)
 print("Stepper Motor Pico Firmware - UART REST API Compatible")
 print("=" * 50)
-print(f"[READY] UART Slave ({DEVICE_NAME}) initialized")
+print(f"[readY] UART Slave ({device_name}) initialized")
 print("[MOTOR] Stepper motor control via pulse/direction/enable")
 print(f"[WIRING] PUL/DIR/ENA=GPIO({PUL_PIN}/{DIR_PIN}/{ENA_PIN}), SENSOR=GPIO20")
 print()
-print("UART Protocol (shared bus with SERVO and RADAR):")
-print("  Format: STEPPER:COMMAND[:ARGS]")
-print("  Response: STEPPER:STATUS[:DATA]")
+print("UART Protocol (shared bus with servo and RADAR):")
+print("  Format: stepper:COMMAND[:ARGS]")
+print("  Response: stepper:status[:DATA]")
 print()
 print("Available Commands:")
-print("  PING           - Alive check")
-print("  STATUS         - Get status (position, state, enabled, calibrated)")
-print("  WHOAMI         - Device identification")
-print("  SPIN:<speed>   - Start continuous rotation at speed (µs)")
-print("  STOP           - Stop continuous rotation")
-print("  HOME           - Find and calibrate home position")
-print("  MOVE:<angle>   - Move to absolute angle (0-360°)")
-print("  ROTATE:<delta> - Rotate by relative amount")
-print("  SPEED:<us>     - Set motor speed (pulse duration in µs)")
-print("  ENABLE         - Enable motor")
-print("  DISABLE        - Disable motor")
+print("  ping           - Alive check")
+print("  status         - Get status (position, state, enabled, calibrated)")
+print("  whoami         - Device identification")
+print("  spin:<speed>   - Start continuous rotation at speed (µs)")
+print("  stop           - Stop continuous rotation")
+print("  home           - Find and calibrate home position")
+print("  move:<angle>   - Move to absolute angle (0-360°)")
+print("  rotate:<delta> - Rotate by relative amount")
+print("  speed:<us>     - Set motor speed (pulse duration in µs)")
+print("  enable         - Enable motor")
+print("  disable        - Disable motor")
 print()
 print("Examples:")
-print("  STEPPER:PING")
-print("  STEPPER:STATUS")
-print("  STEPPER:SPIN:2000")
-print("  STEPPER:MOVE:90")
-print("  STEPPER:ROTATE:45")
+print("  stepper:ping")
+print("  stepper:status")
+print("  stepper:spin:2000")
+print("  stepper:move:90")
+print("  stepper:rotate:45")
 print("=" * 50)
 print()
 
@@ -1264,7 +1264,7 @@ while True:
             # Prevent buffer overflow
             if len(uart_buffer) > 256:
                 uart_buffer = b""
-                send_uart_response("ERROR:buffer_overflow")
+                send_uart_response("error:buffer_overflow")
     
     # Handle continuous rotation - ALWAYS CHECK AND EXECUTE
     if continuous_rotating and stepper_enabled:
@@ -1280,16 +1280,16 @@ while True:
         if stepper_position >= 360:
             stepper_position = stepper_position - 360
             continuous_revolutions += 1
-            print(f"[ROTATE] Revolution {continuous_revolutions}")
+            print(f"[rotate] Revolution {continuous_revolutions}")
         elif stepper_position < 0:
             stepper_position = stepper_position + 360
             continuous_revolutions += 1
-            print(f"[ROTATE] Revolution {continuous_revolutions}")
+            print(f"[rotate] Revolution {continuous_revolutions}")
         
         # Check if home sensor is triggered
         current_sensor = get_sensor_state()
         if current_sensor == 1 and home_last_state == 0:
-            print(f"[SENSOR] HOME DETECTED at {stepper_position:.1f}° (Rev {continuous_revolutions})")
+            print(f"[SENSOR] home DETECTED at {stepper_position:.1f}° (Rev {continuous_revolutions})")
         home_last_state = current_sensor
         
         stepper_settings['position'] = int(stepper_position)
@@ -1298,7 +1298,7 @@ while True:
         pulse_counter += 1
         if pulse_counter >= 600:
             pulse_counter = 0
-            print(f"[ROTATE] Position: {stepper_position:.1f}° (Rev: {continuous_revolutions})")
+            print(f"[rotate] Position: {stepper_position:.1f}° (Rev: {continuous_revolutions})")
     
     # Check for input via stdin
     try:

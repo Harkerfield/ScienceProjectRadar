@@ -17,7 +17,7 @@ ACTUAL_USER="${INSTALL_USER:-${SUDO_USER:-$(whoami)}}"
 
 # Prevent installation as root directly
 if [ "$ACTUAL_USER" = "root" ]; then
-    echo -e "${RED}✗ ERROR: Cannot install as root${NC}"
+    echo -e "${RED}✗ error: Cannot install as root${NC}"
     echo -e "${YELLOW}Run via the control script:${NC}"
     echo -e "  bash setup/start.sh install"
     echo ""

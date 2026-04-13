@@ -26,7 +26,7 @@ ACTUAL_USER="${INSTALL_USER:-${SUDO_USER:-$(whoami)}}"
 
 # Prevent direct root execution
 if [ "$ACTUAL_USER" = "root" ] && [ -z "$SUDO_USER" ]; then
-    echo -e "\n${RED}✗ ERROR: Cannot install as root directly${NC}"
+    echo -e "\n${RED}✗ error: Cannot install as root directly${NC}"
     echo -e "${YELLOW}Run via:${NC}"
     echo -e "  bash setup/complete-install.sh"
     echo -e "  ${YELLOW}or${NC}"
@@ -267,19 +267,19 @@ if [ "$IS_RPI" = true ]; then
     echo ""
     echo -e "${BLUE}Service Status:${NC}"
     
-    SERVER_STATUS=$(sudo systemctl is-active radar-server 2>/dev/null || echo "unknown")
-    CLIENT_STATUS=$(sudo systemctl is-active radar-client 2>/dev/null || echo "unknown")
+    SERVER_status=$(sudo systemctl is-active radar-server 2>/dev/null || echo "unknown")
+    CLIENT_status=$(sudo systemctl is-active radar-client 2>/dev/null || echo "unknown")
     
-    if [ "$SERVER_STATUS" = "active" ]; then
+    if [ "$SERVER_status" = "active" ]; then
         echo -e "  ${GREEN}✓ Server: active${NC}"
     else
-        echo -e "  ${YELLOW}⚠ Server: $SERVER_STATUS${NC}"
+        echo -e "  ${YELLOW}⚠ Server: $SERVER_status${NC}"
     fi
     
-    if [ "$CLIENT_STATUS" = "active" ]; then
+    if [ "$CLIENT_status" = "active" ]; then
         echo -e "  ${GREEN}✓ Client: active${NC}"
     else
-        echo -e "  ${YELLOW}⚠ Client: $CLIENT_STATUS${NC}"
+        echo -e "  ${YELLOW}⚠ Client: $CLIENT_status${NC}"
     fi
 else
     print_step "[8/8] Service restart (skipped on local machine)"

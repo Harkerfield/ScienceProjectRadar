@@ -20,7 +20,7 @@ ACTUAL_USER="${SUDO_USER:-$(whoami)}"
 
 # Prevent running as root
 if [ "$ACTUAL_USER" = "root" ] && [ -z "$SUDO_USER" ]; then
-    echo -e "${RED}✗ ERROR: Must run with sudo as regular user, not as root${NC}"
+    echo -e "${RED}✗ error: Must run with sudo as regular user, not as root${NC}"
     echo -e "${YELLOW}Usage: sudo bash $0${NC}"
     exit 1
 fi

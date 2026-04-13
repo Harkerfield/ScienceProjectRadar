@@ -12,7 +12,7 @@ def test_servo():
     print("=== Servo Controller Test ===")
     
     try:
-        servo = ServoController(SERVO_PIN)
+        servo = ServoController(servo_PIN)
         
         print("Testing servo positions...")
         positions = [0, 45, 90, 135, 180, 90]  # End at neutral

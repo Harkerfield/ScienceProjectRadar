@@ -48,7 +48,7 @@ This folder contains test utilities for the UART radar module running on Raspber
   - Single or timed data capture
   - Send raw commands and view responses
   - Hex dump of buffer contents
-  - PING all devices for quick connectivity test
+  - ping all devices for quick connectivity test
   - Statistics and buffer management
 
 ### Which Test to Use?
@@ -64,7 +64,7 @@ This folder contains test utilities for the UART radar module running on Raspber
 | Device not responding to commands | `test_raw_uart_data.py` | Verify messages being sent |
 | Garbled or corrupted data | `test_raw_uart_data.py` | Inspect hex dump |
 | Protocol issues or misalignment | `test_raw_uart_data.py` | Monitor real-time traffic |
-| Quick connectivity test | `test_raw_uart_data.py` | Send PINGs to all devices |
+| Quick connectivity test | `test_raw_uart_data.py` | Send pings to all devices |
 | **Protocol Testing** | | |
 | UART slave protocol test | `test_radar_sensor.py` | Test command/response protocol |
 
@@ -79,7 +79,7 @@ RADAR:COMMAND[:ARGS]\n
 
 **Response Format:**
 ```
-RADAR:STATUS[:KEY=VALUE:KEY=VALUE]\n
+RADAR:status[:KEY=VALUE:KEY=VALUE]\n
 ```
 
 ### UART Configuration
@@ -93,36 +93,36 @@ RADAR:STATUS[:KEY=VALUE:KEY=VALUE]\n
 
 | Command | Args | Response | Purpose |
 |---------|------|----------|---------|
-| `PING` | None | `RADAR:OK:msg=alive:addr=0x20` | Check if radar is alive |
-| `WHOAMI` | None | `RADAR:OK:device=RADAR:type=distance_sensor` | Get device info |
-| `READ` | None | `RADAR:OK:range=123:velocity=4.5:confidence=80:movement=1` | Get current sensor readings |
-| `STATUS` | None | Same as READ | Get detailed status |
-| `SET_RANGE` | `<cm>` | `RADAR:OK:range_set:value=250` | Set distance reading (cm) |
-| `SET_VELOCITY` | `<m/s>` | `RADAR:OK:velocity_set:value=8.5` | Set velocity reading (m/s) |
+| `ping` | None | `RADAR:OK:msg=alive:addr=0x20` | Check if radar is alive |
+| `whoami` | None | `RADAR:OK:device=RADAR:type=distance_sensor` | Get device info |
+| `read` | None | `RADAR:OK:range=123:velocity=4.5:confidence=80:movement=1` | Get current sensor readings |
+| `status` | None | Same as read | Get detailed status |
+| `set_range` | `<cm>` | `RADAR:OK:range_set:value=250` | Set distance reading (cm) |
+| `set_velocity` | `<m/s>` | `RADAR:OK:velocity_set:value=8.5` | Set velocity reading (m/s) |
 
 ### Example Command Sequences
 
 **Check if radar is online:**
 ```
->>> RADAR:PING
+>>> RADAR:ping
 <<< RADAR:OK:msg=alive:addr=0x20
 ```
 
 **Get current sensor reading:**
 ```
->>> RADAR:READ
+>>> RADAR:read
 <<< RADAR:OK:range=250:velocity=8.5:confidence=80:movement=1
 ```
 
 **Simulate new distance (300cm):**
 ```
->>> RADAR:SET_RANGE:300
+>>> RADAR:set_range:300
 <<< RADAR:OK:range_set:value=300
 ```
 
 **Simulate new velocity (6.2 m/s):**
 ```
->>> RADAR:SET_VELOCITY:6.2
+>>> RADAR:set_velocity:6.2
 <<< RADAR:OK:velocity_set:value=6.2
 ```
 
@@ -142,19 +142,19 @@ RADAR:STATUS[:KEY=VALUE:KEY=VALUE]\n
 
 3. **Example output:**
    ```
-   [TEST 1] PING - Check if radar is alive
-   >>> Sending: RADAR:PING
+   [TEST 1] ping - Check if radar is alive
+   >>> Sending: RADAR:ping
    <<< Response: RADAR:OK:msg=alive:addr=0x20
    
    ============================================================
-   RADAR SENSOR STATUS
+   RADAR SENSOR status
    ============================================================
      Message:      alive
      Address:      0x20
    ============================================================
    
-   [TEST 2] WHOAMI - Identify device
-   >>> Sending: RADAR:WHOAMI
+   [TEST 2] whoami - Identify device
+   >>> Sending: RADAR:whoami
    <<< Response: RADAR:OK:device=RADAR:type=distance_sensor
    ```
 
@@ -217,11 +217,11 @@ RADAR:STATUS[:KEY=VALUE:KEY=VALUE]\n
    - **2. Line-by-Line Monitor** - Captures complete messages (newline-delimited)
    - **3. Single Capture** - Waits for one message with 5s timeout
    - **4. Timed Capture** - Record data for N seconds to CSV
-   - **5. Send Raw Command** - Send hex or text commands (e.g., `RADAR:PING\n`)
+   - **5. Send Raw Command** - Send hex or text commands (e.g., `RADAR:ping\n`)
    - **6. Stats & Buffer Info** - Show RX/TX bytes and current buffer
    - **7. Raw Hex Dump** - Display all buffered data as hex dump
    - **8. Clear Buffer** - Clear receive buffer
-   - **9. Test Devices** - Send PING to all devices (STEPPER, SERVO, RADAR)
+   - **9. Test Devices** - Send ping to all devices (stepper, servo, RADAR)
    - **A. Exit** - Exit test
 
 4. **Usage examples:**
@@ -229,7 +229,7 @@ RADAR:STATUS[:KEY=VALUE:KEY=VALUE]\n
    **Verify UART is working:**
    ```
    Select: 9 (Test Devices)
-   → Sends PING to all devices
+   → Sends ping to all devices
    → Shows responses in hex and ASCII
    ```
 
@@ -252,7 +252,7 @@ RADAR:STATUS[:KEY=VALUE:KEY=VALUE]\n
    **Send custom command:**
    ```
    Select: 5 (Send Raw Command)
-   Enter: RADAR:SET_RANGE:300
+   Enter: RADAR:set_range:300
    → Sends command on UART
    → Can then use menu option 2 to see response
    ```
@@ -305,7 +305,7 @@ After testing with this script:
 
 **Confidence always shows 0:**
 - This is normal if range is 0
-- Try `SET_RANGE:200` to simulate a distance reading
+- Try `set_range:200` to simulate a distance reading
 
 #### test_hb100_if_only.py Issues
 
@@ -353,7 +353,7 @@ After testing with this script:
 
 **Only see sent data, no responses:**
 - Devices might not be powered on
-- Check device addresses: STEPPER=0x10, SERVO=0x11, RADAR=0x20
+- Check device addresses: stepper=0x10, servo=0x11, RADAR=0x20
 - Try "Test Devices" (menu 9) to verify connectivity
 - Check for UART bus contention
 

@@ -5,9 +5,9 @@ import time
 ser = serial.Serial('/dev/ttyAMA0', 460800, timeout=2)
 print("✓ Connected to Pico Master")
 
-# Send a test PING command
-print("\n→ Sending: SERVO:PING")
-ser.write(b'SERVO:PING\n')
+# Send a test ping command
+print("\n→ Sending: servo:ping")
+ser.write(b'servo:ping\n')
 
 time.sleep(1)
 

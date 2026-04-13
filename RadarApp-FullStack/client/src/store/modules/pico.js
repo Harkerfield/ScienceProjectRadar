@@ -104,11 +104,11 @@ export default {
       }
     },
 
-    UPDATE_SERVO_STATUS(state, status) {
+    UPDATE_servo_status(state, status) {
       state.picoServoStatus = { ...state.picoServoStatus, ...status }
     },
 
-    UPDATE_PICO_STATUS(state, status) {
+    UPDATE_PICO_status(state, status) {
       state.picoStatus = {
         ...state.picoStatus,
         ...status,
@@ -125,7 +125,7 @@ export default {
       })
     },
 
-    UPDATE_COMMAND_STATUS(state, { commandId, status, response }) {
+    UPDATE_COMMAND_status(state, { commandId, status, response }) {
       const command = state.commandQueue.find(cmd => cmd.id === commandId)
       if (command) {
         command.status = status
@@ -153,7 +153,7 @@ export default {
       }
     },
 
-    REMOVE_OLD_COMMANDS(state) {
+    REmove_OLD_COMMANDS(state) {
       const tenMinutesAgo = Date.now() - 10 * 60 * 1000
       state.commandQueue = state.commandQueue.filter(cmd =>
         new Date(cmd.timestamp).getTime() > tenMinutesAgo
@@ -272,16 +272,16 @@ export default {
           break
 
         case 'servo_status':
-          commit('UPDATE_SERVO_STATUS', message.data)
+          commit('UPDATE_servo_status', message.data)
           break
 
         case 'pico_status':
-          commit('UPDATE_PICO_STATUS', message.data)
+          commit('UPDATE_PICO_status', message.data)
           break
 
         case 'command_response':
           if (message.data.commandId) {
-            commit('UPDATE_COMMAND_STATUS', {
+            commit('UPDATE_COMMAND_status', {
               commandId: message.data.commandId,
               status: message.data.success ? 'completed' : 'failed',
               response: message.data
@@ -334,7 +334,7 @@ export default {
 
     // Periodic maintenance
     performMaintenance({ commit }) {
-      commit('REMOVE_OLD_COMMANDS')
+      commit('REmove_OLD_COMMANDS')
     },
 
     // Emergency stop - stops all Pico operations

@@ -123,7 +123,7 @@
               :disabled="!allConnected"
               class="btn btn-danger btn-emergency"
             >
-              🛑 EMERGENCY STOP
+              🛑 EMERGENCY stop
             </button>
           </div>
         </div>
@@ -397,11 +397,11 @@ export default {
     },
 
     emergencyStop() {
-      if (confirm('Are you sure you want to trigger EMERGENCY STOP? This will immediately stop all motor operations!')) {
+      if (confirm('Are you sure you want to trigger EMERGENCY stop? This will immediately stop all motor operations!')) {
         this.stopRotation()
         this.addNotification({
           type: 'emergency',
-          title: '🛑 EMERGENCY STOP ACTIVATED',
+          title: '🛑 EMERGENCY stop ACTIVATED',
           message: 'Stepper motor halted immediately. Click "Clear" to acknowledge.',
           persistent: true
         })

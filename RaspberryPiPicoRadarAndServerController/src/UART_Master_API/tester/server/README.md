@@ -1,6 +1,6 @@
 # UART Slave Tester — Raspberry Pi
 
-Tests all three UART slave devices (**SERVO**, **STEPPER**, **RADAR**) by sending commands to the Pico Master over UART and verifying responses.
+Tests all three UART slave devices (**servo**, **stepper**, **RADAR**) by sending commands to the Pico Master over UART and verifying responses.
 
 ## Architecture
 
@@ -9,8 +9,8 @@ Raspberry Pi
   └─ /dev/ttyAMA0 @ 460800 baud
        └─ Pico Master (UART0)
             └─ Shared UART1 bus @ 115200 baud
-                 ├─ SERVO slave
-                 ├─ STEPPER slave
+                 ├─ servo slave
+                 ├─ stepper slave
                  └─ RADAR slave
 ```
 
@@ -36,10 +36,10 @@ sudo raspi-config
 python3 test_uart_slaves.py
 
 # Test a single device
-python3 test_uart_slaves.py --device SERVO
-python3 test_uart_slaves.py --device STEPPER
+python3 test_uart_slaves.py --device servo
+python3 test_uart_slaves.py --device stepper
 python3 test_uart_slaves.py --device RADAR
-python3 test_uart_slaves.py --device MASTER
+python3 test_uart_slaves.py --device master
 
 # Custom serial port
 python3 test_uart_slaves.py --port /dev/ttyUSB0
@@ -58,10 +58,10 @@ sudo python3 test_uart_slaves.py
 
 | Device  | Commands Tested |
 |---------|----------------|
-| MASTER  | `PING`, `STATUS` |
-| SERVO   | `PING`, `WHOAMI`, `STATUS`, `OPEN`, `STATUS`, `CLOSE`, `STATUS` |
-| STEPPER | `PING`, `WHOAMI`, `STATUS`, `SPIN:50`, `STATUS`, `STOP`, `STATUS` |
-| RADAR   | `PING`, `WHOAMI`, `STATUS`, `READ` × 3 |
+| master  | `ping`, `status` |
+| servo   | `ping`, `whoami`, `status`, `open`, `status`, `close`, `status` |
+| stepper | `ping`, `whoami`, `status`, `spin:50`, `status`, `stop`, `status` |
+| RADAR   | `ping`, `whoami`, `status`, `read` × 3 |
 
 ## Response Timeouts
 
@@ -69,9 +69,9 @@ These account for the Pico's own slave timeouts plus round-trip overhead:
 
 | Device  | Timeout |
 |---------|---------|
-| MASTER  | 3 s     |
-| SERVO   | 12 s    |
-| STEPPER | 6 s     |
+| master  | 3 s     |
+| servo   | 12 s    |
+| stepper | 6 s     |
 | RADAR   | 4 s     |
 
 ## Example Output
@@ -87,33 +87,33 @@ These account for the Pico's own slave timeouts plus round-trip overhead:
 ✓ Connected to /dev/ttyAMA0 @ 460800 baud
 
 ═══════════════════════════════════════════════════════
- MASTER
+ master
 ═══════════════════════════════════════════════════════
-  [PASS] MASTER:PING
-  [PASS] MASTER:STATUS
-       Slaves configured: ['SERVO', 'STEPPER', 'RADAR']
+  [PASS] master:ping
+  [PASS] master:status
+       Slaves configured: ['servo', 'stepper', 'RADAR']
 
 ═══════════════════════════════════════════════════════
- SERVO
+ servo
 ═══════════════════════════════════════════════════════
-  [PASS] SERVO:PING
-  [PASS] SERVO:WHOAMI
-  [PASS] SERVO:STATUS
+  [PASS] servo:ping
+  [PASS] servo:whoami
+  [PASS] servo:status
   Opening actuator (up to 12 s) …
-  [PASS] SERVO:OPEN
-  [PASS] SERVO:STATUS (after OPEN)
+  [PASS] servo:open
+  [PASS] servo:status (after open)
   Closing actuator (up to 12 s) …
-  [PASS] SERVO:CLOSE
-  [PASS] SERVO:STATUS (after CLOSE)
+  [PASS] servo:close
+  [PASS] servo:status (after close)
 
 ...
 
 ═══════════════════════════════════════════════════════
  RESULTS SUMMARY
 ═══════════════════════════════════════════════════════
-  MASTER     2/2 passed  [OK]
-  SERVO      7/7 passed  [OK]
-  STEPPER    7/7 passed  [OK]
+  master     2/2 passed  [OK]
+  servo      7/7 passed  [OK]
+  stepper    7/7 passed  [OK]
   RADAR      6/6 passed  [OK]
   ─────────────────────────────────────────────────────
   Total: 22 passed, 0 failed  →  ALL PASSED

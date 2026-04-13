@@ -4,15 +4,15 @@
 # UART Slave (on shared UART1 bus with device addressing)
 # 
 # Command Format: RADAR:COMMAND[:ARGS]
-# Response Format: RADAR:STATUS[:DATA]
+# Response Format: RADAR:status[:DATA]
 #
 # Available Commands:
-#   PING              - Alive check (responds with address)
-#   WHOAMI            - Device identification
-#   STATUS            - Get current sensor readings
-#   READ              - Get current sensor readings (alias for STATUS)
-#   SET_RANGE:<cm>    - Set distance reading (0-500 cm)
-#   SET_VELOCITY:<m/s>- Set velocity reading (0.0-50.0 m/s)
+#   ping              - Alive check (responds with address)
+#   whoami            - Device identification
+#   status            - Get current sensor readings
+#   read              - Get current sensor readings (alias for status)
+#   set_range:<cm>    - Set distance reading (0-500 cm)
+#   set_velocity:<m/s>- Set velocity reading (0.0-50.0 m/s)
 
 from machine import UART, Pin
 import utime
@@ -50,12 +50,12 @@ UART_RX_PIN = 5
 # ============================================================
 # UART CONFIGURATION
 # ============================================================
-# UART1: Slave communication bus (shared with SERVO and STEPPER)
+# UART1: Slave communication bus (shared with servo and stepper)
 uart_slaves = UART(1, baudrate=115200, tx=Pin(UART_TX_PIN), rx=Pin(UART_RX_PIN))
 print(f"[STARTUP] UART slave initialized (TX=GPIO{UART_TX_PIN}, RX=GPIO{UART_RX_PIN})")
 
 # ============ DEVICE IDENTIFICATION ============
-DEVICE_NAME = "RADAR"
+device_name = "RADAR"
 
 # Sensor simulation data
 radar_range = 123      # Distance in cm
@@ -78,9 +78,9 @@ def send_uart_response(status_msg):
     Format: RADAR:OK:key=val:key=val\n
     
     Args:
-        status_msg: Status message (e.g., "OK:range=123" or "ERROR:invalid_command")
+        status_msg: Status message (e.g., "OK:range=123" or "error:invalid_command")
     """
-    response = f"{DEVICE_NAME}:{status_msg}\n"
+    response = f"{device_name}:{status_msg}\n"
     uart_slaves.write(response.encode())
     print(f"[UART-SEND] {response.strip()}")
     return response
@@ -92,27 +92,27 @@ def process_usb_command_old(line):
 def process_uart_command(cmd_text):
     """Process UART command received from master.
     Format: RADAR:COMMAND[:ARGS]
-    Response: RADAR:STATUS[:DATA]
+    Response: RADAR:status[:DATA]
     
-    Supports commands: PING, STATUS, WHOAMI, READ
+    Supports commands: ping, status, whoami, read
     """
     global radar_range, radar_velocity
     
     try:
         if not cmd_text:
-            send_uart_response("ERROR:empty_command")
+            send_uart_response("error:empty_command")
             return
         
         # Parse command format: RADAR:COMMAND[:ARGS]
         parts = cmd_text.strip().split(":", 2)  # Split on first 2 colons only
         
         if len(parts) < 2:
-            send_uart_response("ERROR:invalid_format")
+            send_uart_response("error:invalid_format")
             return
         
         device = parts[0].upper()
-        if device != DEVICE_NAME:
-            send_uart_response(f"ERROR:wrong_device:{device}")
+        if device != device_name:
+            send_uart_response(f"error:wrong_device:{device}")
             return
         
         cmd = parts[1].upper()
@@ -122,16 +122,16 @@ def process_uart_command(cmd_text):
         
         # ========== STANDARD COMMANDS ==========
         if cmd == "COMMANDS":
-            commands = "PING,WHOAMI,STATUS,READ,SET_RANGE,SET_VELOCITY"
+            commands = "ping,whoami,status,read,set_range,set_velocity"
             send_uart_response(f"OK:commands={commands}")
         
-        elif cmd == "PING":
+        elif cmd == "ping":
             send_uart_response(f"OK:msg=alive")
         
-        elif cmd == "WHOAMI":
+        elif cmd == "whoami":
             send_uart_response(f"OK:device=RADAR:type=distance_sensor")
         
-        elif cmd == "STATUS":
+        elif cmd == "status":
             # Calculate confidence based on distance (simulate signal strength)
             if radar_range > 0:
                 confidence = min(100, max(20, 100 - (radar_range / 50)))
@@ -141,7 +141,7 @@ def process_uart_command(cmd_text):
             movement = 1 if radar_velocity > 0.5 else 0
             send_uart_response(f"OK:range={radar_range}:velocity={radar_velocity}:confidence={int(confidence)}:movement={movement}")
         
-        elif cmd == "READ":
+        elif cmd == "read":
             # Calculate confidence based on distance
             if radar_range > 0:
                 confidence = min(100, max(20, 100 - (radar_range / 50)))
@@ -151,32 +151,32 @@ def process_uart_command(cmd_text):
             movement = 1 if radar_velocity > 0.5 else 0
             send_uart_response(f"OK:range={radar_range}:velocity={radar_velocity:.1f}:confidence={int(confidence)}:movement={movement}")
         
-        elif cmd == "SET_RANGE":
-            # Command format: RADAR:SET_RANGE:value
+        elif cmd == "set_range":
+            # Command format: RADAR:set_range:value
             global radar_range
             try:
                 if args:
                     radar_range = int(args)
                 send_uart_response(f"OK:range_set:value={radar_range}")
             except:
-                send_uart_response(f"ERROR:invalid_range")
+                send_uart_response(f"error:invalid_range")
         
-        elif cmd == "SET_VELOCITY":
-            # Command format: RADAR:SET_VELOCITY:value
+        elif cmd == "set_velocity":
+            # Command format: RADAR:set_velocity:value
             global radar_velocity
             try:
                 if args:
                     radar_velocity = float(args)
                 send_uart_response(f"OK:velocity_set:value={radar_velocity:.1f}")
             except:
-                send_uart_response(f"ERROR:invalid_velocity")
+                send_uart_response(f"error:invalid_velocity")
         
         else:
-            send_uart_response(f"ERROR:unknown_command:{cmd}")
+            send_uart_response(f"error:unknown_command:{cmd}")
     
     except Exception as e:
         print(f"[UART-ERR] Command processing error: {type(e).__name__}: {e}")
-        send_uart_response(f"ERROR:command_error:{str(e)[:30]}")
+        send_uart_response(f"error:command_error:{str(e)[:30]}")
 
 def json_response(status, **kwargs):
     """Create minimal JSON response string - DEPRECATED for USB commands"""
@@ -200,16 +200,16 @@ def process_usb_command(line):
         elif cmd.startswith('VEL:'):
             radar_velocity = float(cmd.split(':')[1])
             return json_response("ok", msg="vel_set", range=radar_range, vel=radar_velocity)
-        elif cmd == 'READ':
+        elif cmd == 'read':
             return json_response("ok", range=radar_range, vel=radar_velocity)
-        elif cmd == 'STATUS':
+        elif cmd == 'status':
             return json_response("ok", msg="operational", range=radar_range, vel=radar_velocity)
-        elif cmd == 'PING':
+        elif cmd == 'ping':
             return json_response("ok", msg="alive")
-        elif cmd == 'WHOAMI':
+        elif cmd == 'whoami':
             return json_response("ok", device="radar", type="distance_sensor")
         elif cmd == 'HELP':
-            return "Commands: RANGE:<cm>|VEL:<m/s>|READ|STATUS|PING|WHOAMI|HELP"
+            return "Commands: RANGE:<cm>|VEL:<m/s>|read|status|ping|whoami|HELP"
         else:
             return json_response("error", msg="unknown_command")
     except Exception as e:
@@ -218,27 +218,27 @@ def process_usb_command(line):
 print("=" * 70)
 print("Radar Pico Firmware Loaded Successfully!")
 print("=" * 70)
-print(f"[READY] Radar UART Slave ({DEVICE_NAME}) initialized")
+print(f"[readY] Radar UART Slave ({device_name}) initialized")
 print(f"[PINS] UART TX=GPIO{UART_TX_PIN}, RX=GPIO{UART_RX_PIN}")
 print("[LED] Status indicator enabled on pin 25")
 print("[UART] Listening for commands from Master Pico on UART1")
 print("=" * 70)
 print()
-print("UART Protocol (shared bus with STEPPER and SERVO):")
+print("UART Protocol (shared bus with stepper and servo):")
 print("  Format: RADAR:COMMAND[:ARGS]")
-print("  Response: RADAR:STATUS[:DATA]")
+print("  Response: RADAR:status[:DATA]")
 print()
 print("Available Commands:")
 print()
 print("  Read Commands:")
-print("    PING           - Alive check, returns device address")
-print("    WHOAMI         - Device identification (name, type)")
-print("    STATUS         - Get radar status (range, velocity, confidence, movement)")
-print("    READ           - Read current radar values")
+print("    ping           - Alive check, returns device address")
+print("    whoami         - Device identification (name, type)")
+print("    status         - Get radar status (range, velocity, confidence, movement)")
+print("    read           - Read current radar values")
 print()
 print("  Write Commands:")
-print("    SET_RANGE:<cm> - Set distance reading (e.g., SET_RANGE:250)")
-print("    SET_VELOCITY:<m/s> - Set velocity reading (e.g., SET_VELOCITY:8.5)")
+print("    set_range:<cm> - Set distance reading (e.g., set_range:250)")
+print("    set_velocity:<m/s> - Set velocity reading (e.g., set_velocity:8.5)")
 print()
 print("Response Fields:")
 print("    range          - Distance in centimeters (0-500)")
@@ -247,11 +247,11 @@ print("    confidence     - Signal confidence 0-100%")
 print("    movement       - Movement detected (0 or 1)")
 print()
 print("Examples:")
-print("  RADAR:PING")
-print("  RADAR:READ")
-print("  RADAR:STATUS")
-print("  RADAR:SET_RANGE:300")
-print("  RADAR:SET_VELOCITY:6.2")
+print("  RADAR:ping")
+print("  RADAR:read")
+print("  RADAR:status")
+print("  RADAR:set_range:300")
+print("  RADAR:set_velocity:6.2")
 print("=" * 70)
 print()
 
@@ -287,6 +287,6 @@ while True:
             # Prevent buffer overflow
             if len(uart_buffer) > 256:
                 uart_buffer = b""
-                send_uart_response("ERROR:buffer_overflow")
+                send_uart_response("error:buffer_overflow")
     
     utime.sleep_ms(100)

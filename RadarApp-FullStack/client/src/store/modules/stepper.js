@@ -36,7 +36,7 @@ const getters = {
 }
 
 const mutations = {
-  SET_STATUS(state, status) {
+  SET_status(state, status) {
     state.status = { ...state.status, ...status, lastUpdate: new Date().toISOString() }
   },
 
@@ -64,10 +64,10 @@ const mutations = {
 const actions = {
   async fetchStatus({ commit, dispatch }) {
     try {
-      const response = await apiService.post('/device/STEPPER/STATUS')
+      const response = await apiService.post('/device/stepper/status')
       if (response.data.success) {
         const data = response.data.data || response.data.response
-        commit('SET_STATUS', {
+        commit('SET_status', {
           position: data.position || 0,
           enabled: data.enabled || false,
           calibrated: data.calibrated || false,
@@ -80,16 +80,16 @@ const actions = {
       return response.data
     } catch (error) {
       console.error('Failed to fetch stepper status:', error)
-      commit('SET_STATUS', { motorState: 'error' })
+      commit('SET_status', { motorState: 'error' })
       throw error
     }
   },
 
   async getPosition({ commit }) {
     try {
-      const response = await apiService.post('/device/STEPPER/STATUS')
+      const response = await apiService.post('/device/stepper/status')
       const data = response.data.data || response.data.response
-      commit('SET_STATUS', {
+      commit('SET_status', {
         position: data.position || 0,
         calibrated: data.calibrated || false
       })
@@ -106,15 +106,15 @@ const actions = {
       if (speed) {
         // Convert RPM-like value to microseconds (rough conversion)
         const speedUs = Math.max(500, Math.min(10000, Math.round((100 - speed) * 95 + 500)))
-        await apiService.post('/device/STEPPER/SPEED', { args: { speed_us: speedUs } })
+        await apiService.post('/device/stepper/speed', { args: { speed_us: speedUs } })
       }
 
       // Move to angle
-      commit('SET_STATUS', { motorState: 'moving' })
-      const response = await apiService.post('/device/STEPPER/MOVE', { args: { degrees: angle } })
+      commit('SET_status', { motorState: 'moving' })
+      const response = await apiService.post('/device/stepper/move', { args: { degrees: angle } })
       const data = response.data.data || response.data.response
 
-      commit('SET_STATUS', {
+      commit('SET_status', {
         position: data.position || angle,
         targetPosition: angle,
         motorState: 'idle'
@@ -135,7 +135,7 @@ const actions = {
         message: `Motor moved to ${angle}°`
       }, { root: true })
     } catch (error) {
-      commit('SET_STATUS', { motorState: 'error' })
+      commit('SET_status', { motorState: 'error' })
       commit('ADD_HISTORY_ENTRY', {
         action: 'moveToAngle',
         angle,
@@ -161,17 +161,17 @@ const actions = {
       // Set speed if provided
       if (speed) {
         const speedUs = Math.max(500, Math.min(10000, Math.round((100 - speed) * 95 + 500)))
-        await apiService.post('/device/STEPPER/SPEED', { args: { speed_us: speedUs } })
+        await apiService.post('/device/stepper/speed', { args: { speed_us: speedUs } })
       }
 
       // Start continuous rotation
-      commit('SET_STATUS', {
+      commit('SET_status', {
         motorState: 'moving',
         rotating: true,
         direction: stepperDirection
       })
 
-      const response = await apiService.post('/device/STEPPER/SPIN', {
+      const response = await apiService.post('/device/stepper/spin', {
         args: { speed_us: 2000 }
       })
 
@@ -189,7 +189,7 @@ const actions = {
 
       return response.data
     } catch (error) {
-      commit('SET_STATUS', { motorState: 'error' })
+      commit('SET_status', { motorState: 'error' })
       commit('ADD_HISTORY_ENTRY', {
         action: 'rotateDirection',
         direction,
@@ -209,10 +209,10 @@ const actions = {
 
   async stopRotation({ commit, dispatch }) {
     try {
-      const response = await apiService.post('/device/STEPPER/STOP')
+      const response = await apiService.post('/device/stepper/stop')
       const data = response.data.data || response.data.response
 
-      commit('SET_STATUS', {
+      commit('SET_status', {
         motorState: 'idle',
         rotating: false,
         position: data.position || 0
@@ -229,7 +229,7 @@ const actions = {
         message: 'Motor has been stopped'
       }, { root: true })
     } catch (error) {
-      commit('SET_STATUS', { motorState: 'error' })
+      commit('SET_status', { motorState: 'error' })
       commit('ADD_HISTORY_ENTRY', {
         action: 'stop',
         success: false,
@@ -248,11 +248,11 @@ const actions = {
 
   async homePosition({ commit, dispatch }) {
     try {
-      commit('SET_STATUS', { motorState: 'moving' })
-      const response = await apiService.post('/device/STEPPER/HOME')
+      commit('SET_status', { motorState: 'moving' })
+      const response = await apiService.post('/device/stepper/home')
       const data = response.data.data || response.data.response
 
-      commit('SET_STATUS', {
+      commit('SET_status', {
         position: 0,
         calibrated: true,
         atHome: true,
@@ -272,7 +272,7 @@ const actions = {
 
       return data
     } catch (error) {
-      commit('SET_STATUS', { motorState: 'error' })
+      commit('SET_status', { motorState: 'error' })
       commit('ADD_HISTORY_ENTRY', {
         action: 'home',
         success: false,
@@ -293,7 +293,7 @@ const actions = {
     try {
       // Update default speed if provided
       if (config.defaultSpeed) {
-        await apiService.post('/device/STEPPER/SPEED', { args: { speed_us: config.defaultSpeed } })
+        await apiService.post('/device/stepper/speed', { args: { speed_us: config.defaultSpeed } })
       }
 
       commit('SET_CONFIG', config)
@@ -332,8 +332,8 @@ const actions = {
 
   async enable({ commit, dispatch }) {
     try {
-      const response = await apiService.post('/device/STEPPER/ENABLE')
-      commit('SET_STATUS', { enabled: true })
+      const response = await apiService.post('/device/stepper/enable')
+      commit('SET_status', { enabled: true })
 
       commit('ADD_HISTORY_ENTRY', {
         action: 'enable',
@@ -366,8 +366,8 @@ const actions = {
 
   async disable({ commit, dispatch }) {
     try {
-      const response = await apiService.post('/device/STEPPER/DISABLE')
-      commit('SET_STATUS', { enabled: false })
+      const response = await apiService.post('/device/stepper/disable')
+      commit('SET_status', { enabled: false })
 
       commit('ADD_HISTORY_ENTRY', {
         action: 'disable',
@@ -400,7 +400,7 @@ const actions = {
 
   async ping({ commit, _dispatch }) {
     try {
-      const response = await apiService.post('/device/STEPPER/PING')
+      const response = await apiService.get('/device/stepper/ping')
       commit('ADD_HISTORY_ENTRY', {
         action: 'ping',
         success: true
@@ -418,7 +418,7 @@ const actions = {
 
   async getInfo({ _commit, _dispatch }) {
     try {
-      const response = await apiService.post('/device/STEPPER/WHOAMI')
+      const response = await apiService.post('/device/stepper/whoami')
       return response.data
     } catch (error) {
       console.error('Failed to get stepper info:', error)

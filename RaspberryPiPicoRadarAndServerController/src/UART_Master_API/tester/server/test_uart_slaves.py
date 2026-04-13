@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 Raspberry Pi UART Slave Tester
-Tests all three UART slave devices (SERVO, STEPPER, RADAR) through the Pico Master.
+Tests all three UART slave devices (servo, stepper, RADAR) through the Pico Master.
 
 Architecture:
     Raspberry Pi -> [UART0 @ 460800] -> Pico Master -> [UART1 @ 115200] -> Slaves
 
 Run with:
     python3 test_uart_slaves.py
-    python3 test_uart_slaves.py --device SERVO
+    python3 test_uart_slaves.py --device servo
     python3 test_uart_slaves.py --port /dev/ttyUSB0
     python3 test_uart_slaves.py --verbose
 """
@@ -28,9 +28,9 @@ TIMEOUT = 10.0          # Serial read timeout (seconds)
 
 # Per-device response timeouts (must exceed Pico slave timeouts)
 DEVICE_TIMEOUTS = {
-    "MASTER":  3.0,
-    "SERVO":  12.0,   # OPEN/CLOSE take ~6 s each on the slave
-    "STEPPER": 6.0,
+    "master":  3.0,
+    "servo":  12.0,   # open/close take ~6 s each on the slave
+    "stepper": 6.0,
     "RADAR":   4.0,
 }
 
@@ -156,95 +156,95 @@ class UARTSlaveTester:
         self._record(device, test_name, passed, detail or str(response))
         return passed
 
-    # ── MASTER tests ────────────────────────────────────────────────────────
+    # ── master tests ────────────────────────────────────────────────────────
 
     def test_master(self):
         print(f"\n{_c(Colors.BOLD, '═' * 55)}")
-        print(_c(Colors.BOLD, " MASTER"))
+        print(_c(Colors.BOLD, " master"))
         print(_c(Colors.BOLD, '═' * 55))
 
-        r = self.send_command("MASTER:PING")
-        self._assert_response("MASTER", "MASTER:PING", r)
+        r = self.send_command("master:ping")
+        self._assert_response("master", "master:ping", r)
 
-        r = self.send_command("MASTER:STATUS")
-        self._assert_response("MASTER", "MASTER:STATUS", r)
+        r = self.send_command("master:status")
+        self._assert_response("master", "master:status", r)
         if r and r.get("s") == "ok":
             slaves = r.get("slaves_configured", [])
             print(f"       Slaves configured: {slaves}")
 
-    # ── SERVO tests ─────────────────────────────────────────────────────────
+    # ── servo tests ─────────────────────────────────────────────────────────
 
     def test_servo(self):
         print(f"\n{_c(Colors.BOLD, '═' * 55)}")
-        print(_c(Colors.BOLD, " SERVO"))
+        print(_c(Colors.BOLD, " servo"))
         print(_c(Colors.BOLD, '═' * 55))
 
-        r = self.send_command("SERVO:PING")
-        if not self._assert_response("SERVO", "SERVO:PING", r):
-            print(_c(Colors.WARN, "  Skipping further SERVO tests (no ping response)"))
+        r = self.send_command("servo:ping")
+        if not self._assert_response("servo", "servo:ping", r):
+            print(_c(Colors.WARN, "  Skipping further servo tests (no ping response)"))
             return
 
-        r = self.send_command("SERVO:WHOAMI")
-        self._assert_response("SERVO", "SERVO:WHOAMI", r)
+        r = self.send_command("servo:whoami")
+        self._assert_response("servo", "servo:whoami", r)
 
-        r = self.send_command("SERVO:STATUS")
-        self._assert_response("SERVO", "SERVO:STATUS", r)
+        r = self.send_command("servo:status")
+        self._assert_response("servo", "servo:status", r)
         if r and r.get("s") == "ok":
             data = r.get("data", {})
             if data:
                 print(f"       Status data: {data}")
 
         print("  Opening actuator (up to 12 s) …")
-        r = self.send_command("SERVO:OPEN", timeout=12.0)
-        self._assert_response("SERVO", "SERVO:OPEN", r)
+        r = self.send_command("servo:open", timeout=12.0)
+        self._assert_response("servo", "servo:open", r)
 
-        r = self.send_command("SERVO:STATUS")
-        self._assert_response("SERVO", "SERVO:STATUS (after OPEN)", r)
+        r = self.send_command("servo:status")
+        self._assert_response("servo", "servo:status (after open)", r)
 
         print("  Closing actuator (up to 12 s) …")
-        r = self.send_command("SERVO:CLOSE", timeout=12.0)
-        self._assert_response("SERVO", "SERVO:CLOSE", r)
+        r = self.send_command("servo:close", timeout=12.0)
+        self._assert_response("servo", "servo:close", r)
 
-        r = self.send_command("SERVO:STATUS")
-        self._assert_response("SERVO", "SERVO:STATUS (after CLOSE)", r)
+        r = self.send_command("servo:status")
+        self._assert_response("servo", "servo:status (after close)", r)
 
-    # ── STEPPER tests ───────────────────────────────────────────────────────
+    # ── stepper tests ───────────────────────────────────────────────────────
 
     def test_stepper(self):
         print(f"\n{_c(Colors.BOLD, '═' * 55)}")
-        print(_c(Colors.BOLD, " STEPPER"))
+        print(_c(Colors.BOLD, " stepper"))
         print(_c(Colors.BOLD, '═' * 55))
 
-        r = self.send_command("STEPPER:PING")
-        if not self._assert_response("STEPPER", "STEPPER:PING", r):
-            print(_c(Colors.WARN, "  Skipping further STEPPER tests (no ping response)"))
+        r = self.send_command("stepper:ping")
+        if not self._assert_response("stepper", "stepper:ping", r):
+            print(_c(Colors.WARN, "  Skipping further stepper tests (no ping response)"))
             return
 
-        r = self.send_command("STEPPER:WHOAMI")
-        self._assert_response("STEPPER", "STEPPER:WHOAMI", r)
+        r = self.send_command("stepper:whoami")
+        self._assert_response("stepper", "stepper:whoami", r)
 
-        r = self.send_command("STEPPER:STATUS")
-        self._assert_response("STEPPER", "STEPPER:STATUS", r)
+        r = self.send_command("stepper:status")
+        self._assert_response("stepper", "stepper:status", r)
         if r and r.get("s") == "ok":
             data = r.get("data", {})
             if data:
                 print(f"       Status data: {data}")
 
         print("  Spinning at speed 50 …")
-        r = self.send_command("STEPPER:SPIN:50")
-        self._assert_response("STEPPER", "STEPPER:SPIN:50", r)
+        r = self.send_command("stepper:spin:50")
+        self._assert_response("stepper", "stepper:spin:50", r)
 
-        r = self.send_command("STEPPER:STATUS")
-        self._assert_response("STEPPER", "STEPPER:STATUS (spinning)", r)
+        r = self.send_command("stepper:status")
+        self._assert_response("stepper", "stepper:status (spinning)", r)
 
         time.sleep(1.0)
 
         print("  Stopping stepper …")
-        r = self.send_command("STEPPER:STOP")
-        self._assert_response("STEPPER", "STEPPER:STOP", r)
+        r = self.send_command("stepper:stop")
+        self._assert_response("stepper", "stepper:stop", r)
 
-        r = self.send_command("STEPPER:STATUS")
-        self._assert_response("STEPPER", "STEPPER:STATUS (stopped)", r)
+        r = self.send_command("stepper:status")
+        self._assert_response("stepper", "stepper:status (stopped)", r)
 
     # ── RADAR tests ─────────────────────────────────────────────────────────
 
@@ -253,21 +253,21 @@ class UARTSlaveTester:
         print(_c(Colors.BOLD, " RADAR"))
         print(_c(Colors.BOLD, '═' * 55))
 
-        r = self.send_command("RADAR:PING")
-        if not self._assert_response("RADAR", "RADAR:PING", r):
+        r = self.send_command("RADAR:ping")
+        if not self._assert_response("RADAR", "RADAR:ping", r):
             print(_c(Colors.WARN, "  Skipping further RADAR tests (no ping response)"))
             return
 
-        r = self.send_command("RADAR:WHOAMI")
-        self._assert_response("RADAR", "RADAR:WHOAMI", r)
+        r = self.send_command("RADAR:whoami")
+        self._assert_response("RADAR", "RADAR:whoami", r)
 
-        r = self.send_command("RADAR:STATUS")
-        self._assert_response("RADAR", "RADAR:STATUS", r)
+        r = self.send_command("RADAR:status")
+        self._assert_response("RADAR", "RADAR:status", r)
 
         print("  Reading sensor (3 consecutive reads) …")
         for i in range(1, 4):
-            r = self.send_command("RADAR:READ")
-            passed = self._assert_response("RADAR", f"RADAR:READ #{i}", r)
+            r = self.send_command("RADAR:read")
+            passed = self._assert_response("RADAR", f"RADAR:read #{i}", r)
             if passed and r:
                 data = r.get("data", {})
                 dist = data.get("distance", "?")
@@ -308,11 +308,11 @@ class UARTSlaveTester:
         try:
             run_all = not devices
 
-            if run_all or "MASTER" in devices:
+            if run_all or "master" in devices:
                 self.test_master()
-            if run_all or "SERVO" in devices:
+            if run_all or "servo" in devices:
                 self.test_servo()
-            if run_all or "STEPPER" in devices:
+            if run_all or "stepper" in devices:
                 self.test_stepper()
             if run_all or "RADAR" in devices:
                 self.test_radar()
@@ -343,7 +343,7 @@ def main():
     )
     parser.add_argument(
         "--device", metavar="DEV",
-        choices=["MASTER", "SERVO", "STEPPER", "RADAR"],
+        choices=["master", "servo", "stepper", "RADAR"],
         action="append", dest="devices", default=[],
         help="Device(s) to test; omit to test all"
     )

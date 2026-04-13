@@ -18,7 +18,7 @@ class RadarServerController:
         self.uart_comm = UARTCommunicationController()
         
         # Initialize servo controller for RC landing gear
-        self.servo = ServoController(SERVO_PIN)
+        self.servo = ServoController(servo_PIN)
         
         # Initialize radar modules based on configuration
         if RADAR_TYPE == "RCWL0516":
@@ -100,14 +100,14 @@ class RadarServerController:
     
     def activate_servo(self):
         """Activate the RC landing gear servo"""
-        self.servo.set_position(SERVO_ACTIVE_POSITION)
-        self.uart_comm.send_servo_status(SERVO_ACTIVE_POSITION, True)
+        self.servo.set_position(servo_ACTIVE_POSITION)
+        self.uart_comm.send_servo_status(servo_ACTIVE_POSITION, True)
         print("Servo activated")
     
     def deactivate_servo(self):
         """Deactivate the RC landing gear servo"""
-        self.servo.set_position(SERVO_NEUTRAL_POSITION)
-        self.uart_comm.send_servo_status(SERVO_NEUTRAL_POSITION, False)
+        self.servo.set_position(servo_NEUTRAL_POSITION)
+        self.uart_comm.send_servo_status(servo_NEUTRAL_POSITION, False)
         print("Servo deactivated")
     
     def stop_system(self):

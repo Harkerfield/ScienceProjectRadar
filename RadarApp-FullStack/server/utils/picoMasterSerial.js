@@ -1,6 +1,6 @@
 // Node.js utility for communicating with the master Pico via serial
 // Protocol: DEVICE:COMMAND[:ARGS]\n
-// Response: DEVICE:STATUS[:KEY=VALUE:KEY=VALUE]\n
+// Response: DEVICE:status[:KEY=VALUE:KEY=VALUE]\n
 
 const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline');
@@ -17,8 +17,8 @@ class PicoMasterSerial {
     this.pendingRequests = {};
     this.requestId = 0;
     this.deviceCache = {
-      STEPPER: {},
-      SERVO: {},
+      stepper: {},
+      servo: {},
       RADAR: {}
     };
   }
@@ -74,7 +74,7 @@ class PicoMasterSerial {
 
   /**
    * Send a command to a Pico device
-   * @param {string} device - Device name (STEPPER, SERVO, RADAR)
+   * @param {string} device - Device name (stepper, servo, RADAR)
    * @param {string} command - Command to send
    * @param {string|null} args - Optional command arguments
    * @param {number|null} timeout - Optional timeout override
@@ -139,7 +139,7 @@ class PicoMasterSerial {
    */
   _handleResponse(response) {
     try {
-      // Parse DEVICE:STATUS[:DATA]
+      // Parse DEVICE:status[:DATA]
       const colonIndex = response.indexOf(':');
       if (colonIndex === -1) {
         logger.warn('Invalid response format:', response);
@@ -168,7 +168,7 @@ class PicoMasterSerial {
   }
 
   /**
-   * Parse device response in format: STATUS[:KEY=VALUE:KEY=VALUE]
+   * Parse device response in format: status[:KEY=VALUE:KEY=VALUE]
    * @private
    */
   _parseResponse(device, statusData) {
@@ -176,11 +176,11 @@ class PicoMasterSerial {
     const status = parts[0];
 
     // Check for error
-    if (status === 'ERROR') {
+    if (status === 'error') {
       const errorMsg = parts[1] || 'Unknown error';
       return {
         success: false,
-        status: 'ERROR',
+        status: 'error',
         error: errorMsg,
         raw: statusData
       };

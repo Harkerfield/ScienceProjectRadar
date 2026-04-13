@@ -73,7 +73,7 @@ class RadarFullStackServer {
             next();
         });
 
-        // Security - relaxed for local network HTTP access (DISABLE CSP from helmet)
+        // Security - relaxed for local network HTTP access (disable CSP from helmet)
         this.app.use(helmet({
             contentSecurityPolicy: false,  // Disable helmet's CSP
             hsts: false,
@@ -305,10 +305,10 @@ class RadarFullStackServer {
         
         <h2>Unified Device API</h2>
         <div class="endpoint"><a href="/api/device/commands">GET /api/device/commands</a> - All available device commands</div>
-        <div class="endpoint"><a href="/api/device/STEPPER/info">GET /api/device/STEPPER/info</a> - Stepper commands</div>
+        <div class="endpoint"><a href="/api/device/stepper/info">GET /api/device/stepper/info</a> - Stepper commands</div>
         <div class="endpoint"><a href="/api/device/RADAR/info">GET /api/device/RADAR/info</a> - Radar commands</div>
-        <div class="endpoint"><a href="/api/device/ACTUATOR/info">GET /api/device/ACTUATOR/info</a> - Actuator commands</div>
-        <div class="endpoint">POST /api/device/STEPPER/START - Send command (requires args in body)</div>
+        <div class="endpoint"><a href="/api/device/servo/info">GET /api/device/servo/info</a> - Actuator commands</div>
+        <div class="endpoint">POST /api/device/stepper/START - Send command (requires args in body)</div>
         
         <footer>
             <p>Server v${require('../package.json').version}</p>
@@ -412,8 +412,8 @@ class RadarFullStackServer {
                     logger.info(`Stepper command from ${socket.id}:`, data);
                     const { command, args } = data;
                     const fullCommand = args
-                        ? `STEPPER:${command}:${args}`
-                        : `STEPPER:${command}`;
+                        ? `stepper:${command}:${args}`
+                        : `stepper:${command}`;
                     
                     const response = await this.serialComm.sendDeviceCommand(fullCommand);
                     socket.emit('stepper:response', response);
@@ -446,8 +446,8 @@ class RadarFullStackServer {
                     logger.info(`Servo command from ${socket.id}:`, data);
                     const { command, args } = data;
                     const fullCommand = args
-                        ? `SERVO:${command}:${args}`
-                        : `SERVO:${command}`;
+                        ? `servo:${command}:${args}`
+                        : `servo:${command}`;
                     
                     const response = await this.serialComm.sendDeviceCommand(fullCommand);
                     socket.emit('actuator:response', response);

@@ -23,7 +23,7 @@ const getters = {
 }
 
 const mutations = {
-  SET_SYSTEM_STATUS(state, status) {
+  SET_SYSTEM_status(state, status) {
     state.systemStatus = status
   },
 
@@ -35,7 +35,7 @@ const mutations = {
     state.lastHeartbeat = timestamp
   },
 
-  ADD_ERROR_LOG(state, error) {
+  ADD_error_LOG(state, error) {
     state.errorLogs.unshift({
       id: Date.now(),
       timestamp: new Date().toISOString(),
@@ -50,7 +50,7 @@ const mutations = {
     }
   },
 
-  CLEAR_ERROR_LOGS(state) {
+  CLEAR_error_LOGS(state) {
     state.errorLogs = []
   },
 
@@ -58,14 +58,14 @@ const mutations = {
     state.systemInfo = { ...state.systemInfo, ...info }
   },
 
-  SET_ONLINE_STATUS(state, isOnline) {
+  SET_ONLINE_status(state, isOnline) {
     state.isOnline = isOnline
   }
 }
 
 const actions = {
   updateSystemStatus({ commit }, status) {
-    commit('SET_SYSTEM_STATUS', status)
+    commit('SET_SYSTEM_status', status)
   },
 
   updateUptime({ commit }, uptime) {
@@ -74,15 +74,15 @@ const actions = {
 
   recordHeartbeat({ commit }) {
     commit('SET_HEARTBEAT', Date.now())
-    commit('SET_ONLINE_STATUS', true)
+    commit('SET_ONLINE_status', true)
   },
 
   logError({ commit }, error) {
-    commit('ADD_ERROR_LOG', error)
+    commit('ADD_error_LOG', error)
   },
 
   clearErrors({ commit }) {
-    commit('CLEAR_ERROR_LOGS')
+    commit('CLEAR_error_LOGS')
   },
 
   updateSystemInfo({ commit }, info) {
@@ -90,8 +90,8 @@ const actions = {
   },
 
   setOffline({ commit }) {
-    commit('SET_ONLINE_STATUS', false)
-    commit('SET_SYSTEM_STATUS', 'offline')
+    commit('SET_ONLINE_status', false)
+    commit('SET_SYSTEM_status', 'offline')
   }
 }
 

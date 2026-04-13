@@ -37,7 +37,7 @@ const getters = {
 }
 
 const mutations = {
-  SET_CONNECTION_STATUS(state, status) {
+  SET_CONNECTION_status(state, status) {
     state.connectionStatus = status
     state.websocketStatus = status
     if (status === 'connected') {
@@ -46,7 +46,7 @@ const mutations = {
     }
   },
 
-  SET_WEBSOCKET_STATUS(state, status) {
+  SET_WEBSOCKET_status(state, status) {
     state.websocketStatus = status
   },
 
@@ -69,17 +69,17 @@ const mutations = {
 
 const actions = {
   async initializeConnection({ commit, dispatch }) {
-    commit('SET_CONNECTION_STATUS', 'connecting')
+    commit('SET_CONNECTION_status', 'connecting')
 
     try {
       await socketService.connect()
-      commit('SET_CONNECTION_STATUS', 'connected')
+      commit('SET_CONNECTION_status', 'connected')
 
       // Set up socket event listeners
       dispatch('setupSocketListeners')
     } catch (error) {
       console.error('Failed to connect:', error)
-      commit('SET_CONNECTION_STATUS', 'error')
+      commit('SET_CONNECTION_status', 'error')
 
       // Attempt reconnection
       dispatch('attemptReconnection')
@@ -88,7 +88,7 @@ const actions = {
 
   setupSocketListeners({ commit, dispatch, rootState: _rootState }) {
     socketService.on('connect', () => {
-      commit('SET_CONNECTION_STATUS', 'connected')
+      commit('SET_CONNECTION_status', 'connected')
       dispatch('notifications/addNotification', {
         type: 'success',
         title: 'Connected',
@@ -97,7 +97,7 @@ const actions = {
     })
 
     socketService.on('disconnect', () => {
-      commit('SET_CONNECTION_STATUS', 'disconnected')
+      commit('SET_CONNECTION_status', 'disconnected')
       dispatch('notifications/addNotification', {
         type: 'warning',
         title: 'Disconnected',
@@ -107,7 +107,7 @@ const actions = {
 
     socketService.on('connect_error', (error) => {
       console.error('Connection error:', error)
-      commit('SET_CONNECTION_STATUS', 'error')
+      commit('SET_CONNECTION_status', 'error')
       dispatch('attemptReconnection')
     })
 
@@ -167,7 +167,7 @@ const actions = {
   },
 
   setConnected({ commit }, isConnected) {
-    commit('SET_CONNECTION_STATUS', isConnected ? 'connected' : 'disconnected')
+    commit('SET_CONNECTION_status', isConnected ? 'connected' : 'disconnected')
   },
 
   async attemptReconnection({ state, commit, dispatch }) {
@@ -189,7 +189,7 @@ const actions = {
 
   disconnect({ commit }) {
     socketService.disconnect()
-    commit('SET_CONNECTION_STATUS', 'disconnected')
+    commit('SET_CONNECTION_status', 'disconnected')
   }
 }
 

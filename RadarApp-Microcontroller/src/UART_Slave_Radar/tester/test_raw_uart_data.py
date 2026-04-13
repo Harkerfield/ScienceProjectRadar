@@ -172,7 +172,7 @@ def show_menu():
     print("6. Stats & Buffer Info       - Show statistics")
     print("7. Raw Hex Dump              - Display buffer as hex dump")
     print("8. Clear Buffer              - Clear receive buffer")
-    print("9. Test Devices              - Send PING to all devices")
+    print("9. Test Devices              - Send ping to all devices")
     print("A. Exit                      - Exit test")
     print("-" * 70)
 
@@ -300,7 +300,7 @@ def send_raw_command():
     print("SEND RAW COMMAND")
     print("-" * 70)
     print("Formats:")
-    print("  Text:  RADAR:PING\\n")
+    print("  Text:  RADAR:ping\\n")
     print("  Hex:   48 65 6C 6C 6F (space-separated hex bytes)")
     print()
     
@@ -381,19 +381,19 @@ def clear_buffer():
         print("Buffer already empty")
 
 def test_devices():
-    """Send PING to all devices"""
-    print("\nTEST DEVICES - Sending PINGs")
+    """Send ping to all devices"""
+    print("\nTEST DEVICES - Sending pings")
     print("-" * 70)
     
     devices = [
-        ('STEPPER', 0x10),
-        ('SERVO', 0x11),
+        ('stepper', 0x10),
+        ('servo', 0x11),
         ('RADAR', 0x20)
     ]
     
     for name, addr in devices:
-        cmd = f"{name}:PING\n"
-        print(f"Sending: {name}:PING (addr 0x{addr:02x})")
+        cmd = f"{name}:ping\n"
+        print(f"Sending: {name}:ping (addr 0x{addr:02x})")
         monitor.send_raw(cmd)
         utime.sleep_ms(100)
     

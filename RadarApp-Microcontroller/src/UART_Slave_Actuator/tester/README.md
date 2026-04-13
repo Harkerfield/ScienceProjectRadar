@@ -17,8 +17,8 @@ Interactive menu for testing actuator open/close functionality.
 ### Configuration
 - **PIN:** GPIO 2
 - **Frequency:** 50Hz
-- **OPEN duty:** 6553 (fully extended)
-- **CLOSE duty:** 3277 (fully retracted)
+- **open duty:** 6553 (fully extended)
+- **close duty:** 3277 (fully retracted)
 
 ### Wiring
 - Brown wire: Ground (GND)
@@ -32,7 +32,7 @@ All responses follow JSON format:
 {"s":"ok","msg":"opened","pos":100}   # Actuator opened
 {"s":"ok","msg":"closed","pos":0}     # Actuator closed
 {"s":"ok","state":"open","pos":100}   # Status check
-{"s":"ok","msg":"alive","addr":"0x12"} # PING response
+{"s":"ok","msg":"alive","addr":"0x12"} # ping response
 {"s":"error","msg":"unknown_command"}   # Error
 ```
 
@@ -43,11 +43,11 @@ All responses follow JSON format:
 import smbus2
 
 bus = smbus2.SMBus(1)
-ACTUATOR_ADDR = 0x12
+servo_ADDR = 0x12
 
 # Open actuator
-bus.write_i2c_block_data(ACTUATOR_ADDR, 0, list(b'OPEN'))
-response = bus.read_i2c_block_data(ACTUATOR_ADDR, 0, 32)
+bus.write_i2c_block_data(servo_ADDR, 0, list(b'open'))
+response = bus.read_i2c_block_data(servo_ADDR, 0, 32)
 resp_json = bytes(response).decode().rstrip('\x00')
 print(f"Response: {resp_json}")
 # Output: {"s":"ok","msg":"opened","pos":100}

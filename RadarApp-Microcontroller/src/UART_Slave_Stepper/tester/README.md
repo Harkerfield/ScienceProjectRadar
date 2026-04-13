@@ -18,7 +18,7 @@ Comprehensive stepper motor testing and home position calibration.
 
 **Menu Options:**
 1. Find and lock home position
-2. Spin until HOME SENSOR triggers (auto-stop)
+2. Spin until home SENSOR triggers (auto-stop)
 3. Spin 3 revolutions at custom speed
 4. Spin & auto-return to start
 5. Rotate to 180° then return to home

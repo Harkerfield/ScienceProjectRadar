@@ -157,7 +157,7 @@ print()
 
 def display_reading(data):
     """Pretty print sensor reading"""
-    print("\nCQROBOT SENSOR READING:")
+    print("\nCQROBOT SENSOR readING:")
     print("-" * 70)
     print(f"Time:              {data['timestamp']:.2f}")
     print(f"\nAnalog IF Output:")

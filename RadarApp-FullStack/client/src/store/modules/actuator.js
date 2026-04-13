@@ -21,7 +21,7 @@ const getters = {
 }
 
 const mutations = {
-  SET_STATUS(state, status) {
+  SET_status(state, status) {
     state.status = { ...state.status, ...status, lastUpdate: new Date().toISOString() }
   },
 
@@ -45,9 +45,9 @@ const mutations = {
 const actions = {
   async fetchStatus({ commit }) {
     try {
-      const response = await apiService.post('/device/SERVO/STATUS')
+      const response = await apiService.post('/device/servo/status')
       const data = response.data.data || response.data.response
-      commit('SET_STATUS', {
+      commit('SET_status', {
         state: data.state || 'unknown',
         isOpen: data.state === 'open'
       })
@@ -60,9 +60,9 @@ const actions = {
 
   async getPosition({ commit }) {
     try {
-      const response = await apiService.post('/device/SERVO/STATUS')
+      const response = await apiService.post('/device/servo/status')
       const data = response.data.data || response.data.response
-      commit('SET_STATUS', {
+      commit('SET_status', {
         state: data.state || 'unknown',
         isOpen: data.state === 'open'
       })
@@ -75,10 +75,10 @@ const actions = {
 
   async open({ commit, dispatch }) {
     try {
-      const response = await apiService.post('/device/SERVO/OPEN')
+      const response = await apiService.post('/device/servo/open')
       const _data = response.data.data || response.data.response
 
-      commit('SET_STATUS', {
+      commit('SET_status', {
         state: 'open',
         isOpen: true
       })
@@ -112,10 +112,10 @@ const actions = {
 
   async close({ commit, dispatch }) {
     try {
-      const response = await apiService.post('/device/SERVO/CLOSE')
+      const response = await apiService.post('/device/servo/close')
       const _data = response.data.data || response.data.response
 
-      commit('SET_STATUS', {
+      commit('SET_status', {
         state: 'closed',
         isOpen: false
       })
@@ -149,8 +149,8 @@ const actions = {
 
   async setPosition({ commit, dispatch }, position) {
     try {
-      // Note: Direct position setting is not supported by the SERVO API
-      // Use OPEN or CLOSE instead
+      // Note: Direct position setting is not supported by the servo API
+      // Use open or close instead
       throw new Error('Direct position setting not supported. Use open() or close()')
     } catch (error) {
       commit('ADD_HISTORY_ENTRY', {
@@ -176,7 +176,7 @@ const actions = {
 
   async ping({ commit, _dispatch }) {
     try {
-      const response = await apiService.post('/device/SERVO/PING')
+      const response = await apiService.get('/device/servo/ping')
       commit('ADD_HISTORY_ENTRY', {
         action: 'ping',
         success: true
@@ -194,7 +194,7 @@ const actions = {
 
   async getInfo({ _commit, _dispatch }) {
     try {
-      const response = await apiService.post('/device/SERVO/WHOAMI')
+      const response = await apiService.post('/device/servo/whoami')
       return response.data
     } catch (error) {
       console.error('Failed to get servo info:', error)

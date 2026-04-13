@@ -11,7 +11,7 @@ NC='\033[0m'
 
 # Ensure user isn't running this directly as root
 if [ "$(whoami)" = "root" ]; then
-    echo -e "${RED}✗ ERROR: Do not run this script as root${NC}"
+    echo -e "${RED}✗ error: Do not run this script as root${NC}"
     echo -e "${YELLOW}Run as regular user:${NC} bash setup/start.sh"
     exit 1
 fi
@@ -30,8 +30,8 @@ show_menu() {
     echo -e "${YELLOW}Choose action:${NC}\n"
     echo "  1) INSTALL (first time only)"
     echo "  2) START   (server + client)"
-    echo "  3) STOP    (all services)"
-    echo "  4) STATUS  (check services)"
+    echo "  3) stop    (all services)"
+    echo "  4) status  (check services)"
     echo "  5) LOGS    (view logs)"
     echo "  6) EXIT"
     echo ""

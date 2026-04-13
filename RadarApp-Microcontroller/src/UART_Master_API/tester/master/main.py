@@ -15,7 +15,7 @@ from machine import UART, Pin
 import utime
 
 print("=" * 60)
-print("UART MASTER - Servo Control Tester")
+print("UART master - Servo Control Tester")
 print("=" * 60)
 
 # LED for activity indication
@@ -29,15 +29,15 @@ try:
     uart = UART(0, baudrate=115200, tx=Pin(0), rx=Pin(1))
     print("[INIT] UART initialized on UART0")
 except Exception as e:
-    print(f"[ERROR] UART init failed: {e}")
+    print(f"[error] UART init failed: {e}")
 
 if uart:
-    print("[READY] Connected to shared UART bus\n")
+    print("[readY] Connected to shared UART bus\n")
     
     # Device addresses on the bus
     DEVICES = {
-        "SERVO": {"timeout": 8000},    # OPEN/CLOSE take 6s
-        "STEPPER": {"timeout": 5000},  # Adjust as needed
+        "servo": {"timeout": 8000},    # open/close take 6s
+        "stepper": {"timeout": 5000},  # Adjust as needed
         "RADAR": {"timeout": 2000},    # Quick reads
     }
     
@@ -86,11 +86,11 @@ if uart:
         if timeout_ms is None:
             timeout_ms = DEVICES.get(device, {}).get("timeout", 2000)
         
-        is_ping = (cmd.upper() == "PING")
-        is_action = (cmd.upper() in ["OPEN", "CLOSE"])
+        is_ping = (cmd.upper() == "ping")
+        is_action = (cmd.upper() in ["open", "close"])
         
         # Override timeout for long-running actions
-        if is_action and device == "SERVO":
+        if is_action and device == "servo":
             timeout_ms = 8000
         
         send_time = None
@@ -101,7 +101,7 @@ if uart:
                 flush_uart_buffer()
                 utime.sleep_ms(100)
                 
-                # Record send time for PING commands
+                # Record send time for ping commands
                 if is_ping:
                     send_time = utime.ticks_ms()
                 
@@ -117,7 +117,7 @@ if uart:
                     
                     # Verify response is from correct device
                     if resp_text.startswith(device + ":"):
-                        # Calculate round-trip time for PING
+                        # Calculate round-trip time for ping
                         if is_ping and send_time is not None:
                             rtt_ms = utime.ticks_ms() - send_time
                             print(f"  [RECV] {resp_text} (RTT: {rtt_ms}ms)")
@@ -135,7 +135,7 @@ if uart:
                         utime.sleep(0.5)
                     
             except Exception as e:
-                print(f"  [ERROR] {e}")
+                print(f"  [error] {e}")
                 if attempt < retries:
                     print(f"  Retry {attempt}/{retries - 1}...")
                     utime.sleep(0.5)
@@ -144,16 +144,16 @@ if uart:
     
     # Test sequence
     print("=" * 60)
-    print("SERVO TEST SEQUENCE")
+    print("servo TEST SEQUENCE")
     print("=" * 60)
     
-    # First, test PING
-    print("\n[TEST] Sending PING to SERVO to verify connection...")
-    response = send_and_wait("SERVO", "PING", timeout_ms=2000, retries=2)
+    # First, test ping
+    print("\n[TEST] Sending ping to servo to verify connection...")
+    response = send_and_wait("servo", "ping", timeout_ms=2000, retries=2)
     if response and "OK" in response:
-        print("[SUCCESS] SERVO is responding!\n")
+        print("[SUCCESS] servo is responding!\n")
     else:
-        print("[FAILED] No response from SERVO\n")
+        print("[FAILED] No response from servo\n")
     
     # Main control loop
     cycle_count = 0
@@ -162,30 +162,30 @@ if uart:
             cycle_count += 1
             
             # Open
-            print(f"\n[CYCLE {cycle_count}] Commanding SERVO to OPEN...")
-            send_and_wait("SERVO", "OPEN", timeout_ms=8000, retries=2)
+            print(f"\n[CYCLE {cycle_count}] Commanding servo to open...")
+            send_and_wait("servo", "open", timeout_ms=8000, retries=2)
             utime.sleep(1)
             
             # Close
-            print(f"\n[CYCLE {cycle_count}] Commanding SERVO to CLOSE...")
-            send_and_wait("SERVO", "CLOSE", timeout_ms=8000, retries=2)
+            print(f"\n[CYCLE {cycle_count}] Commanding servo to close...")
+            send_and_wait("servo", "close", timeout_ms=8000, retries=2)
             utime.sleep(1)
             
             # Ping (to verify still connected)
-            print(f"\n[CYCLE {cycle_count}] Checking SERVO connection with PING...")
-            response = send_and_wait("SERVO", "PING", timeout_ms=2000, retries=1)
+            print(f"\n[CYCLE {cycle_count}] Checking servo connection with ping...")
+            response = send_and_wait("servo", "ping", timeout_ms=2000, retries=1)
             
             if not response:
-                print("[WARNING] Lost connection to SERVO! Restarting cycle...")
+                print("[WARNING] Lost connection to servo! Restarting cycle...")
             
             utime.sleep(1)
             
     except KeyboardInterrupt:
         print("\n" + "=" * 60)
-        print(f"STOPPED after {cycle_count} cycles")
+        print(f"stopPED after {cycle_count} cycles")
         print("=" * 60)
         led.off()
         utime.sleep_ms(100)
         led.on()
 else:
-    print("[ERROR] Could not initialize UART")
+    print("[error] Could not initialize UART")

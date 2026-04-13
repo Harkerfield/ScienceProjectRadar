@@ -77,7 +77,7 @@ http://192.168.x.x:3000
 ### Check if Running
 ```bash
 bash setup/start.sh
-# Choose option 4: STATUS
+# Choose option 4: status
 ```
 
 ### View Logs (Any service)
@@ -94,7 +94,7 @@ sudo journalctl -u radar-update-check -f   # Update check logs
 ### Stop Everything
 ```bash
 bash setup/start.sh
-# Choose option 3: STOP
+# Choose option 3: stop
 
 # Or manually:
 sudo systemctl stop radar-server radar-client
@@ -158,13 +158,13 @@ setup/check-updates.sh  ← Auto-runs on boot
 setup/start-client.sh   ← Auto-runs by systemd
 ```
 
-For more info: `cat setup/README.md`
+For more info: `cat setup/readME.md`
 
 ---
 
 ## 📚 Full Documentation
 
-- [setup/README.md](setup/README.md) - Setup & troubleshooting
+- [setup/readME.md](setup/readME.md) - Setup & troubleshooting
 - [setup/docs/DEPLOYMENT.md](setup/docs/DEPLOYMENT.md) - Remote Pi deployment
 
 ---
@@ -215,11 +215,11 @@ bash setup/start.sh && choose 5
 
 # 3. Check what's running
 .\setup-windows.ps1
-# → Choose "3) CHECK STATUS"
+# → Choose "3) CHECK status"
 
 # 4. Stop when done
 .\setup-windows.ps1
-# → Choose "4) STOP SERVERS"
+# → Choose "4) stop SERVERS"
 ```
 
 ### Raspberry Pi - One Time Setup
@@ -234,7 +234,7 @@ bash setup-linux.sh
 
 # View status anytime
 bash setup-linux.sh
-# → Choose "3) CHECK STATUS"
+# → Choose "3) CHECK status"
 ```
 
 ### Linux - Quick Development
@@ -383,7 +383,7 @@ All detailed documentation is in the `setup/docs/` folder:
 | Document | Read If... |
 |----------|-----------|
 | [setup/docs/INDEX.md](setup/docs/INDEX.md) | You want the complete guide |
-| [setup/docs/README.md](setup/docs/README.md) | You want a quick reference |
+| [setup/docs/readME.md](setup/docs/readME.md) | You want a quick reference |
 | [setup/docs/CROSS-PLATFORM.md](setup/docs/CROSS-PLATFORM.md) | You're comparing platforms |
 
 ---
@@ -455,7 +455,7 @@ WebSocket: ws://localhost:3000
 **Troubleshoot**
 ```powershell
 .\setup-windows.ps1
-# Choose 3 (STATUS) to see what's running
+# Choose 3 (status) to see what's running
 ```
 
 ### Raspberry Pi
@@ -473,7 +473,7 @@ bash setup-linux.sh
 # Just power on - everything starts automatically
 # Check status:
 bash setup-linux.sh
-# Choose 3 (CHECK STATUS)
+# Choose 3 (CHECK status)
 ```
 
 **View Dashboard Remotely**
@@ -563,7 +563,7 @@ RadarProject/
 │   │   └── setup.sh
 │   │
 │   └── docs/             ← Full documentation
-│       ├── README.md
+│       ├── readME.md
 │       ├── CROSS-PLATFORM.md
 │       └── INDEX.md
 │
@@ -617,7 +617,7 @@ Open: http://localhost:3000
 - **First time?** Just run the setup script for your platform and follow the prompts.
 - **On Raspberry Pi?** After setup, NEVER need to run setup again—just reboot and everything starts.
 - **Windows developer?** Can't connect to Pi hardware, but dashboard works perfectly for testing.
-- **Stuck?** Run the setup script and choose "STATUS" or "LOGS" to see what's happening.
+- **Stuck?** Run the setup script and choose "status" or "LOGS" to see what's happening.
 
 ---
 

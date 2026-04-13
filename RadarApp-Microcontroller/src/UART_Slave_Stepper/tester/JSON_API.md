@@ -19,30 +19,30 @@ All responses from the stepper motor slave (0x10) are now in compact JSON format
 
 ### Motor Control
 
-#### FIND_HOME - Calibrate Home Position
-**Request:** `FIND_HOME`  
+#### FIND_home - Calibrate Home Position
+**Request:** `FIND_home`  
 **Response:** `{"s":"ok","pos":0,"calib":1}`
 
-#### MOVE:<angle> - Move to Absolute Angle
-**Request:** `MOVE:90`  
+#### move:<angle> - Move to Absolute Angle
+**Request:** `move:90`  
 **Response:** `{"s":"ok","pos":90.0}`
 
-#### ROTATE:<degrees> - Rotate by Relative Amount
-**Request:** `ROTATE:45`  
+#### rotate:<degrees> - Rotate by Relative Amount
+**Request:** `rotate:45`  
 **Response:** `{"s":"ok","pos":45.0}`
 
-#### START_ROTATE:<direction> - Continuous Rotation
-**Request:** `START_ROTATE:CW` or `START_ROTATE:CCW`  
+#### START_rotate:<direction> - Continuous Rotation
+**Request:** `START_rotate:CW` or `START_rotate:CCW`  
 **Response:** `{"s":"ok","msg":"rotating","dir":"CW"}`
 
-#### STOP_ROTATE - Stop Continuous Rotation
-**Request:** `STOP_ROTATE`  
+#### stop_rotate - Stop Continuous Rotation
+**Request:** `stop_rotate`  
 **Response:** `{"s":"ok","pos":90.0,"rev":2,"total":810.0}`
 
 ### Status & Configuration
 
-#### STATUS - Full System Status
-**Request:** `STATUS`  
+#### status - Full System Status
+**Request:** `status`  
 **Response:** 
 ```json
 {
@@ -69,8 +69,8 @@ All responses from the stepper motor slave (0x10) are now in compact JSON format
 }
 ```
 
-#### AT_HOME - Check Home Status
-**Request:** `AT_HOME`  
+#### AT_home - Check Home Status
+**Request:** `AT_home`  
 **Response:** `{"s":"ok","at_home":1}`
 
 #### SENSOR - Single Sensor Read
@@ -79,16 +79,16 @@ All responses from the stepper motor slave (0x10) are now in compact JSON format
 
 ### Speed Control
 
-#### SPEED:<microseconds> - Set Motor Speed
-**Request:** `SPEED:2000`  
+#### speed:<microseconds> - Set Motor Speed
+**Request:** `speed:2000`  
 **Response:** `{"s":"ok","speed":2000}`
 
 Valid range: 500µs (fast) to 10000µs (slow)
 
 ### Monitoring & Diagnostics
 
-#### PING - Heartbeat Check
-**Request:** `PING`  
+#### ping - Heartbeat Check
+**Request:** `ping`  
 **Response:** `{"s":"ok","hb":5234,"uptime":10234,"addr":"0x10"}`
 
 - `hb` = Heartbeat counter (incremented each loop)
@@ -97,26 +97,26 @@ Valid range: 500µs (fast) to 10000µs (slow)
 
 ### Motor Enable/Disable
 
-#### ENABLE - Enable Motor
-**Request:** `ENABLE`  
+#### enable - Enable Motor
+**Request:** `enable`  
 **Response:** `{"s":"ok","msg":"motor_enabled"}`
 
-#### DISABLE - Disable Motor
-**Request:** `DISABLE`  
+#### disable - Disable Motor
+**Request:** `disable`  
 **Response:** `{"s":"ok","msg":"motor_disabled"}`
 
 ## Error Codes
 
 | Code | Meaning |
 |------|---------|
-| `not_calibrated` | Must run FIND_HOME first |
+| `not_calibrated` | Must run FIND_home first |
 | `home_not_found` | Sensor not triggered during calibration |
 | `speed_out_of_range` | Speed outside 500-10000 µs range |
 | `invalid_move_format` | Command format error |
 | `invalid_rotate_format` | Command format error |
 | `invalid_direction` | Direction must be CW or CCW |
 | `invalid_speed_format` | Speed value not an integer |
-| `not_rotating` | STOP_ROTATE called but not rotating |
+| `not_rotating` | stop_rotate called but not rotating |
 | `unknown_command` | Command not recognized |
 
 ## I2C Protocol
@@ -139,7 +139,7 @@ Send ASCII command string to slave I2C address 0x10, then read response.
 
 **Example (Python):**
 ```python
-bus.write_i2c_block_data(0x10, 0, list(b'STATUS'))
+bus.write_i2c_block_data(0x10, 0, list(b'status'))
 response = bus.read_i2c_block_data(0x10, 0, 32)
 response_str = bytes(response).decode().rstrip('\x00')
 print(f"Response: {response_str}")
@@ -181,26 +181,26 @@ print(f"Response: {response_str}")
 
 ### Basic Workflow
 ```
-1. ENABLE              → {"s":"ok","msg":"motor_enabled"}
-2. FIND_HOME           → {"s":"ok","pos":0,"calib":1}
+1. enable              → {"s":"ok","msg":"motor_enabled"}
+2. FIND_home           → {"s":"ok","pos":0,"calib":1}
 3. MOTION:90           → {"s":"ok","pos":90.0}
 4. POSITION            → {"s":"ok","pos":90.0,"calib":1}
-5. DISABLE             → {"s":"ok","msg":"motor_disabled"}
+5. disable             → {"s":"ok","msg":"motor_disabled"}
 ```
 
 ### Continuous Rotation Workflow
 ```
-1. FIND_HOME           → {"s":"ok","pos":0,"calib":1}
-2. START_ROTATE:CW     → {"s":"ok","msg":"rotating","dir":"CW"}
+1. FIND_home           → {"s":"ok","pos":0,"calib":1}
+2. START_rotate:CW     → {"s":"ok","msg":"rotating","dir":"CW"}
 3. POSITION            → {"s":"ok","pos":45.0,"rev":0,"total":45.0}
-4. STOP_ROTATE         → {"s":"ok","pos":90.0,"rev":1,"total":450.0}
+4. stop_rotate         → {"s":"ok","pos":90.0,"rev":1,"total":450.0}
 ```
 
 ### Speed Adjustment
 ```
-1. SPEED:5000          → {"s":"ok","speed":5000}
-2. MOVE:180            → {"s":"ok","pos":180.0}
-3. SPEED:2000          → {"s":"ok","speed":2000}
+1. speed:5000          → {"s":"ok","speed":5000}
+2. move:180            → {"s":"ok","pos":180.0}
+3. speed:2000          → {"s":"ok","speed":2000}
 ```
 
 ## I2C Master Integration
@@ -208,7 +208,7 @@ print(f"Response: {response_str}")
 The Master API (`src/i2c_Master_API/main.py`) provides:
 
 - `parse_json_response()` - Converts JSON bytes to Python dict
-- `check_slave_online()` - Verifies slave is responding via PING
+- `check_slave_online()` - Verifies slave is responding via ping
 - `check_all_slaves()` - Monitors all connected slaves
 - CRUD operations with automatic JSON parsing
 
