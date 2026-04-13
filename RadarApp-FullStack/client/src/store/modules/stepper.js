@@ -239,7 +239,7 @@ const actions = {
   async homePosition({ commit, dispatch }) {
     try {
       commit('SET_status', { motorState: 'moving' })
-      const response = await apiService.post('/device/stepper/home')
+      const response = await apiService.get('/device/stepper/home')
       const data = response.data.data || response.data.response
 
       commit('SET_status', {
@@ -322,7 +322,7 @@ const actions = {
 
   async enable({ commit, dispatch }) {
     try {
-      const response = await apiService.post('/device/stepper/enable')
+      const response = await apiService.get('/device/stepper/enable')
       commit('SET_status', { enabled: true })
 
       commit('ADD_HISTORY_ENTRY', {
@@ -356,7 +356,7 @@ const actions = {
 
   async disable({ commit, dispatch }) {
     try {
-      const response = await apiService.post('/device/stepper/disable')
+      const response = await apiService.get('/device/stepper/disable')
       commit('SET_status', { enabled: false })
 
       commit('ADD_HISTORY_ENTRY', {

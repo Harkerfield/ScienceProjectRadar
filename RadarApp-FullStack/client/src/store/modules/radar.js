@@ -354,7 +354,7 @@ export default {
 
     async readRadar({ commit }) {
       try {
-        const response = await apiService.post('/device/radar/read')
+        const response = await apiService.get('/device/radar/read')
         const data = response.data.data || response.data.response
         commit('ADD_RADAR_DATA', {
           range: data.range,
