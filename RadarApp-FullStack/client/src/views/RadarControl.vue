@@ -384,10 +384,6 @@ export default {
       return this.$store.state.stepper?.status?.position || 0
     },
 
-    allConnected() {
-      return this.$store.getters['connection/allConnected']
-    },
-
     isFullyRaised() {
       return this.currentPosition >= 360
     },
