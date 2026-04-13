@@ -223,16 +223,20 @@
                 <button
                   @click="raiseRadar"
                   class="btn btn-success btn-lg"
+                  :disabled="!canRaise"
+                  :title="isFullyRaised ? 'Already fully raised' : 'Raise to 360°'"
                 >
                   <i class="fas fa-arrow-up me-1"></i>
-                  Raise
+                  Raise {{ isFullyRaised ? '(MAX)' : '' }}
                 </button>
                 <button
                   @click="lowerRadar"
                   class="btn btn-warning btn-lg"
+                  :disabled="!canLower"
+                  :title="isFullyLowered ? 'Already fully lowered' : 'Lower to 0°'"
                 >
                   <i class="fas fa-arrow-down me-1"></i>
-                  Lower
+                  Lower {{ isFullyLowered ? '(MIN)' : '' }}
                 </button>
               </div>
             </div>
@@ -374,6 +378,30 @@ export default {
 
     radarDataCount() {
       return this.radarData.length + (this.picoRadarData?.length || 0)
+    },
+
+    currentPosition() {
+      return this.$store.state.stepper?.status?.position || 0
+    },
+
+    allConnected() {
+      return this.$store.getters['connection/allConnected']
+    },
+
+    isFullyRaised() {
+      return this.currentPosition >= 360
+    },
+
+    isFullyLowered() {
+      return this.currentPosition <= 0
+    },
+
+    canRaise() {
+      return !this.isFullyRaised && this.allConnected
+    },
+
+    canLower() {
+      return !this.isFullyLowered && this.allConnected
     }
   },
 
