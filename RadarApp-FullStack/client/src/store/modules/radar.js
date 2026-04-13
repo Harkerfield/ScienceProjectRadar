@@ -429,7 +429,7 @@ export default {
 
     async getInfo({ _commit }) {
       try {
-        const response = await apiService.post('/device/RADAR/whoami')
+        const response = await apiService.get('/device/RADAR/whoami')
         return response.data
       } catch (error) {
         console.error('Failed to get radar info:', error)

@@ -194,7 +194,7 @@ const actions = {
 
   async getInfo({ _commit, _dispatch }) {
     try {
-      const response = await apiService.post('/device/servo/whoami')
+      const response = await apiService.get('/device/servo/whoami')
       return response.data
     } catch (error) {
       console.error('Failed to get servo info:', error)

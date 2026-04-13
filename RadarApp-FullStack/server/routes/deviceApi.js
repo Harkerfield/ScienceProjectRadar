@@ -219,7 +219,7 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
             const { device, command } = req.params;
             
             // Only allow read-only commands via GET
-            const readOnlyCommands = ['status', 'INFO', 'HEARTBEAT', 'enable', 'ping'];
+            const readOnlyCommands = ['status', 'INFO', 'HEARTBEAT', 'enable', 'ping', 'whoami'];
             if (!readOnlyCommands.includes(command.toUpperCase())) {
                 return res.status(405).json({
                     success: false,

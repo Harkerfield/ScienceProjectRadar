@@ -418,7 +418,7 @@ const actions = {
 
   async getInfo({ _commit, _dispatch }) {
     try {
-      const response = await apiService.post('/device/stepper/whoami')
+      const response = await apiService.get('/device/stepper/whoami')
       return response.data
     } catch (error) {
       console.error('Failed to get stepper info:', error)
