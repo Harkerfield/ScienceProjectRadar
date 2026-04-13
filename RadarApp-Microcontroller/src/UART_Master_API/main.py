@@ -46,12 +46,6 @@ device_commands = {}  # Format: {"SERVO": ["PING", "OPEN", "CLOSE", ...], ...}
 devices_initialized = False  # Flag to track if device discovery is complete
 initialization_attempts = 0  # Track retry attempts
 
-# Response tracking
-radar_distance = 0        # Distance in cm
-radar_confidence = 0      # Confidence 0-100%
-radar_movement = 0        # Movement detected: 0 or 1
-radar_last_read = 0       # Timestamp of last read
-
 print("[STARTUP] UART Master initialized")
 print(f"[STARTUP] Slave devices configured: {', '.join(SLAVES.keys())}")
 print("[STARTUP] Waiting for server commands...\n")
@@ -402,16 +396,6 @@ def radar_status():
     resp = send_device_command("RADAR", "STATUS")
     return parse_device_response(resp, "RADAR") if resp else {"s": "error", "msg": "timeout"}
 
-def radar_values():
-    """GET: Latest radar readings"""
-    return {
-        "s": "ok",
-        "distance": radar_distance,
-        "confidence": radar_confidence,
-        "movement": radar_movement,
-        "lastRead": radar_last_read
-    }
-
 def get_combined_status():
     """GET: Combined status of all devices"""
     servo_status_resp = servo_status()
@@ -467,8 +451,8 @@ def get_actuator_position():
     return servo_status()
 
 def get_radar_values():
-    """GET: Latest radar readings"""
-    return radar_values()
+    """GET: Latest radar readings - pass through from radar device"""
+    return radar_read()
 
 def get_combined_stepper_radar():
     """GET: Combined stepper position + radar values"""
