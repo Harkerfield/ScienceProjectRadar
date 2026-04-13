@@ -45,7 +45,7 @@ const mutations = {
 const actions = {
   async fetchStatus({ commit }) {
     try {
-      const response = await apiService.post('/device/servo/status')
+      const response = await apiService.get('/device/servo/status')
       const data = response.data.data || response.data.response
       commit('SET_status', {
         state: data.state || 'unknown',
@@ -60,7 +60,7 @@ const actions = {
 
   async getPosition({ commit }) {
     try {
-      const response = await apiService.post('/device/servo/status')
+      const response = await apiService.get('/device/servo/status')
       const data = response.data.data || response.data.response
       commit('SET_status', {
         state: data.state || 'unknown',

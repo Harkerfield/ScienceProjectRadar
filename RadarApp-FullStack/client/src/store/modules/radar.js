@@ -335,7 +335,7 @@ export default {
 
     async fetchStatus({ commit }) {
       try {
-        const response = await apiService.post('/device/RADAR/status')
+        const response = await apiService.get('/device/RADAR/status')
         const data = response.data.data || response.data.response
         commit('ADD_RADAR_DATA', {
           range: data.range,

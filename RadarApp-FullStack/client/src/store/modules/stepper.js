@@ -64,7 +64,7 @@ const mutations = {
 const actions = {
   async fetchStatus({ commit, dispatch }) {
     try {
-      const response = await apiService.post('/device/stepper/status')
+      const response = await apiService.get('/device/stepper/status')
       if (response.data.success) {
         const data = response.data.data || response.data.response
         commit('SET_status', {
@@ -87,7 +87,7 @@ const actions = {
 
   async getPosition({ commit }) {
     try {
-      const response = await apiService.post('/device/stepper/status')
+      const response = await apiService.get('/device/stepper/status')
       const data = response.data.data || response.data.response
       commit('SET_status', {
         position: data.position || 0,
