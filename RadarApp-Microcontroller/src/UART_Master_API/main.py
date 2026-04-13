@@ -511,9 +511,9 @@ def process_command(line, source='uart'):
     """
     try:
         if isinstance(line, bytes):
-            line = line.decode().strip().upper()
+            line = line.decode().strip().lower()
         else:
-            line = line.strip().upper()
+            line = line.strip().lower()
         
         if not line:
             return b''
@@ -527,13 +527,13 @@ def process_command(line, source='uart'):
         # Route command to appropriate endpoint
         response = None
         
-        # ========== master COMMANDS ==========
+        # ========== master commands ==========
         if line == 'master:ping' or line == 'ping':
             response = master_ping()
-        elif line == 'master:COMMANDS':
+        elif line == 'master:commands':
             # List all devices and their available commands
             commands_by_device = {
-                "master": ["ping", "whoami", "status", "COMMANDS", "HELP"]
+                "master": ["ping", "whoami", "status", "commands", "help"]
             }
             if device_commands:
                 # Add all slave device commands
@@ -557,14 +557,14 @@ def process_command(line, source='uart'):
         elif line == 'master:status' or line == 'status':
             response = master_status()
         
-        # ========== servo COMMANDS ==========
+        # ========== servo commands ==========
         elif line == 'servo:open':
             response = servo_open()
         elif line == 'servo:close':
             response = servo_close()
-        elif line == 'servo:status' or line == 'GET_servo_status':
+        elif line == 'servo:status' or line == 'get_servo_status':
             response = servo_status()
-        elif line == 'servo:ping' or line == 'GET_servo_HEARTBEAT':
+        elif line == 'servo:ping' or line == 'get_servo_heartbeat':
             response = servo_ping()
         elif line == 'servo:whoami':
             response = servo_whoami()
