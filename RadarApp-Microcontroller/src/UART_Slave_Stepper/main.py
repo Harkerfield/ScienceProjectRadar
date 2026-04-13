@@ -646,7 +646,7 @@ def process_i2c_command(cmd_bytes):
         
         # Try to decode as text command
         try:
-            cmd = cmd_bytes.decode().strip().upper()
+            cmd = cmd_bytes.decode().strip().lower()
         except Exception as de:
             print(f"[CMD] Decode error: {de}")
             result = b"error:DECODE_FAILED"
@@ -758,7 +758,7 @@ def process_usb_command(line):
     """
     global stepper_position, stepper_enabled, stepper_at_home, continuous_rotating, continuous_direction, continuous_revolutions, home_last_state, current_speed_us
     try:
-        cmd = line.strip().upper()
+        cmd = line.strip().lower()
         
         # HELP - list available commands or show detailed help for a command
         if cmd == 'HELP':
@@ -776,7 +776,7 @@ def process_usb_command(line):
         
         # Detailed help for specific commands
         elif cmd.startswith('HELP '):
-            help_cmd = cmd.split(' ', 1)[1].strip().upper()
+            help_cmd = cmd.split(' ', 1)[1].strip().lower()
             
             if help_cmd == 'FIND_home':
                 print("=" * 60)
@@ -1044,7 +1044,7 @@ def process_usb_command(line):
             
             # Parse optional direction argument
             if cmd.startswith('START_rotate:'):
-                direction_str = cmd.split(':')[1].strip().upper()
+                direction_str = cmd.split(':')[1].strip().lower()
                 if direction_str == 'CW':
                     continuous_direction = CW
                 elif direction_str == 'CCW':
@@ -1063,7 +1063,7 @@ def process_usb_command(line):
         
         # SET_DIRECTION:<direction> - change rotation direction (during or before rotation)
         elif cmd.startswith('SET_DIRECTION:'):
-            direction_str = cmd.split(':')[1].strip().upper()
+            direction_str = cmd.split(':')[1].strip().lower()
             if direction_str == 'CW':
                 continuous_direction = CW
             elif direction_str == 'CCW':

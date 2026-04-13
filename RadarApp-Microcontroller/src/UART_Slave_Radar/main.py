@@ -192,7 +192,7 @@ def process_usb_command(line):
     """Process USB serial command - Legacy JSON format"""
     global radar_range, radar_velocity
     try:
-        cmd = line.strip().upper()
+        cmd = line.strip().lower()
         print(f"[USB] Received: {cmd}")
         if cmd.startswith('RANGE:'):
             radar_range = int(cmd.split(':')[1])

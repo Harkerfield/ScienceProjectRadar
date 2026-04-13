@@ -431,7 +431,7 @@ try:
         show_menu()
         
         try:
-            choice = input("\nSelect option (1-A): ").strip().upper()
+            choice = input("\nSelect option (1-A): ").strip().lower()
             
             if choice == "1":
                 continuous_hex_monitor()
