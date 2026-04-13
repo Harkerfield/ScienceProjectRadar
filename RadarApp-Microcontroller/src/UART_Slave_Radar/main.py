@@ -3,8 +3,8 @@
 # Requires MicroPython firmware installed on Pico
 # UART Slave (on shared UART1 bus with device addressing)
 # 
-# Command Format: RADAR:COMMAND[:ARGS]
-# Response Format: RADAR:status[:DATA]
+# Command Format: radar:COMMAND[:ARGS]
+# Response Format: radar:status[:DATA]
 #
 # Available Commands:
 #   ping              - Alive check (responds with address)
@@ -55,7 +55,7 @@ uart_slaves = UART(1, baudrate=115200, tx=Pin(UART_TX_PIN), rx=Pin(UART_RX_PIN))
 print(f"[STARTUP] UART slave initialized (TX=GPIO{UART_TX_PIN}, RX=GPIO{UART_RX_PIN})")
 
 # ============ DEVICE IDENTIFICATION ============
-device_name = "RADAR"
+device_name = "radar"
 
 # Sensor simulation data
 radar_range = 123      # Distance in cm
@@ -75,7 +75,7 @@ def flush_uart_buffer():
 def send_uart_response(status_msg):
     """
     Send device-addressed response via UART.
-    Format: RADAR:OK:key=val:key=val\n
+    Format: radar:OK:key=val:key=val\n
     
     Args:
         status_msg: Status message (e.g., "OK:range=123" or "error:invalid_command")
@@ -91,8 +91,8 @@ def process_usb_command_old(line):
 
 def process_uart_command(cmd_text):
     """Process UART command received from master.
-    Format: RADAR:COMMAND[:ARGS]
-    Response: RADAR:status[:DATA]
+    Format: radar:COMMAND[:ARGS]
+    Response: radar:status[:DATA]
     
     Supports commands: ping, status, whoami, read
     """
@@ -103,7 +103,7 @@ def process_uart_command(cmd_text):
             send_uart_response("error:empty_command")
             return
         
-        # Parse command format: RADAR:COMMAND[:ARGS]
+        # Parse command format: radar:COMMAND[:ARGS]
         parts = cmd_text.strip().split(":", 2)  # Split on first 2 colons only
         
         if len(parts) < 2:
@@ -129,7 +129,7 @@ def process_uart_command(cmd_text):
             send_uart_response(f"OK:msg=alive")
         
         elif cmd == "whoami":
-            send_uart_response(f"OK:device=RADAR:type=distance_sensor")
+            send_uart_response(f"OK:device=radar:type=distance_sensor")
         
         elif cmd == "status":
             # Calculate confidence based on distance (simulate signal strength)
@@ -152,7 +152,7 @@ def process_uart_command(cmd_text):
             send_uart_response(f"OK:range={radar_range}:velocity={radar_velocity:.1f}:confidence={int(confidence)}:movement={movement}")
         
         elif cmd == "set_range":
-            # Command format: RADAR:set_range:value
+            # Command format: radar:set_range:value
             global radar_range
             try:
                 if args:
@@ -162,7 +162,7 @@ def process_uart_command(cmd_text):
                 send_uart_response(f"error:invalid_range")
         
         elif cmd == "set_velocity":
-            # Command format: RADAR:set_velocity:value
+            # Command format: radar:set_velocity:value
             global radar_velocity
             try:
                 if args:
@@ -225,8 +225,8 @@ print("[UART] Listening for commands from Master Pico on UART1")
 print("=" * 70)
 print()
 print("UART Protocol (shared bus with stepper and servo):")
-print("  Format: RADAR:COMMAND[:ARGS]")
-print("  Response: RADAR:status[:DATA]")
+print("  Format: radar:COMMAND[:ARGS]")
+print("  Response: radar:status[:DATA]")
 print()
 print("Available Commands:")
 print()
@@ -247,11 +247,11 @@ print("    confidence     - Signal confidence 0-100%")
 print("    movement       - Movement detected (0 or 1)")
 print()
 print("Examples:")
-print("  RADAR:ping")
-print("  RADAR:read")
-print("  RADAR:status")
-print("  RADAR:set_range:300")
-print("  RADAR:set_velocity:6.2")
+print("  radar:ping")
+print("  radar:read")
+print("  radar:status")
+print("  radar:set_range:300")
+print("  radar:set_velocity:6.2")
 print("=" * 70)
 print()
 

@@ -12,7 +12,7 @@ BLUE='\033[0;36m'
 NC='\033[0m'
 
 echo -e "\n${BLUE}╔═════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║   RADAR - FIX INCORRECT INSTALLATION PATHS         ║${NC}"
+echo -e "${BLUE}║   radar - FIX INCORRECT INSTALLATION PATHS         ║${NC}"
 echo -e "${BLUE}╚═════════════════════════════════════════════════════╝${NC}\n"
 
 # Get actual user

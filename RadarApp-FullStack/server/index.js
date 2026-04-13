@@ -306,7 +306,7 @@ class RadarFullStackServer {
         <h2>Unified Device API</h2>
         <div class="endpoint"><a href="/api/device/commands">GET /api/device/commands</a> - All available device commands</div>
         <div class="endpoint"><a href="/api/device/stepper/info">GET /api/device/stepper/info</a> - Stepper commands</div>
-        <div class="endpoint"><a href="/api/device/RADAR/info">GET /api/device/RADAR/info</a> - Radar commands</div>
+        <div class="endpoint"><a href="/api/device/radar/info">GET /api/device/radar/info</a> - Radar commands</div>
         <div class="endpoint"><a href="/api/device/servo/info">GET /api/device/servo/info</a> - Actuator commands</div>
         <div class="endpoint">POST /api/device/stepper/START - Send command (requires args in body)</div>
         
@@ -429,8 +429,8 @@ class RadarFullStackServer {
                     logger.info(`Radar command from ${socket.id}:`, data);
                     const { command, args } = data;
                     const fullCommand = args
-                        ? `RADAR:${command}:${args}`
-                        : `RADAR:${command}`;
+                        ? `radar:${command}:${args}`
+                        : `radar:${command}`;
                     
                     const response = await this.serialComm.sendDeviceCommand(fullCommand);
                     socket.emit('radar:response', response);

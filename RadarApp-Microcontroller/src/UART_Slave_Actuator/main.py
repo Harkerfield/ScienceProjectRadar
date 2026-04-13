@@ -34,7 +34,7 @@ print("[INIT] LED turned ON")
 # ============================================================
 # UART CONFIGURATION
 # ============================================================
-# UART1: Slave communication bus (shared with stepper and RADAR)
+# UART1: Slave communication bus (shared with stepper and radar)
 uart_slaves = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))
 print("[STARTUP] UART slave initialized (TX=GPIO4, RX=GPIO5)")
 
@@ -163,7 +163,7 @@ print(f"[readY] UART Slave ({device_name}) initialized")
 print("[servo] Servo control via PWM on GPIO 2")
 print(f"[WIRING] PWM on GPIO 2, UART on UART1 (shared bus)")
 print()
-print("UART Protocol (shared bus with stepper and RADAR):")
+print("UART Protocol (shared bus with stepper and radar):")
 print("  Format: servo:COMMAND[:ARGS]")
 print("  Response: servo:status[:DATA]")
 print()

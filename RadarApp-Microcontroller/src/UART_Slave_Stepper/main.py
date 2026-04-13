@@ -20,7 +20,7 @@ print("=" * 50)
 # ============================================================
 # UART CONFIGURATION
 # ============================================================
-# UART1: Slave communication bus (shared with servo and RADAR)
+# UART1: Slave communication bus (shared with servo and radar)
 uart_slaves = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))
 print("[STARTUP] UART slave initialized (TX=GPIO4, RX=GPIO5)")
 
@@ -1200,7 +1200,7 @@ print(f"[readY] UART Slave ({device_name}) initialized")
 print("[MOTOR] Stepper motor control via pulse/direction/enable")
 print(f"[WIRING] PUL/DIR/ENA=GPIO({PUL_PIN}/{DIR_PIN}/{ENA_PIN}), SENSOR=GPIO20")
 print()
-print("UART Protocol (shared bus with servo and RADAR):")
+print("UART Protocol (shared bus with servo and radar):")
 print("  Format: stepper:COMMAND[:ARGS]")
 print("  Response: stepper:status[:DATA]")
 print()

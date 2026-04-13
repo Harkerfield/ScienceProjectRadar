@@ -8,7 +8,7 @@
 # UART Slaves (on shared UART1 bus with device addressing):
 #   - servo: open|close|status|whoami|ping
 #   - stepper: spin|stop|status|whoami|ping
-#   - RADAR: read|status|whoami|ping
+#   - radar: read|status|whoami|ping
 #
 # Command Format: DEVICE:COMMAND[:ARGS]
 # Response Format: DEVICE:status[:DATA]
@@ -38,7 +38,7 @@ uart_slaves = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))
 SLAVES = {
     "servo": {"timeout_ms": 8000, "description": "Servo Actuator"},
     "stepper": {"timeout_ms": 5000, "description": "Stepper Motor"},
-    "RADAR": {"timeout_ms": 2000, "description": "Radar Sensor"},
+    "radar": {"timeout_ms": 2000, "description": "Radar Sensor"},
 }
 
 # Device command registry - populated at startup
@@ -63,7 +63,7 @@ def send_device_command(device, cmd, timeout_ms=None):
     Send device-addressed command to slave and wait for response.
     
     Args:
-        device: Device name (e.g., "servo", "stepper", "RADAR")
+        device: Device name (e.g., "servo", "stepper", "radar")
         cmd: Command (e.g., "open", "spin:50", "read")
         timeout_ms: Response timeout (uses device default if None)
     
@@ -380,21 +380,21 @@ def stepper_whoami():
     resp = send_device_command("stepper", "whoami")
     return parse_device_response(resp, "stepper") if resp else {"s": "error", "msg": "timeout"}
 
-# ========== RADAR ENDPOINTS ==========
+# ========== radar ENDPOINTS ==========
 def radar_ping():
     """GET: Radar alive check"""
-    resp = send_device_command("RADAR", "ping")
-    return parse_device_response(resp, "RADAR") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("radar", "ping")
+    return parse_device_response(resp, "radar") if resp else {"s": "error", "msg": "timeout"}
 
 def radar_read():
     """GET: Read radar values"""
-    resp = send_device_command("RADAR", "read")
-    return parse_device_response(resp, "RADAR") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("radar", "read")
+    return parse_device_response(resp, "radar") if resp else {"s": "error", "msg": "timeout"}
 
 def radar_status():
     """GET: Radar status"""
-    resp = send_device_command("RADAR", "status")
-    return parse_device_response(resp, "RADAR") if resp else {"s": "error", "msg": "timeout"}
+    resp = send_device_command("radar", "status")
+    return parse_device_response(resp, "radar") if resp else {"s": "error", "msg": "timeout"}
 
 def get_combined_status():
     """GET: Combined status of all devices"""
@@ -623,35 +623,35 @@ def process_command(line, source='uart'):
         elif line == 'stepper:whoami':
             response = stepper_whoami()
         
-        # ========== RADAR COMMANDS ==========
-        elif line == 'RADAR:ping' or line == 'GET_RADAR_HEARTBEAT':
+        # ========== radar COMMANDS ==========
+        elif line == 'radar:ping' or line == 'GET_RADAR_HEARTBEAT':
             response = radar_ping()
-        elif line == 'RADAR:read' or line == 'GET_RADAR_VALUES':
+        elif line == 'radar:read' or line == 'GET_RADAR_VALUES':
             response = radar_read()
-        elif line == 'RADAR:status' or line == 'GET_RADAR_status':
+        elif line == 'radar:status' or line == 'GET_RADAR_status':
             response = radar_status()
-        elif line == 'RADAR:whoami':
+        elif line == 'radar:whoami':
             response = radar_whoami()
         # Map set_range command (store the value for later use)
-        elif line.startswith('RADAR:set_range:'):
+        elif line.startswith('radar:set_range:'):
             try:
-                # Extract centimeters parameter: "RADAR:set_range:100" or "RADAR:set_range:centimeters=100"
+                # Extract centimeters parameter: "radar:set_range:100" or "radar:set_range:centimeters=100"
                 value_str = line.split(':')[-1].strip()
                 # Handle both positional (100) and named (centimeters=100) formats
                 centimeters = int(value_str.split('=')[-1])
                 # Store the range value (simplified)
-                response = {"s": "ok", "device": "RADAR", "status": "OK", "data": {"range_cm": centimeters}}
+                response = {"s": "ok", "device": "radar", "status": "OK", "data": {"range_cm": centimeters}}
             except:
                 response = {"s": "error", "msg": "Invalid range value"}
         # Map set_velocity command (store the value for later use)
-        elif line.startswith('RADAR:set_velocity:'):
+        elif line.startswith('radar:set_velocity:'):
             try:
-                # Extract velocity parameter: "RADAR:set_velocity:5.0" or "RADAR:set_velocity:meters_per_second=5.0"
+                # Extract velocity parameter: "radar:set_velocity:5.0" or "radar:set_velocity:meters_per_second=5.0"
                 value_str = line.split(':')[-1].strip()
                 # Handle both positional (5.0) and named (meters_per_second=5.0) formats
                 velocity = float(value_str.split('=')[-1])
                 # Store the velocity value (simplified)
-                response = {"s": "ok", "device": "RADAR", "status": "OK", "data": {"velocity_mps": velocity}}
+                response = {"s": "ok", "device": "radar", "status": "OK", "data": {"velocity_mps": velocity}}
             except:
                 response = {"s": "error", "msg": "Invalid velocity value"}
         
@@ -667,7 +667,7 @@ def process_command(line, source='uart'):
         elif line == 'GET_servo_POSITION':
             response = get_actuator_position()
         
-        # ========== LEGACY RADAR GET COMMANDS ==========
+        # ========== LEGACY radar GET COMMANDS ==========
         elif line == 'GET_RADAR_VALUES':
             response = get_radar_values()
         elif line == 'GET_COMBINED_stepper_RADAR':
@@ -709,7 +709,7 @@ def process_command(line, source='uart'):
                 "=== GENERIC ROUTING ===\n"
                 "  DEVICE:COMMAND[:ARGS] - Pass any command to any device\n"
                 "  Example: stepper:move:90   - Move stepper to 90°\n"
-                "  Example: RADAR:set_range:150  - Set radar range to 150cm\n"
+                "  Example: radar:set_range:150  - Set radar range to 150cm\n"
                 "  Case-insensitive device names (servo, servo, Servo all work)\n\n"
                 "=== master ===\n"
                 "  master:ping     - Master alive check\n"
@@ -736,12 +736,12 @@ def process_command(line, source='uart'):
                 "  stepper:rotate:<delta> - Rotate by relative amount\n"
                 "  stepper:home      - Find home position\n"
                 "  stepper:speed:<us> - Set motor speed\n\n"
-                "=== RADAR (Device: RADAR) ===\n"
-                "  RADAR:ping        - Check connection\n"
-                "  RADAR:read        - Read sensor data\n"
-                "  RADAR:status      - Get current state\n"
-                "  RADAR:whoami      - Identify device\n"
-                "  RADAR:COMMANDS    - List available commands\n\n"
+                "=== radar (Device: radar) ===\n"
+                "  radar:ping        - Check connection\n"
+                "  radar:read        - Read sensor data\n"
+                "  radar:status      - Get current state\n"
+                "  radar:whoami      - Identify device\n"
+                "  radar:COMMANDS    - List available commands\n\n"
                 "=== System ===\n"
                 "  HELP               - Show this help\n\n"
                 "Response Format: {'s': 'ok/error', 'msg': 'description', 'data': {...}}\n"

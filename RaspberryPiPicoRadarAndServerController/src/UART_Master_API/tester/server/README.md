@@ -1,6 +1,6 @@
 # UART Slave Tester — Raspberry Pi
 
-Tests all three UART slave devices (**servo**, **stepper**, **RADAR**) by sending commands to the Pico Master over UART and verifying responses.
+Tests all three UART slave devices (**servo**, **stepper**, **radar**) by sending commands to the Pico Master over UART and verifying responses.
 
 ## Architecture
 
@@ -11,7 +11,7 @@ Raspberry Pi
             └─ Shared UART1 bus @ 115200 baud
                  ├─ servo slave
                  ├─ stepper slave
-                 └─ RADAR slave
+                 └─ radar slave
 ```
 
 ## Requirements
@@ -38,7 +38,7 @@ python3 test_uart_slaves.py
 # Test a single device
 python3 test_uart_slaves.py --device servo
 python3 test_uart_slaves.py --device stepper
-python3 test_uart_slaves.py --device RADAR
+python3 test_uart_slaves.py --device radar
 python3 test_uart_slaves.py --device master
 
 # Custom serial port
@@ -48,7 +48,7 @@ python3 test_uart_slaves.py --port /dev/ttyUSB0
 python3 test_uart_slaves.py --verbose
 
 # Combine options
-python3 test_uart_slaves.py --device RADAR --verbose
+python3 test_uart_slaves.py --device radar --verbose
 
 # If permission denied
 sudo python3 test_uart_slaves.py
@@ -61,7 +61,7 @@ sudo python3 test_uart_slaves.py
 | master  | `ping`, `status` |
 | servo   | `ping`, `whoami`, `status`, `open`, `status`, `close`, `status` |
 | stepper | `ping`, `whoami`, `status`, `spin:50`, `status`, `stop`, `status` |
-| RADAR   | `ping`, `whoami`, `status`, `read` × 3 |
+| radar   | `ping`, `whoami`, `status`, `read` × 3 |
 
 ## Response Timeouts
 
@@ -72,7 +72,7 @@ These account for the Pico's own slave timeouts plus round-trip overhead:
 | master  | 3 s     |
 | servo   | 12 s    |
 | stepper | 6 s     |
-| RADAR   | 4 s     |
+| radar   | 4 s     |
 
 ## Example Output
 
@@ -91,7 +91,7 @@ These account for the Pico's own slave timeouts plus round-trip overhead:
 ═══════════════════════════════════════════════════════
   [PASS] master:ping
   [PASS] master:status
-       Slaves configured: ['servo', 'stepper', 'RADAR']
+       Slaves configured: ['servo', 'stepper', 'radar']
 
 ═══════════════════════════════════════════════════════
  servo
@@ -114,7 +114,7 @@ These account for the Pico's own slave timeouts plus round-trip overhead:
   master     2/2 passed  [OK]
   servo      7/7 passed  [OK]
   stepper    7/7 passed  [OK]
-  RADAR      6/6 passed  [OK]
+  radar      6/6 passed  [OK]
   ─────────────────────────────────────────────────────
   Total: 22 passed, 0 failed  →  ALL PASSED
 ```

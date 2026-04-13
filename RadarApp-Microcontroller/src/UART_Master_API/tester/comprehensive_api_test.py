@@ -39,7 +39,7 @@ COMMAND_TESTS = {
         {'cmd': 'close', 'expected': 'OK', 'timeout': 8, 'description': 'Close/retract servo (6 seconds)'},
         {'cmd': 'status', 'expected': 'OK', 'timeout': 2, 'description': 'Get servo status (verify closed)'},
     ],
-    'RADAR': [
+    'radar': [
         {'cmd': 'ping', 'expected': 'OK', 'timeout': 2, 'description': 'Radar alive check'},
         {'cmd': 'whoami', 'expected': 'OK', 'timeout': 2, 'description': 'Radar identification'},
         {'cmd': 'status', 'expected': 'OK', 'timeout': 2, 'description': 'Get radar status'},
@@ -138,7 +138,7 @@ class APITester:
         print("=" * 80)
         print()
         
-        for device in ['stepper', 'servo', 'RADAR']:
+        for device in ['stepper', 'servo', 'radar']:
             print(f"\n{'='*80}")
             print(f"DEVICE: {device}")
             print(f"{'='*80}")
@@ -171,7 +171,7 @@ class APITester:
         print("=" * 80)
         print()
         
-        for device in ['stepper', 'servo', 'RADAR']:
+        for device in ['stepper', 'servo', 'radar']:
             result = self.results[device]
             passed = result['passed']
             failed = result['failed']
@@ -226,8 +226,8 @@ def print_api_specification():
     for test in COMMAND_TESTS['servo']:
         print(f"  - {test['cmd']:20s} → {test['description']}")
     print()
-    print("RADAR Commands:")
-    for test in COMMAND_TESTS['RADAR']:
+    print("radar Commands:")
+    for test in COMMAND_TESTS['radar']:
         print(f"  - {test['cmd']:20s} → {test['description']}")
     print()
 

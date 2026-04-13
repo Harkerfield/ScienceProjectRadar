@@ -30,7 +30,7 @@ while True:
             f"TEST:ping:{counter}",
             f"servo:status:OK",
             f"stepper:speed:100",
-            f"RADAR:DISTANCE:45",
+            f"radar:DISTANCE:45",
         ]
         
         msg = test_messages[counter % len(test_messages)]

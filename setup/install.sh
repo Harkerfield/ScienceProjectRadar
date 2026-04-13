@@ -30,7 +30,7 @@ PROJECT_DIR="/home/$ACTUAL_USER/RadarProject"
 GIT_URL="https://github.com/Harkerfield/ScienceProjectRadar.git"
 
 echo -e "\n${BLUE}╔═══════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║   RADAR APPLICATION - INSTALLATION SCRIPT        ║${NC}"
+echo -e "${BLUE}║   radar APPLICATION - INSTALLATION SCRIPT        ║${NC}"
 echo -e "${BLUE}╚═══════════════════════════════════════════════════╝${NC}\n"
 echo -e "${YELLOW}Detected user: $ACTUAL_USER${NC}"
 echo -e "${YELLOW}Project directory: $PROJECT_DIR${NC}\n"

@@ -31,7 +31,7 @@
             <option value="master">master</option>
             <option value="stepper">stepper</option>
             <option value="servo">servo</option>
-            <option value="RADAR">RADAR</option>
+            <option value="radar">radar</option>
           </select>
         </div>
 
@@ -173,7 +173,7 @@ export default {
         master: ['ping', 'status', 'whoami'],
         stepper: ['ping', 'status', 'whoami', 'speed', 'spin', 'stop', 'move', 'home', 'enable', 'disable', 'rotate'],
         servo: ['ping', 'status', 'whoami', 'open', 'close'],
-        RADAR: ['ping', 'status', 'whoami', 'read', 'set_range', 'set_velocity']
+        radar: ['ping', 'status', 'whoami', 'read', 'set_range', 'set_velocity']
       },
       commandParamTemplates: {
         speed: { speed_us: '' },

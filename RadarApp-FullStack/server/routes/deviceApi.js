@@ -49,9 +49,9 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
                         }
                     },
                     radar: {
-                        discoverCommands: '/api/device/RADAR',
-                        getStatus: '/api/device/RADAR/status',
-                        read: 'POST /api/device/RADAR/read'
+                        discoverCommands: '/api/device/radar',
+                        getStatus: '/api/device/radar/status',
+                        read: 'POST /api/device/radar/read'
                     },
                     servo: {
                         discoverCommands: '/api/device/servo',

@@ -57,7 +57,7 @@
       "notes": "Pulse duration in microseconds"
     }
   },
-  "RADAR": {
+  "radar": {
     "ping": {
       "description": "Radar alive check"
     },

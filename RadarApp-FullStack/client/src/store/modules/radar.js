@@ -335,7 +335,7 @@ export default {
 
     async fetchStatus({ commit }) {
       try {
-        const response = await apiService.get('/device/RADAR/status')
+        const response = await apiService.get('/device/radar/status')
         const data = response.data.data || response.data.response
         commit('ADD_RADAR_DATA', {
           range: data.range,
@@ -354,7 +354,7 @@ export default {
 
     async readRadar({ commit }) {
       try {
-        const response = await apiService.post('/device/RADAR/read')
+        const response = await apiService.post('/device/radar/read')
         const data = response.data.data || response.data.response
         commit('ADD_RADAR_DATA', {
           range: data.range,
@@ -373,7 +373,7 @@ export default {
 
     async setRangeSimulation({ commit, dispatch }, centimeters) {
       try {
-        const response = await apiService.post('/device/RADAR/set_range', { 
+        const response = await apiService.post('/device/radar/set_range', { 
           args: { centimeters } 
         })
         commit('ADD_RADAR_DATA', {
@@ -396,7 +396,7 @@ export default {
 
     async setVelocitySimulation({ commit, dispatch }, metersPerSecond) {
       try {
-        const response = await apiService.post('/device/RADAR/set_velocity', { 
+        const response = await apiService.post('/device/radar/set_velocity', { 
           args: { meters_per_second: metersPerSecond } 
         })
         commit('ADD_RADAR_DATA', {
@@ -419,7 +419,7 @@ export default {
 
     async ping({ commit }) {
       try {
-        const response = await apiService.get('/device/RADAR/ping')
+        const response = await apiService.get('/device/radar/ping')
         return response.data
       } catch (error) {
         commit('ADD_error', { message: `Ping failed: ${error.message}`, type: 'api_error' })
@@ -429,7 +429,7 @@ export default {
 
     async getInfo({ _commit }) {
       try {
-        const response = await apiService.get('/device/RADAR/whoami')
+        const response = await apiService.get('/device/radar/whoami')
         return response.data
       } catch (error) {
         console.error('Failed to get radar info:', error)

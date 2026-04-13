@@ -38,7 +38,7 @@ if uart:
     DEVICES = {
         "servo": {"timeout": 8000},    # open/close take 6s
         "stepper": {"timeout": 5000},  # Adjust as needed
-        "RADAR": {"timeout": 2000},    # Quick reads
+        "radar": {"timeout": 2000},    # Quick reads
     }
     
     def flush_uart_buffer():

@@ -72,7 +72,7 @@ DIR/MOTION    ──────→ GPIO26
 Expected startup:
 ```
 ======================================================================
-HB100 DOPPLER RADAR SENSOR TEST
+HB100 DOPPLER radar SENSOR TEST
 10.525GHz Microwave Motion Sensor (SKU: CQRSENWB01)
 ======================================================================
 

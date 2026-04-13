@@ -7,7 +7,7 @@ from machine import ADC, Pin, PWM, Timer
 import utime
 
 print("=" * 70)
-print("HB100 DOPPLER RADAR - CQROBOT MODULE TEST")
+print("HB100 DOPPLER radar - CQROBOT MODULE TEST")
 print("CQRobot 10.525GHz Microwave Motion Detection Module")
 print("SKU: CQRSENWB01")
 print("=" * 70)

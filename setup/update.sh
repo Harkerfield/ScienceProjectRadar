@@ -12,7 +12,7 @@ BLUE='\033[0;36m'
 NC='\033[0m'
 
 echo -e "\n${BLUE}╔═════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║   RADAR APPLICATION - UPDATE & RESTART            ║${NC}"
+echo -e "${BLUE}║   radar APPLICATION - UPDATE & RESTART            ║${NC}"
 echo -e "${BLUE}╚═════════════════════════════════════════════════════╝${NC}\n"
 
 # Get project directory

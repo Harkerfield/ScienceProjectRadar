@@ -19,7 +19,7 @@ DEVICE:COMMAND[:ARGS]
 ### Examples
 - Read-only: `stepper:status`
 - With positional args: `stepper:move:360`
-- With named args: `RADAR:set_range:centimeters=100` (supported for compatibility)
+- With named args: `radar:set_range:centimeters=100` (supported for compatibility)
 
 ---
 
@@ -63,16 +63,16 @@ DEVICE:COMMAND[:ARGS]
 
 ---
 
-### RADAR (Radar Sensor - UART continuous stream)
+### radar (Radar Sensor - UART continuous stream)
 
 | Command | Args | Example | Timeout | Description |
 |---------|------|---------|---------|-------------|
-| ping | none | `RADAR:ping` | 2s | Alive check |
-| whoami | none | `RADAR:whoami` | 2s | Device identification |
-| status | none | `RADAR:status` | 2s | Get radar status |
-| read | none | `RADAR:read` | 2s | Get current sensor readings |
-| set_range | centimeters (0-500) | `RADAR:set_range:100` | 2s | Simulate/set range (testing) |
-| set_velocity | m/s (0.0-50.0) | `RADAR:set_velocity:5.0` | 2s | Simulate/set velocity (testing) |
+| ping | none | `radar:ping` | 2s | Alive check |
+| whoami | none | `radar:whoami` | 2s | Device identification |
+| status | none | `radar:status` | 2s | Get radar status |
+| read | none | `radar:read` | 2s | Get current sensor readings |
+| set_range | centimeters (0-500) | `radar:set_range:100` | 2s | Simulate/set range (testing) |
+| set_velocity | m/s (0.0-50.0) | `radar:set_velocity:5.0` | 2s | Simulate/set velocity (testing) |
 
 **Response Format:**
 ```json
@@ -220,7 +220,7 @@ python3 comprehensive_api_test.py
 This validates:
 - ✓ All stepper commands
 - ✓ All servo commands
-- ✓ All RADAR commands
+- ✓ All radar commands
 - ✓ Command formatting
 - ✓ Response parsing
 - ✓ Timeout handling

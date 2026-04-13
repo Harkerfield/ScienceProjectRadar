@@ -3,7 +3,7 @@ const deviceCommands = require('../config/deviceCommands.json');
 
 /**
  * Validate if a device command is valid
- * @param {string} device - Device name (stepper, RADAR, servo) - case-insensitive
+ * @param {string} device - Device name (stepper, radar, servo) - case-insensitive
  * @param {string} command - Command name (status, START, etc) - case-insensitive
  * @param {any} args - Command arguments
  * @returns {object} { valid: boolean, error?: string, device?: string, command?: string }

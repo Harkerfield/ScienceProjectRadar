@@ -25,7 +25,7 @@ trap 'echo -e "\n${GREEN}Exiting...${NC}\n"; exit 0' INT TERM
 show_menu() {
     clear
     echo -e "\n${BLUE}╔═════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║   RADAR APPLICATION - CONTROL        ║${NC}"
+    echo -e "${BLUE}║   radar APPLICATION - CONTROL        ║${NC}"
     echo -e "${BLUE}╚═════════════════════════════════════════╝${NC}\n"
     echo -e "${YELLOW}Choose action:${NC}\n"
     echo "  1) INSTALL (first time only)"

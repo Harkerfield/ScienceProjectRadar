@@ -24,7 +24,7 @@ def main():
         print("  servo:status")
         print("  stepper:ping")
         print("  stepper:status")
-        print("  RADAR:ping")
+        print("  radar:ping")
         print("  HELP")
         print("\nType 'quit' or 'exit' to stop\n")
         

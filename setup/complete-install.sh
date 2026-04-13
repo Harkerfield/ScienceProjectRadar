@@ -83,7 +83,7 @@ check_directory() {
 # MAIN SCRIPT
 # ============================================================================
 
-print_header "  RADAR APPLICATION - COMPLETE INSTALL/BUILD/RESTART"
+print_header "  radar APPLICATION - COMPLETE INSTALL/BUILD/RESTART"
 
 echo -e "${YELLOW}Environment Detection:${NC}"
 echo "  User: $ACTUAL_USER"

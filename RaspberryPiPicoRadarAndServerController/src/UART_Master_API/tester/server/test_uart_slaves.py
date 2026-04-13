@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Raspberry Pi UART Slave Tester
-Tests all three UART slave devices (servo, stepper, RADAR) through the Pico Master.
+Tests all three UART slave devices (servo, stepper, radar) through the Pico Master.
 
 Architecture:
     Raspberry Pi -> [UART0 @ 460800] -> Pico Master -> [UART1 @ 115200] -> Slaves
@@ -31,7 +31,7 @@ DEVICE_TIMEOUTS = {
     "master":  3.0,
     "servo":  12.0,   # open/close take ~6 s each on the slave
     "stepper": 6.0,
-    "RADAR":   4.0,
+    "radar":   4.0,
 }
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -246,28 +246,28 @@ class UARTSlaveTester:
         r = self.send_command("stepper:status")
         self._assert_response("stepper", "stepper:status (stopped)", r)
 
-    # ── RADAR tests ─────────────────────────────────────────────────────────
+    # ── radar tests ─────────────────────────────────────────────────────────
 
     def test_radar(self):
         print(f"\n{_c(Colors.BOLD, '═' * 55)}")
-        print(_c(Colors.BOLD, " RADAR"))
+        print(_c(Colors.BOLD, " radar"))
         print(_c(Colors.BOLD, '═' * 55))
 
-        r = self.send_command("RADAR:ping")
-        if not self._assert_response("RADAR", "RADAR:ping", r):
-            print(_c(Colors.WARN, "  Skipping further RADAR tests (no ping response)"))
+        r = self.send_command("radar:ping")
+        if not self._assert_response("radar", "radar:ping", r):
+            print(_c(Colors.WARN, "  Skipping further radar tests (no ping response)"))
             return
 
-        r = self.send_command("RADAR:whoami")
-        self._assert_response("RADAR", "RADAR:whoami", r)
+        r = self.send_command("radar:whoami")
+        self._assert_response("radar", "radar:whoami", r)
 
-        r = self.send_command("RADAR:status")
-        self._assert_response("RADAR", "RADAR:status", r)
+        r = self.send_command("radar:status")
+        self._assert_response("radar", "radar:status", r)
 
         print("  Reading sensor (3 consecutive reads) …")
         for i in range(1, 4):
-            r = self.send_command("RADAR:read")
-            passed = self._assert_response("RADAR", f"RADAR:read #{i}", r)
+            r = self.send_command("radar:read")
+            passed = self._assert_response("radar", f"radar:read #{i}", r)
             if passed and r:
                 data = r.get("data", {})
                 dist = data.get("distance", "?")
@@ -314,7 +314,7 @@ class UARTSlaveTester:
                 self.test_servo()
             if run_all or "stepper" in devices:
                 self.test_stepper()
-            if run_all or "RADAR" in devices:
+            if run_all or "radar" in devices:
                 self.test_radar()
         finally:
             self.disconnect()
@@ -343,7 +343,7 @@ def main():
     )
     parser.add_argument(
         "--device", metavar="DEV",
-        choices=["master", "servo", "stepper", "RADAR"],
+        choices=["master", "servo", "stepper", "radar"],
         action="append", dest="devices", default=[],
         help="Device(s) to test; omit to test all"
     )

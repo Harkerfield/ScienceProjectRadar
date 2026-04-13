@@ -7,7 +7,7 @@ import utime
 import sys
 
 print("=" * 60)
-print("RADAR SENSOR TEST - Simulated Readings Viewer")
+print("radar SENSOR TEST - Simulated Readings Viewer")
 print("=" * 60)
 print()
 
@@ -15,7 +15,7 @@ print()
 uart_test = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))
 utime.sleep_ms(100)
 
-device_name = "RADAR"
+device_name = "radar"
 
 def send_command(cmd, args=""):
     """Send command to radar and get response"""
@@ -42,8 +42,8 @@ def send_command(cmd, args=""):
         return None
 
 def parse_response(response):
-    """Parse RADAR:OK:key=val:key=val format"""
-    if not response or not response.startswith("RADAR:"):
+    """Parse radar:OK:key=val:key=val format"""
+    if not response or not response.startswith("radar:"):
         return None
     
     parts = response.split(":")
@@ -68,7 +68,7 @@ def display_radar_status(response):
         return
     
     print("\n" + "=" * 60)
-    print("RADAR SENSOR status")
+    print("radar SENSOR status")
     print("=" * 60)
     
     for key, val in parsed["data"].items():

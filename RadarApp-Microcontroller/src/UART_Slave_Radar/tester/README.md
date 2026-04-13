@@ -74,12 +74,12 @@ The radar uses device-addressed UART commands on the shared bus:
 
 **Request Format:**
 ```
-RADAR:COMMAND[:ARGS]\n
+radar:COMMAND[:ARGS]\n
 ```
 
 **Response Format:**
 ```
-RADAR:status[:KEY=VALUE:KEY=VALUE]\n
+radar:status[:KEY=VALUE:KEY=VALUE]\n
 ```
 
 ### UART Configuration
@@ -93,37 +93,37 @@ RADAR:status[:KEY=VALUE:KEY=VALUE]\n
 
 | Command | Args | Response | Purpose |
 |---------|------|----------|---------|
-| `ping` | None | `RADAR:OK:msg=alive:addr=0x20` | Check if radar is alive |
-| `whoami` | None | `RADAR:OK:device=RADAR:type=distance_sensor` | Get device info |
-| `read` | None | `RADAR:OK:range=123:velocity=4.5:confidence=80:movement=1` | Get current sensor readings |
+| `ping` | None | `radar:OK:msg=alive:addr=0x20` | Check if radar is alive |
+| `whoami` | None | `radar:OK:device=radar:type=distance_sensor` | Get device info |
+| `read` | None | `radar:OK:range=123:velocity=4.5:confidence=80:movement=1` | Get current sensor readings |
 | `status` | None | Same as read | Get detailed status |
-| `set_range` | `<cm>` | `RADAR:OK:range_set:value=250` | Set distance reading (cm) |
-| `set_velocity` | `<m/s>` | `RADAR:OK:velocity_set:value=8.5` | Set velocity reading (m/s) |
+| `set_range` | `<cm>` | `radar:OK:range_set:value=250` | Set distance reading (cm) |
+| `set_velocity` | `<m/s>` | `radar:OK:velocity_set:value=8.5` | Set velocity reading (m/s) |
 
 ### Example Command Sequences
 
 **Check if radar is online:**
 ```
->>> RADAR:ping
-<<< RADAR:OK:msg=alive:addr=0x20
+>>> radar:ping
+<<< radar:OK:msg=alive:addr=0x20
 ```
 
 **Get current sensor reading:**
 ```
->>> RADAR:read
-<<< RADAR:OK:range=250:velocity=8.5:confidence=80:movement=1
+>>> radar:read
+<<< radar:OK:range=250:velocity=8.5:confidence=80:movement=1
 ```
 
 **Simulate new distance (300cm):**
 ```
->>> RADAR:set_range:300
-<<< RADAR:OK:range_set:value=300
+>>> radar:set_range:300
+<<< radar:OK:range_set:value=300
 ```
 
 **Simulate new velocity (6.2 m/s):**
 ```
->>> RADAR:set_velocity:6.2
-<<< RADAR:OK:velocity_set:value=6.2
+>>> radar:set_velocity:6.2
+<<< radar:OK:velocity_set:value=6.2
 ```
 
 ### How to Use the Test Script
@@ -143,19 +143,19 @@ RADAR:status[:KEY=VALUE:KEY=VALUE]\n
 3. **Example output:**
    ```
    [TEST 1] ping - Check if radar is alive
-   >>> Sending: RADAR:ping
-   <<< Response: RADAR:OK:msg=alive:addr=0x20
+   >>> Sending: radar:ping
+   <<< Response: radar:OK:msg=alive:addr=0x20
    
    ============================================================
-   RADAR SENSOR status
+   radar SENSOR status
    ============================================================
      Message:      alive
      Address:      0x20
    ============================================================
    
    [TEST 2] whoami - Identify device
-   >>> Sending: RADAR:whoami
-   <<< Response: RADAR:OK:device=RADAR:type=distance_sensor
+   >>> Sending: radar:whoami
+   <<< Response: radar:OK:device=radar:type=distance_sensor
    ```
 
 #### test_hb100_if_only.py (Raw IF Signal Test)
@@ -217,11 +217,11 @@ RADAR:status[:KEY=VALUE:KEY=VALUE]\n
    - **2. Line-by-Line Monitor** - Captures complete messages (newline-delimited)
    - **3. Single Capture** - Waits for one message with 5s timeout
    - **4. Timed Capture** - Record data for N seconds to CSV
-   - **5. Send Raw Command** - Send hex or text commands (e.g., `RADAR:ping\n`)
+   - **5. Send Raw Command** - Send hex or text commands (e.g., `radar:ping\n`)
    - **6. Stats & Buffer Info** - Show RX/TX bytes and current buffer
    - **7. Raw Hex Dump** - Display all buffered data as hex dump
    - **8. Clear Buffer** - Clear receive buffer
-   - **9. Test Devices** - Send ping to all devices (stepper, servo, RADAR)
+   - **9. Test Devices** - Send ping to all devices (stepper, servo, radar)
    - **A. Exit** - Exit test
 
 4. **Usage examples:**
@@ -252,7 +252,7 @@ RADAR:status[:KEY=VALUE:KEY=VALUE]\n
    **Send custom command:**
    ```
    Select: 5 (Send Raw Command)
-   Enter: RADAR:set_range:300
+   Enter: radar:set_range:300
    → Sends command on UART
    → Can then use menu option 2 to see response
    ```
@@ -266,7 +266,7 @@ RADAR:status[:KEY=VALUE:KEY=VALUE]\n
 | `confidence` | `confidence=80` | Signal confidence: 80% |
 | `movement` | `movement=1` | Movement detected: Yes (1=yes, 0=no) |
 | `addr` | `addr=0x20` | Device address on UART bus |
-| `device` | `device=RADAR` | Device identifier |
+| `device` | `device=radar` | Device identifier |
 | `type` | `type=distance_sensor` | Sensor type |
 
 ### Integration with Node.js Server
@@ -353,7 +353,7 @@ After testing with this script:
 
 **Only see sent data, no responses:**
 - Devices might not be powered on
-- Check device addresses: stepper=0x10, servo=0x11, RADAR=0x20
+- Check device addresses: stepper=0x10, servo=0x11, radar=0x20
 - Try "Test Devices" (menu 9) to verify connectivity
 - Check for UART bus contention
 

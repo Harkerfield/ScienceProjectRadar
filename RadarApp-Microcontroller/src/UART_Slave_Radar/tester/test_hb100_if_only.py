@@ -8,7 +8,7 @@ import utime
 import math
 
 print("=" * 70)
-print("HB100 DOPPLER RADAR - IF ONLY (RAW ADC) TEST")
+print("HB100 DOPPLER radar - IF ONLY (RAW ADC) TEST")
 print("10.525GHz Microwave Motion Sensor")
 print("=" * 70)
 print()

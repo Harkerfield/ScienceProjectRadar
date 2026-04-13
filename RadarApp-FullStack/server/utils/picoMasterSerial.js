@@ -19,7 +19,7 @@ class PicoMasterSerial {
     this.deviceCache = {
       stepper: {},
       servo: {},
-      RADAR: {}
+      radar: {}
     };
   }
 
@@ -74,7 +74,7 @@ class PicoMasterSerial {
 
   /**
    * Send a command to a Pico device
-   * @param {string} device - Device name (stepper, servo, RADAR)
+   * @param {string} device - Device name (stepper, servo, radar)
    * @param {string} command - Command to send
    * @param {string|null} args - Optional command arguments
    * @param {number|null} timeout - Optional timeout override

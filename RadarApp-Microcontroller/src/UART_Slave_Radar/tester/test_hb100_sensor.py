@@ -8,7 +8,7 @@ import utime
 import math
 
 print("=" * 70)
-print("HB100 DOPPLER RADAR SENSOR TEST")
+print("HB100 DOPPLER radar SENSOR TEST")
 print("10.525GHz Microwave Motion Sensor (SKU: CQRSENWB01)")
 print("=" * 70)
 print()

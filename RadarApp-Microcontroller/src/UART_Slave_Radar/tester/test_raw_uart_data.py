@@ -300,7 +300,7 @@ def send_raw_command():
     print("SEND RAW COMMAND")
     print("-" * 70)
     print("Formats:")
-    print("  Text:  RADAR:ping\\n")
+    print("  Text:  radar:ping\\n")
     print("  Hex:   48 65 6C 6C 6F (space-separated hex bytes)")
     print()
     
@@ -388,7 +388,7 @@ def test_devices():
     devices = [
         ('stepper', 0x10),
         ('servo', 0x11),
-        ('RADAR', 0x20)
+        ('radar', 0x20)
     ]
     
     for name, addr in devices:
