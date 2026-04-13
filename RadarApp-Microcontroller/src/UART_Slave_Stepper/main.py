@@ -509,7 +509,11 @@ def process_uart_command(cmd_text):
         print(f"[UART-CMD] Device: {device}, Command: {cmd}, Args: {args}")
         
         # ========== STANDARD COMMANDS ==========
-        if cmd == "PING":
+        if cmd == "COMMANDS":
+            commands = "PING,WHOAMI,STATUS,HOME,MOVE,ROTATE,SPIN,STOP,ENABLE,DISABLE,SPEED"
+            send_uart_response(f"OK:commands={commands}")
+        
+        elif cmd == "PING":
             uptime_ms = utime.ticks_ms() - startup_time
             uptime_s = uptime_ms // 1000
             send_uart_response(f"OK:msg=alive:uptime={uptime_s}s")

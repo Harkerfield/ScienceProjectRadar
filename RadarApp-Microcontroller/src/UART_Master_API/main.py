@@ -41,6 +41,11 @@ SLAVES = {
     "RADAR": {"timeout_ms": 2000, "description": "Radar Sensor"},
 }
 
+# Device command registry - populated at startup
+device_commands = {}  # Format: {"SERVO": ["PING", "OPEN", "CLOSE", ...], ...}
+devices_initialized = False  # Flag to track if device discovery is complete
+initialization_attempts = 0  # Track retry attempts
+
 # Response tracking
 radar_distance = 0        # Distance in cm
 radar_confidence = 0      # Confidence 0-100%
@@ -114,6 +119,132 @@ def send_device_command(device, cmd, timeout_ms=None):
     except Exception as e:
         print(f"[UART-ERR] Communication with {device} failed: {e}")
         return None
+
+def initialize_device_registry():
+    """
+    Query all configured devices for their available commands.
+    Performs retry logic if devices don't respond initially.
+    Populates the global device_commands registry.
+    
+    Returns:
+        True if all devices found and registry populated, False otherwise
+    """
+    global device_commands, devices_initialized, initialization_attempts
+    
+    print("\n" + "=" * 70)
+    print("DEVICE DISCOVERY: Querying slave devices for available commands")
+    print("=" * 70)
+    
+    max_retries = 3
+    attempt = 0
+    
+    while attempt < max_retries and not devices_initialized:
+        attempt += 1
+        print(f"\nDiscovery Attempt {attempt}/{max_retries}...")
+        
+        found_all = True
+        
+        for device_name in SLAVES.keys():
+            if device_name in device_commands:
+                print(f"  ✓ {device_name}: {len(device_commands[device_name])} commands cached")
+                continue
+            
+            # Query device for commands
+            print(f"  → Querying {device_name}:COMMANDS...")
+            resp = send_device_command(device_name, "COMMANDS", timeout_ms=2000)
+            
+            if resp:
+                # Parse response format: DEVICE:OK:commands=CMD1,CMD2,CMD3,...
+                try:
+                    parts = resp.split(":")
+                    if len(parts) >= 3 and parts[1].upper() == "OK":
+                        # Extract commands from response
+                        for part in parts[2:]:
+                            if part.startswith("commands="):
+                                cmd_list = part.split("=", 1)[1].split(",")
+                                device_commands[device_name] = cmd_list
+                                print(f"    ✓ {device_name}: {len(cmd_list)} commands - {', '.join(cmd_list[:3])}...")
+                                break
+                        else:
+                            print(f"    ✗ {device_name}: Invalid command response format")
+                            found_all = False
+                    else:
+                        print(f"    ✗ {device_name}: Error response received")
+                        found_all = False
+                except Exception as e:
+                    print(f"    ✗ {device_name}: Parse error - {e}")
+                    found_all = False
+            else:
+                print(f"    ✗ {device_name}: No response (timeout)")
+                found_all = False
+        
+        if found_all and len(device_commands) == len(SLAVES):
+            devices_initialized = True
+            print("\n" + "=" * 70)
+            print("DEVICE DISCOVERY COMPLETE: All devices responded")
+            print("=" * 70)
+            return True
+        else:
+            found_count = len(device_commands)
+            total_count = len(SLAVES)
+            print(f"\n  → Found {found_count}/{total_count} devices")
+            if attempt < max_retries:
+                print(f"  → Retrying in 1 second...")
+                utime.sleep_ms(1000)
+    
+    if devices_initialized:
+        return True
+    
+    print("\n" + "=" * 70)
+    print("WARNING: Device discovery incomplete!")
+    print(f"Found {len(device_commands)}/{len(SLAVES)} devices")
+    print("Master will continue with partial device list")
+    print("Unknown devices will be checked again during operation")
+    print("=" * 70 + "\n")
+    return False
+
+def get_device_commands(device_name):
+    """
+    Get available commands for a device.
+    If not in registry, query device and cache result.
+    
+    Args:
+        device_name: Name of device (e.g., "STEPPER")
+    
+    Returns:
+        List of command strings or None if device not found
+    """
+    global device_commands
+    
+    device_upper = device_name.upper()
+    
+    # Check if already in registry
+    if device_upper in device_commands:
+        return device_commands[device_upper]
+    
+    # Check if it's a known device but not yet queried
+    if device_upper in SLAVES:
+        print(f"[REGISTRY] Querying {device_upper}:COMMANDS (not in cache)...")
+        resp = send_device_command(device_upper, "COMMANDS", timeout_ms=2000)
+        
+        if resp:
+            try:
+                parts = resp.split(":")
+                if len(parts) >= 3 and parts[1].upper() == "OK":
+                    for part in parts[2:]:
+                        if part.startswith("commands="):
+                            cmd_list = part.split("=", 1)[1].split(",")
+                            device_commands[device_upper] = cmd_list
+                            print(f"[REGISTRY] {device_upper} cached: {', '.join(cmd_list)}")
+                            return cmd_list
+            except Exception as e:
+                print(f"[REGISTRY] Parse error for {device_upper}: {e}")
+        
+        return None
+    
+    # Device not recognized
+    return None
+
 
 def parse_device_response(response_str, device):
     """
@@ -415,6 +546,28 @@ def process_command(line, source='uart'):
         # ========== MASTER COMMANDS ==========
         if line == 'MASTER:PING' or line == 'PING':
             response = master_ping()
+        elif line == 'MASTER:COMMANDS':
+            # List all devices and their available commands
+            commands_by_device = {
+                "MASTER": ["PING", "WHOAMI", "STATUS", "COMMANDS", "HELP"]
+            }
+            if device_commands:
+                # Add all slave device commands
+                commands_by_device.update(device_commands)
+            else:
+                # If registry not initialized, show configured devices with empty lists
+                for device in SLAVES.keys():
+                    commands_by_device[device] = []
+            
+            response = {
+                "s": "ok",
+                "device": "MASTER",
+                "msg": "All available device commands",
+                "commands": commands_by_device,
+                "registry_initialized": devices_initialized,
+                "total_devices": len(SLAVES),
+                "discovered_devices": len(device_commands)
+            }
         elif line == 'MASTER:WHOAMI' or line == 'WHOAMI':
             response = master_whoami()
         elif line == 'MASTER:STATUS' or line == 'STATUS':
@@ -566,6 +719,14 @@ def process_command(line, source='uart'):
         elif line == 'HELP':
             help_text = (
                 "Master Pico API - UART Device Bus\n\n"
+                "=== DEVICE DISCOVERY ===\n"
+                "  MASTER:COMMANDS    - List device commands (dynamic routing)\n"
+                "  DEVICE:COMMANDS    - Query any device for its supported commands\n\n"
+                "=== GENERIC ROUTING ===\n"
+                "  DEVICE:COMMAND[:ARGS] - Pass any command to any device\n"
+                "  Example: STEPPER:MOVE:90   - Move stepper to 90°\n"
+                "  Example: RADAR:SET_RANGE:150  - Set radar range to 150cm\n"
+                "  Case-insensitive device names (servo, SERVO, Servo all work)\n\n"
                 "=== MASTER ===\n"
                 "  MASTER:PING     - Master alive check\n"
                 "  MASTER:WHOAMI   - Master device identification\n"
@@ -578,24 +739,96 @@ def process_command(line, source='uart'):
                 "  SERVO:CLOSE       - Retract actuator\n"
                 "  SERVO:STATUS      - Get current state\n"
                 "  SERVO:PING        - Check connection\n"
-                "  SERVO:WHOAMI      - Identify device\n\n"
+                "  SERVO:WHOAMI      - Identify device\n"
+                "  SERVO:COMMANDS    - List available commands\n\n"
                 "=== STEPPER (Device: STEPPER) ===\n"
                 "  STEPPER:PING      - Check connection\n"
                 "  STEPPER:SPIN:<speed>   - Start spinning\n"
                 "  STEPPER:STOP      - Stop motion\n"
                 "  STEPPER:STATUS    - Get current state\n"
-                "  STEPPER:WHOAMI    - Identify device\n\n"
+                "  STEPPER:WHOAMI    - Identify device\n"
+                "  STEPPER:COMMANDS  - List available commands\n"
+                "  STEPPER:MOVE:<angle> - Move to absolute angle\n"
+                "  STEPPER:ROTATE:<delta> - Rotate by relative amount\n"
+                "  STEPPER:HOME      - Find home position\n"
+                "  STEPPER:SPEED:<us> - Set motor speed\n\n"
                 "=== RADAR (Device: RADAR) ===\n"
                 "  RADAR:PING        - Check connection\n"
                 "  RADAR:READ        - Read sensor data\n"
                 "  RADAR:STATUS      - Get current state\n"
-                "  RADAR:WHOAMI      - Identify device\n\n"
+                "  RADAR:WHOAMI      - Identify device\n"
+                "  RADAR:COMMANDS    - List available commands\n\n"
                 "=== System ===\n"
                 "  HELP               - Show this help\n\n"
-                "All responses include: {'s': 'ok/error', 'msg': 'description', ...}\n"
+                "Response Format: {'s': 'ok/error', 'msg': 'description', 'data': {...}}\n"
+                "For any DEVICE:COMMAND that fails, check available commands with DEVICE:COMMANDS\n"
             )
             print(help_text)
             response = help_text.encode()
+        
+        # ========== GENERIC DEVICE COMMAND ROUTER ==========
+        # Handle any DEVICE:COMMAND[:ARGS] format
+        elif ':' in line:
+            try:
+                parts = line.split(':', 1)
+                device_name = parts[0].upper()
+                cmd_with_args = parts[1]
+                
+                # Check if device exists
+                if device_name not in SLAVES:
+                    response = {
+                        "s": "error",
+                        "msg": f"Unknown device: {device_name}",
+                        "available_devices": list(SLAVES.keys())
+                    }
+                else:
+                    # Get device's command list
+                    cmd_list = get_device_commands(device_name)
+                    
+                    if cmd_list is None:
+                        # Device not responding yet - try direct command anyway
+                        print(f"[ROUTER] Device {device_name} not in registry, attempting direct command...")
+                        resp = send_device_command(device_name, cmd_with_args)
+                        if resp:
+                            response = parse_device_response(resp, device_name)
+                        else:
+                            response = {
+                                "s": "error",
+                                "msg": f"Device {device_name} not responding",
+                                "hint": "Device may not be powered on or connected"
+                            }
+                    else:
+                        # Extract command name (before any colon or other parameters)
+                        cmd_name = cmd_with_args.split(':')[0].split('=')[0].upper()
+                        
+                        # Check if command is supported
+                        supported_commands = [c.upper() for c in cmd_list]
+                        
+                        if cmd_name not in supported_commands:
+                            response = {
+                                "s": "error",
+                                "msg": f"Command '{cmd_name}' not supported by device {device_name}",
+                                "available_commands": cmd_list
+                            }
+                        else:
+                            # Send command to device
+                            resp = send_device_command(device_name, cmd_with_args)
+                            if resp:
+                                response = parse_device_response(resp, device_name)
+                            else:
+                                response = {
+                                    "s": "error",
+                                    "msg": f"No response from device {device_name}",
+                                    "hint": "Device may be busy or unresponsive"
+                                }
+            except Exception as e:
+                print(f"[ROUTER] Error processing generic command: {e}")
+                response = {
+                    "s": "error",
+                    "msg": f"Command processing error: {type(e).__name__}",
+                    "details": str(e)
+                }
+        
         else:
             print(f"[UNKNOWN] Command not recognized: {line}")
             response = b'UNKNOWN\n'
@@ -620,6 +853,13 @@ print("=" * 70)
 print("Server -> Master -> Slave -> Master -> Server")
 print("Type 'HELP' for available commands")
 print("=" * 70)
+
+# Initialize device registry by querying all slaves for their commands
+initialize_device_registry()
+
+print("\n" + "=" * 70)
+print("Master Ready - Waiting for server commands...")
+print("=" * 70 + "\n")
 
 while True:
     # ========== REQUEST FROM SERVER via UART ==========

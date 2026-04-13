@@ -121,7 +121,11 @@ def process_uart_command(cmd_text):
         print(f"[UART-CMD] Device: {device}, Command: {cmd}, Args: {args}")
         
         # ========== STANDARD COMMANDS ==========
-        if cmd == "PING":
+        if cmd == "COMMANDS":
+            commands = "PING,WHOAMI,STATUS,READ,SET_RANGE,SET_VELOCITY"
+            send_uart_response(f"OK:commands={commands}")
+        
+        elif cmd == "PING":
             send_uart_response(f"OK:msg=alive")
         
         elif cmd == "WHOAMI":
