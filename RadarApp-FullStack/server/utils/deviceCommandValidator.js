@@ -9,9 +9,9 @@ const deviceCommands = require('../config/deviceCommands.json');
  * @returns {object} { valid: boolean, error?: string, device?: string, command?: string }
  */
 function validateDeviceCommand(device, command, args) {
-    // Normalize device and command to uppercase for case-insensitive lookup
-    const normalizedDevice = device.toUpperCase();
-    const normalizedCommand = command.toUpperCase();
+    // Normalize device and command to lowercase for case-insensitive lookup
+    const normalizedDevice = device.toLowerCase();
+    const normalizedCommand = command.toLowerCase();
 
     // Check if device exists
     if (!deviceCommands[normalizedDevice]) {
@@ -59,7 +59,10 @@ function validateDeviceCommand(device, command, args) {
  * @returns {string} Formatted command (DEVICE:COMMAND[:ARGS])
  */
 function formatDeviceCommand(device, command, args) {
-    let cmd = `${device}:${command}`;
+    // Convert to uppercase for transmission to Pico Master
+    const deviceUpper = device.toUpperCase();
+    const commandUpper = command.toUpperCase();
+    let cmd = `${deviceUpper}:${commandUpper}`;
     
     if (args && typeof args === 'object' && Object.keys(args).length > 0) {
         // Map of commands that use positional arguments (just the value, not key=value)
@@ -72,7 +75,7 @@ function formatDeviceCommand(device, command, args) {
             'set_velocity': 'meters_per_second'  // set_velocity:5.0
         };
 
-        const cmdKey = positionalCommands[command];
+        const cmdKey = positionalCommands[command.toLowerCase()];
         
         if (cmdKey && args[cmdKey] !== undefined) {
             // Use positional argument format (just the value)

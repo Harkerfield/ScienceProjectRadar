@@ -219,8 +219,8 @@ function createUnifiedDeviceRoutes(serialComm, logger) {
             const { device, command } = req.params;
             
             // Only allow read-only commands via GET
-            const readOnlyCommands = ['status', 'INFO', 'HEARTBEAT', 'enable', 'ping', 'whoami'];
-            if (!readOnlyCommands.includes(command.toUpperCase())) {
+            const readOnlyCommands = ['status', 'info', 'heartbeat', 'enable', 'ping', 'whoami'];
+            if (!readOnlyCommands.includes(command.toLowerCase())) {
                 return res.status(405).json({
                     success: false,
                     error: `Command ${command} must use POST method`,
