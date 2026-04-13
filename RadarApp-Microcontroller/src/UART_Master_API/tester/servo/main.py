@@ -26,7 +26,7 @@ print("[INIT] LED turned ON")
 try:
     servo = PWM(Pin(2))
     servo.freq(50)  # 50Hz for RC servo
-    servo.duty_u16(3276)  # Start in closeD position (~1ms pulse)
+    servo.duty_u16(3276)  # Start in closed position (~1ms pulse)
     print("[INIT] Servo PWM initialized on GPIO 2 (closed position)")
 except Exception as e:
     print(f"[error] Servo init failed: {e}")
@@ -44,7 +44,7 @@ print("[readY] Waiting for commands: ping, open, close, whoami, status")
 print("=" * 60 + "\n")
 
 # Track servo state
-servo_state = "closeD"  # Start in closeD position
+servo_state = "closed"  # Start in closed position
 startup_time = utime.ticks_ms()  # Record startup time for uptime tracking
 
 def send_response(response_str):
@@ -118,7 +118,7 @@ def process_command(cmd_text):
         print("[servo] Moving to close position")
         if servo:
             servo.duty_u16(3276)  # ~1ms pulse (full retraction)
-        servo_state = "closeD"
+        servo_state = "closed"
         response = "servo:close:OK"
         action_wait_ms = 6000  # Wait 6 seconds for servo to complete movement
         print(f"[servo] Waiting 6 seconds for movement to complete...")

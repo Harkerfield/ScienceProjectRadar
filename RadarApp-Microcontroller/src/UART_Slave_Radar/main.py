@@ -1,4 +1,5 @@
-# MicroPython UART Slave - Radar Sensor Controller
+#v.Final J. 2026-04-13
+# # MicroPython UART Slave - Radar Sensor Controller
 # NOTE: This code runs on Raspberry Pi Pico only, not on standard Python
 # Requires MicroPython firmware installed on Pico
 # UART Slave (on shared UART1 bus with device addressing)

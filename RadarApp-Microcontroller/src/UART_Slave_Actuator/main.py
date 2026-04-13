@@ -1,4 +1,5 @@
-# MicroPython UART Slave - Servo Actuator Controller
+#v.Final J. 2026-04-13
+# # MicroPython UART Slave - Servo Actuator Controller
 # NOTE: This code runs on Raspberry Pi Pico only, not on standard Python
 # Requires MicroPython firmware installed on Pico
 # UART Slave (on shared UART1 bus with device addressing)
@@ -48,7 +49,7 @@ device_name = "servo"
 try:
     servo = PWM(Pin(2))
     servo.freq(50)  # 50Hz for RC servo
-    servo.duty_u16(3276)  # Start in closeD position (~1ms pulse)
+    servo.duty_u16(3276)  # Start in closed position (~1ms pulse)
     print("[INIT] Servo PWM initialized on GPIO 2 (closed position)")
 except Exception as e:
     print(f"[error] Servo init failed: {e}")
@@ -59,7 +60,7 @@ print("[readY] Waiting for commands on shared UART1 bus")
 print("=" * 50 + "\n")
 
 # Track servo state
-servo_state = "closeD"  # Start in closeD position
+servo_state = "closed"  # Start in closed position
 startup_time = utime.ticks_ms()  # Record startup time for uptime tracking
 
 # ============ UART COMMUNICATION LAYER ============
@@ -135,19 +136,19 @@ def process_uart_command(cmd_text):
             print("[servo] Moving to open position")
             if servo:
                 servo.duty_u16(6553)  # ~2ms pulse (full extension)
-            servo_state = "open"
-            print(f"[servo] Waiting 6 seconds for movement to complete...")
-            utime.sleep_ms(6000)  # Wait for servo to complete movement
-            send_uart_response(f"ok:msg=opened:state=open")
+                servo_state = "open"
+                send_uart_response(f"ok:msg=opened:state=open")
+            else:
+                send_uart_response(f"error:servo_not_initialized")
         
         elif cmd == "close":
             print("[servo] Moving to close position")
             if servo:
                 servo.duty_u16(3276)  # ~1ms pulse (full retraction)
-            servo_state = "closed"
-            print(f"[servo] Waiting 6 seconds for movement to complete...")
-            utime.sleep_ms(6000)  # Wait for servo to complete movement
-            send_uart_response(f"ok:msg=closed:state=closed")
+                servo_state = "closed"
+                send_uart_response(f"ok:msg=closed:state=closed")
+            else:
+                send_uart_response(f"error:servo_not_initialized")
         
         else:
             send_uart_response(f"error:unknown_command:{cmd}")
@@ -155,6 +156,61 @@ def process_uart_command(cmd_text):
     except Exception as e:
         print(f"[UART-ERR] Command processing error: {type(e).__name__}: {e}")
         send_uart_response(f"error:command_error:{str(e)[:30]}")
+
+def simple_response(cmd, status, **kwargs):
+    """Create simple text response - colon-separated format"""
+    parts = [status]
+    for k, v in kwargs.items():
+        parts.append(f"{k}={v}")
+    return ":".join(parts)
+
+def process_usb_command(line):
+    """Process USB serial command from REPL (stdin)
+    Accepts formats: "ping", "servo:ping", "open", "servo:open"
+    """
+    global servo_state
+    try:
+        cmd = line.strip().lower()
+        
+        # Strip device prefix if present (servo:ping -> ping)
+        if ":" in cmd and cmd.startswith("servo:"):
+            cmd = cmd.split(":", 1)[1]
+        
+        # ========== COMMANDS ==========
+        if cmd == "ping":
+            uptime_ms = utime.ticks_ms() - startup_time
+            uptime_s = uptime_ms // 1000
+            return simple_response("ping", "OK", UPTIME=f"{uptime_s}s")
+        
+        elif cmd == "status":
+            return simple_response("status", "OK", STATE=servo_state)
+        
+        elif cmd == "whoami":
+            return simple_response("whoami", "OK", DEVICE="servo", TYPE="actuator")
+        
+        elif cmd == "open":
+            print("[servo] Moving to open position")
+            if servo:
+                servo.duty_u16(6553)  # ~2ms pulse
+                servo_state = "open"
+                return simple_response("open", "OK", STATE="open")
+            else:
+                return simple_response("open", "error", MSG="servo_not_initialized")
+        
+        elif cmd == "close":
+            print("[servo] Moving to close position")
+            if servo:
+                servo.duty_u16(3276)  # ~1ms pulse
+                servo_state = "closed"
+                return simple_response("close", "OK", STATE="closed")
+            else:
+                return simple_response("close", "error", MSG="servo_not_initialized")
+        
+        else:
+            return simple_response("error", "UNKNOWN_CMD", CMD=cmd)
+    
+    except Exception as e:
+        return f"Error: {e}"
 
 print("=" * 50)
 print("Servo Actuator Pico Firmware - UART REST API Compatible")
@@ -183,20 +239,24 @@ print("=" * 50)
 print()
 
 # Main loop
-uart_buffer = b""  # Buffer for reading UART data command
-loop_count = 0
+uart_buffer = b""  # Buffer for reading UART data
+last_blink_time = utime.ticks_ms()
+led_state = True
+blink_interval = 500  # 500ms on/off for visibility
 
 print("[INIT] Starting main loop...")
 print()
 
 while True:
-    loop_count += 1
-    
-    # Blink LED slowly to show we're alive
-    if loop_count % 100 == 0:
-        led.off()
-    elif loop_count % 50 == 0:
-        led.on()
+    # Accurate LED blinking (500ms on, 500ms off)
+    current_time = utime.ticks_ms()
+    if current_time - last_blink_time >= blink_interval:
+        last_blink_time = current_time
+        led_state = not led_state
+        if led_state:
+            led.on()
+        else:
+            led.off()
     
     # Check for incoming UART data (commands from master)
     while uart_slaves.any():
@@ -215,5 +275,17 @@ while True:
             if len(uart_buffer) > 256:
                 uart_buffer = b""
                 send_uart_response("error:buffer_overflow")
+    
+    # Check for USB/stdin commands
+    try:
+        line = sys.stdin.readline()
+        if line:
+            line = line.strip()
+            if line:
+                print(f"[STDIN] Received: {line}")
+                resp = process_usb_command(line)
+                print(f"Result: {resp}")
+    except:
+        pass
     
     utime.sleep_ms(10)

@@ -1,3 +1,4 @@
+#v.Final J. 2026-04-13
 # MicroPython UART Master for Raspberry Pi Pico
 # NOTE: This code runs on Raspberry Pi Pico only, not on standard Python
 # Requires MicroPython firmware installed on Pico

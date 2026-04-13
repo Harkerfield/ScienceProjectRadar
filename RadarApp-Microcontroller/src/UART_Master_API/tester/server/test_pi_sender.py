@@ -62,7 +62,7 @@ def main():
                 print(f"Error: {e}\n")
         
         ser.close()
-        print("✓ Closed")
+        print("✓ closed")
         
     except serial.SerialException as e:
         print(f"✗ Serial Error: {e}")

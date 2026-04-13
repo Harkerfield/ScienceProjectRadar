@@ -1,10 +1,12 @@
-# MicroPython UART Slave - Stepper Motor Controller
+#v.Final J. 2026-04-13
+# # MicroPython UART Slave - Stepper Motor Controller
 # NOTE: This code runs on Raspberry Pi Pico only, not on standard Python
 # Requires MicroPython firmware installed on Pico
 # UART Slave (on shared UART1 bus with device addressing)
 # Command Format: stepper:COMMAND[:ARGS]
 # Response Format: stepper:status[:DATA]
 # Commands: ping, status, whoami, spin:<speed>, stop, home, move:<angle>, rotate:<degrees>, enable, disable, speed:<us>
+
 
 from machine import UART, Pin
 import utime
@@ -45,9 +47,9 @@ print("[INIT] LED turned ON")
 
 
 # Stepper Motor Driver Pins
-PUL_PIN = 5              # Pulse pin
-DIR_PIN = 6              # Direction pin
-ENA_PIN = 7              # Enable pin
+PUL_PIN = 8              # Pulse pin (changed from 5 to avoid UART RX conflict)
+DIR_PIN = 9              # Direction pin (changed from 6)
+ENA_PIN = 10             # Enable pin (changed from 7)
 
 # Sensor Pin
 SENSOR_PIN = 20          # Inductive home sensor
@@ -755,10 +757,19 @@ def simple_response(cmd, status, **kwargs):
 def process_usb_command(line):
     """Process USB serial command - same functionality as I2C
     Returns simple text format compatible with I2C protocol
+    Accepts formats: "ping", "stepper:ping", "move:90", "move 90"
     """
     global stepper_position, stepper_enabled, stepper_at_home, continuous_rotating, continuous_direction, continuous_revolutions, home_last_state, current_speed_us
     try:
         cmd = line.strip().lower()
+        
+        # Strip device prefix if present (stepper:ping -> ping)
+        if ":" in cmd and cmd.startswith("stepper:"):
+            cmd = cmd.split(":", 1)[1]  # Take everything after first colon
+        
+        # Convert spaces to colons for consistency (move 90 -> move:90)
+        if " " in cmd:
+            cmd = cmd.replace(" ", ":", 1)  # Replace only first space with colon
         
         # HELP - list available commands or show detailed help for a command
         if cmd == 'HELP':
@@ -1144,6 +1155,38 @@ def process_usb_command(line):
         elif cmd == 'whoami':
             return simple_response("whoami", "OK", DEVICE="stepper", TYPE="motor_controller")
         
+        # spin:<speed> - start continuous rotation
+        elif cmd.startswith('spin:'):
+            try:
+                speed = int(cmd.split(':')[1])
+                if MIN_speed_US <= speed <= MAX_speed_US:
+                    current_speed_us = speed
+                    continuous_rotating = True
+                    continuous_direction = CW
+                    enable_motor()
+                    print(f"[USB] ACTION: spin at {speed}µs")
+                    return simple_response("spin", "OK", speed=speed, direction="CW")
+                else:
+                    return simple_response("error", "speed_OUT_OF_RANGE", MIN=MIN_speed_US, MAX=MAX_speed_US)
+            except ValueError:
+                return simple_response("error", "INVALID_speed")
+        
+        # stop - stop continuous rotation
+        elif cmd == 'stop':
+            if continuous_rotating:
+                continuous_rotating = False
+                disable_motor()
+                print(f"[USB] ACTION: stop rotation")
+                return simple_response("stop", "OK", POS=round(stepper_position, 1), REV=continuous_revolutions)
+            else:
+                return simple_response("error", "NOT_ROTATING")
+        
+        # home - find and calibrate home position
+        elif cmd == 'home':
+            print(f"[USB] ACTION: find home")
+            result = find_home_complete()
+            return simple_response("home", "OK", POS=0, CALIB=1) if result else simple_response("home", "error", MSG="home_not_found")
+        
         else:
             return simple_response("error", "UNKNOWN_CMD", CMD=cmd)
     
@@ -1166,15 +1209,6 @@ print("[STARTUP] Stepper motor GPIO pins configured")
 print(f"[STARTUP]  PUL (Pulse): GPIO {PUL_PIN}")
 print(f"[STARTUP]  DIR (Direction): GPIO {DIR_PIN}")
 print(f"[STARTUP]  ENA (Enable): GPIO {ENA_PIN}")
-print("=" * 50)
-print(f"MicroPython Version: {sys.version}")
-print(f"MicroPython Implementation: {sys.implementation}")
-print("=" * 50)
-
-print("[STARTUP] Stepper motor GPIO pins configured")
-print(f"[STARTUP]  PUL (Pulse): GPIO {PUL_PIN}")
-print(f"[STARTUP]  DIR (Direction): GPIO {DIR_PIN}")
-print(f"[STARTUP]  ENA (Enable): GPIO {ENA_PIN}")
 print("[STARTUP] UART slave initialized")
 print("[STARTUP] UART command handler configured")
 print("[STARTUP] Performing stepper initialization...")
@@ -1183,12 +1217,8 @@ print()
 print("=" * 50)
 print("[INIT] Starting stepper initialization...")
 print("=" * 50)
-print("[INIT] Finding home position...")
-result = find_home_fast()
-if result:
-    print("[stepper] Homed to 0° (position: 0°)")
-else:
-    print("[stepper] WARNING: Home finding failed")
+print("[INIT] Skipping auto home-find at startup (use 'stepper:home' command)")
+print("[INIT] Home finding disabled to prevent upload blocking")
 print("[INIT] Initialization complete!")
 print("=" * 50)
 print()
@@ -1312,5 +1342,5 @@ while True:
     except:
         pass
     
-    # Short sleep for system responsiveness
-    utime.sleep_us(100)
+    # Short sleep for system responsiveness (increased to allow uploads)
+    utime.sleep_ms(10)  # 10ms instead of 100µs to yield to system
