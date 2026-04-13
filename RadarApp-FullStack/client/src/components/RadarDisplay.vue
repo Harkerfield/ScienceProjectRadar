@@ -425,7 +425,8 @@ export default {
     },
 
     handleMouseMove(event) {
-      const rect = this.$refs.radarCanvas.getBoundingClientRect()
+      // Use container rect instead of canvas rect for accurate positioning
+      const rect = this.$refs.radarContainer.getBoundingClientRect()
       const x = event.clientX - rect.left
       const y = event.clientY - rect.top
 
