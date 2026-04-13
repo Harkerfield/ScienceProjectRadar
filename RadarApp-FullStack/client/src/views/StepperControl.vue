@@ -14,8 +14,12 @@
         <h2>Motor Status</h2>
         <div class="status-grid">
           <div class="status-item">
-            <span class="label">Current Position:</span>
+            <span class="label">Stepper Position:</span>
             <span class="value">{{ currentPosition }}°</span>
+          </div>
+          <div class="status-item">
+            <span class="label">Actuator Position:</span>
+            <span class="value">{{ actuatorPosition }}°</span>
           </div>
           <div class="status-item">
             <span class="label">Target Position:</span>
@@ -30,6 +34,7 @@
             <span class="value" :class="actuatorStateClass">{{ actuatorState }}</span>
           </div>
           <div class="status-item">
+            <span class="label">Speed:</span>
             <span class="value">{{ currentSpeed }} RPM</span>
           </div>
         </div>
@@ -242,7 +247,8 @@ export default {
       'isMoving'
     ]),
     ...mapGetters('actuator', [
-      'state'
+      'state',
+      'position'
     ]),
 
     stepperConnected() {
@@ -263,6 +269,10 @@ export default {
 
     actuatorState() {
       return this.state || 'unknown'
+    },
+
+    actuatorPosition() {
+      return this.position || 0
     },
 
     actuatorStateClass() {

@@ -522,13 +522,13 @@ canvas {
   width: 24px;
   height: 2px;
   top: -1px;
-  left: -12px;
+  left: -1px;
 }
 
 .radar-crosshair::after {
   width: 2px;
   height: 24px;
-  top: -12px;
+  top: -1px;
   left: -1px;
 }
 
