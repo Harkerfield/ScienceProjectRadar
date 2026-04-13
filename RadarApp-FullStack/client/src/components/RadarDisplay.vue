@@ -507,7 +507,7 @@ canvas {
   position: absolute;
   pointer-events: none;
   z-index: 10;
-  transform: translate(-50%, -50%);
+  transform: translate(-10%, -10%);
 }
 
 .radar-crosshair::before,
@@ -522,13 +522,13 @@ canvas {
   width: 24px;
   height: 2px;
   top: -1px;
-  left: -1px;
+  left: -12px;
 }
 
 .radar-crosshair::after {
   width: 2px;
   height: 24px;
-  top: -1px;
+  top: -12px;
   left: -1px;
 }
 
