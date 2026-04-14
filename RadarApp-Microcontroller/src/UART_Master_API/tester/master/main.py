@@ -86,8 +86,8 @@ if uart:
         if timeout_ms is None:
             timeout_ms = DEVICES.get(device, {}).get("timeout", 2000)
         
-        is_ping = (cmd.upper() == "ping")
-        is_action = (cmd.upper() in ["open", "close"])
+        is_ping = (cmd.lower() == "ping")
+        is_action = (cmd.lower() in ["open", "close"])
         
         # Override timeout for long-running actions
         if is_action and device == "servo":

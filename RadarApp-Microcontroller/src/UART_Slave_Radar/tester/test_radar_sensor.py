@@ -187,7 +187,7 @@ def run_interactive_mode():
                 continue
             
             parts = cmd_line.split()
-            cmd = parts[0].upper()
+            cmd = parts[0].lower()
             arg = parts[1] if len(parts) > 1 else ""
             
             if cmd == "EXIT":

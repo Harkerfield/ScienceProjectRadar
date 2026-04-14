@@ -78,7 +78,7 @@ def read_command(timeout_ms=500):
 def process_command(cmd_text):
     """Process servo command and send response"""
     global servo_state
-    cmd_text = cmd_text.upper().strip()
+    cmd_text = cmd_text.lower().strip()
     print(f"\n[RECV] Raw command: {cmd_text}")
     
     # Parse device:command format

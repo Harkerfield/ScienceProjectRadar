@@ -1,11 +1,12 @@
-#v.Final J. 2026-04-13
+# v.Final J. 2026-04-13
+# Radar sensor controller code for Raspberry Pi Pico using MicroPython
 # # MicroPython UART Slave - Radar Sensor Controller
 # NOTE: This code runs on Raspberry Pi Pico only, not on standard Python
 # Requires MicroPython firmware installed on Pico
 # UART Slave (on shared UART1 bus with device addressing)
 # 
-# Command Format: radar:COMMAND[:ARGS]
-# Response Format: radar:status[:DATA]
+# Command Format: radar:command[:args]
+# Response Format: radar:status[:data]
 #
 # Available Commands:
 #   ping              - Alive check (responds with address)
@@ -58,6 +59,9 @@ print(f"[STARTUP] UART slave initialized (TX=GPIO{UART_TX_PIN}, RX=GPIO{UART_RX_
 # ============ DEVICE IDENTIFICATION ============
 device_name = "radar"
 
+# ============ SUPPORTED COMMANDS ============
+SUPPORTED_COMMANDS = ["ping", "whoami", "status", "read", "set_range", "set_velocity"]
+
 # Sensor simulation data
 radar_range = 123      # Distance in cm
 radar_velocity = 4.5   # Velocity in m/s
@@ -81,50 +85,50 @@ def send_uart_response(status_msg):
     Args:
         status_msg: Status message (e.g., "OK:range=123" or "error:invalid_command")
     """
+    # Small delay to let master clear its RX buffer after command transmission
+    utime.sleep_ms(50)
+    
     response = f"{device_name}:{status_msg}\n"
     uart_slaves.write(response.encode())
+    utime.sleep_ms(10)  # Allow buffer to flush on shared UART bus
     print(f"[UART-SEND] {response.strip()}")
     return response
 
-def process_usb_command_old(line):
-    """Legacy USB command processing - DEPRECATED"""
-    pass
-
-def process_uart_command(cmd_text):
-    """Process UART command received from master.
-    Format: radar:COMMAND[:ARGS]
-    Response: radar:status[:DATA]
-    
-    Supports commands: ping, status, whoami, read
+def process_command(cmd_text, source="unknown"):
+    """Process command from either UART or USB/REPL.
+    Format: radar:command[:args]
+    Sends response via send_uart_response
     """
     global radar_range, radar_velocity
     
     try:
+        cmd_text = cmd_text.strip().lower()
         if not cmd_text:
-            send_uart_response("error:empty_command")
             return
         
-        # Parse command format: radar:COMMAND[:ARGS]
-        parts = cmd_text.strip().split(":", 2)  # Split on first 2 colons only
+        print(f"[CMD-{source.lower()}] {cmd_text}")
+        
+        # Parse command format: radar:command[:args]
+        parts = cmd_text.split(":", 2)
         
         if len(parts) < 2:
-            send_uart_response("error:invalid_format")
-            return
+            # Handle legacy format: just "read" -> auto-prefix with device
+            parts = [device_name, parts[0]]
         
         device = parts[0].lower()
         if device != device_name:
-            send_uart_response(f"error:wrong_device:{device}")
+            # Silently ignore commands not for this device on UART (shared bus)
+            # Only respond to errors if from USB/REPL
+            if source == "usb":
+                send_uart_response(f"error:wrong_device:{device}")
             return
         
         cmd = parts[1].lower()
         args = parts[2] if len(parts) > 2 else ""
         
-        print(f"[UART-CMD] Device: {device}, Command: {cmd}, Args: {args}")
-        
         # ========== STANDARD COMMANDS ==========
         if cmd == "commands":
-            commands = "ping,whoami,status,read,set_range,set_velocity"
-            send_uart_response(f"ok:commands={commands}")
+            send_uart_response(f"ok:commands={','.join(SUPPORTED_COMMANDS)}")
         
         elif cmd == "ping":
             send_uart_response(f"ok:msg=alive")
@@ -153,68 +157,35 @@ def process_uart_command(cmd_text):
             send_uart_response(f"ok:range={radar_range}:velocity={radar_velocity:.1f}:confidence={int(confidence)}:movement={movement}")
         
         elif cmd == "set_range":
-            # Command format: radar:set_range:centimeters
-            global radar_range
-            try:
-                if args:
+            if args:
+                try:
                     radar_range = int(args)
-                send_uart_response(f"ok:msg=range_set:range={radar_range}")
-            except:
-                send_uart_response(f"error:invalid_range")
+                    send_uart_response(f"ok:msg=range_set:range={radar_range}")
+                except:
+                    send_uart_response(f"error:invalid_range:{args}")
+            else:
+                send_uart_response(f"error:missing_range_value")
         
         elif cmd == "set_velocity":
-            # Command format: radar:set_velocity:meters_per_second
-            global radar_velocity
-            try:
-                if args:
+            if args:
+                try:
                     radar_velocity = float(args)
-                send_uart_response(f"ok:msg=velocity_set:velocity={radar_velocity:.1f}")
-            except:
-                send_uart_response(f"error:invalid_velocity")
+                    send_uart_response(f"ok:msg=velocity_set:velocity={radar_velocity:.1f}")
+                except:
+                    send_uart_response(f"error:invalid_velocity:{args}")
+            else:
+                send_uart_response(f"error:missing_velocity_value")
         
         else:
             send_uart_response(f"error:unknown_command:{cmd}")
     
     except Exception as e:
-        print(f"[UART-ERR] Command processing error: {type(e).__name__}: {e}")
+        print(f"[CMD-ERR] Processing error: {type(e).__name__}: {e}")
         send_uart_response(f"error:command_error:{str(e)[:30]}")
 
-def json_response(status, **kwargs):
-    """Create minimal JSON response string - DEPRECATED for USB commands"""
-    items = [f'"s":"{status}"']
-    for k, v in kwargs.items():
-        if isinstance(v, str):
-            items.append(f'"{k}":"{v}"')
-        else:
-            items.append(f'"{k}":{v}')
-    return "{" + ",".join(items) + "}"
-
-def process_usb_command(line):
-    """Process USB serial command - Legacy JSON format"""
-    global radar_range, radar_velocity
-    try:
-        cmd = line.strip().lower()
-        print(f"[USB] Received: {cmd}")
-        if cmd.startswith('RANGE:'):
-            radar_range = int(cmd.split(':')[1])
-            return json_response("ok", msg="range_set", range=radar_range, vel=radar_velocity)
-        elif cmd.startswith('VEL:'):
-            radar_velocity = float(cmd.split(':')[1])
-            return json_response("ok", msg="vel_set", range=radar_range, vel=radar_velocity)
-        elif cmd == 'read':
-            return json_response("ok", range=radar_range, vel=radar_velocity)
-        elif cmd == 'status':
-            return json_response("ok", msg="operational", range=radar_range, vel=radar_velocity)
-        elif cmd == 'ping':
-            return json_response("ok", msg="alive")
-        elif cmd == 'whoami':
-            return json_response("ok", device="radar", type="distance_sensor")
-        elif cmd == 'HELP':
-            return "Commands: RANGE:<cm>|VEL:<m/s>|read|status|ping|whoami|HELP"
-        else:
-            return json_response("error", msg="unknown_command")
-    except Exception as e:
-        return json_response("error", msg="command_error")
+def process_uart_command(cmd_text):
+    """Deprecated wrapper - routes to unified process_command"""
+    process_command(cmd_text, source="uart")
 
 print("=" * 70)
 print("Radar Pico Firmware Loaded Successfully!")
@@ -226,7 +197,7 @@ print("[UART] Listening for commands from Master Pico on UART1")
 print("=" * 70)
 print()
 print("UART Protocol (shared bus with stepper and servo):")
-print("  Format: radar:COMMAND[:ARGS]")
+print("  Format: radar:command[:args]")
 print("  Response: radar:status[:DATA]")
 print()
 print("Available Commands:")
@@ -275,6 +246,8 @@ while True:
     # Check for incoming UART data (commands from master)
     while uart_slaves.any():
         byte = uart_slaves.read(1)
+        if not byte:
+            continue
         if byte == b'\n':
             # Complete command received
             cmd_text = uart_buffer.decode().strip()
@@ -282,12 +255,22 @@ while True:
             
             if cmd_text:
                 print(f"[UART-RECV] {cmd_text}")
-                process_uart_command(cmd_text)
+                process_command(cmd_text, source="uart")
         else:
             uart_buffer += byte
             # Prevent buffer overflow
             if len(uart_buffer) > 256:
                 uart_buffer = b""
                 send_uart_response("error:buffer_overflow")
+    
+    # Check for USB/stdin commands
+    try:
+        result = select.select([sys.stdin], [], [], 0)
+        if result and result[0]:
+            line = sys.stdin.readline()
+            if line:
+                process_command(line.strip(), source="usb")
+    except:
+        pass
     
     utime.sleep_ms(100)
