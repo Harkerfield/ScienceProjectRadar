@@ -60,7 +60,7 @@ print(f"[STARTUP] UART slave initialized (TX=GPIO{UART_TX_PIN}, RX=GPIO{UART_RX_
 device_name = "radar"
 
 # ============ SUPPORTED COMMANDS ============
-SUPPORTED_COMMANDS = ["ping", "whoami", "status", "read", "set_range", "set_velocity"]
+SUPPORTED_COMMANDS = ["commands", "ping", "whoami", "status", "read", "set_range", "set_velocity"]
 
 # Sensor simulation data
 radar_range = 123      # Distance in cm

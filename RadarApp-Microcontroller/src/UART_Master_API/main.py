@@ -43,8 +43,11 @@ SLAVES = {
     "radar": {"timeout_ms": 3000, "description": "Radar Sensor"},  # Increased for shared bus
 }
 
+# Common device names to attempt discovery during startup (allows dynamic discovery)
+DISCOVERABLE_DEVICES = ["servo", "stepper", "radar"]  # Devices to try discovering even if not in SLAVES
+
 # Device command registry - populated at startup
-device_commands = {"master": ["ping", "status", "commands", "whoami", "slaves"]}  # Format: {"servo": ["ping", "open", "close", ...], ...}
+device_commands = {"master": ["ping", "status", "commands", "whoami", "rediscover", "scan", "force"]}  # Format: {"servo": ["ping", "open", "close", ...], ...}
 devices_initialized = False  # Flag to track if device discovery is complete
 initialization_attempts = 0  # Track retry attempts
 
@@ -59,6 +62,121 @@ def flush_uart_buffer():
     while uart_slaves.any():
         uart_slaves.read()
     utime.sleep_ms(50)
+
+def send_uart_command_raw(device, cmd, timeout_ms=3000):
+    """
+    Send raw command to device without checking SLAVES config.
+    Used for network scanning and discovery.
+    
+    Returns:
+        Response string or None if timeout/error
+    """
+    full_cmd = f"{device}:{cmd}\n"
+    
+    try:
+        # Flush buffer before sending to clear any stale data
+        flush_uart_buffer()
+        utime.sleep_ms(50)
+        
+        # Send command
+        print(f"[SCAN-SEND] {device}:{cmd}")
+        uart_slaves.write(full_cmd.encode())
+        utime.sleep_ms(20)  # Allow TX to complete
+        
+        # Wait for slave to process and respond
+        utime.sleep_ms(100)
+        
+        # Read actual slave response until newline or timeout
+        response = bytearray()
+        start_time = utime.ticks_ms()
+        
+        while (utime.ticks_ms() - start_time) < timeout_ms:
+            if uart_slaves.any():
+                byte = uart_slaves.read(1)
+                if byte == b'\n':
+                    if response:
+                        resp_text = bytes(response).decode().strip()
+                        print(f"[SCAN-RECV] {resp_text}")
+                        return resp_text
+                    # Empty line, keep reading
+                elif byte:
+                    response += byte
+            else:
+                utime.sleep_ms(5)
+        
+        return None
+        
+    except Exception as e:
+        print(f"[SCAN-ERR] Communication with {device} failed: {e}")
+        return None
+
+def network_scan(device_names=None, timeout_ms=3000):
+    """
+    Scan the UART network for responding devices.
+    Completely independent of SLAVES configuration.
+    
+    Args:
+        device_names: List of device names to scan for (default: common names)
+        timeout_ms: Timeout per device query in milliseconds
+    
+    Returns:
+        Dictionary with format: {"found_devices": {...}, "total_scanned": N}
+    """
+    if device_names is None:
+        device_names = ["servo", "stepper", "radar", "sensor", "motor", "controller"]
+    
+    print("\n" + "=" * 70)
+    print("NETWORK SCAN: Searching for UART devices...")
+    print("=" * 70)
+    print(f"Scanning for devices: {', '.join(device_names)}\n")
+    
+    found_devices = {}
+    
+    for device_name in device_names:
+        print(f"→ Scanning for '{device_name}'...")
+        
+        # Try to query commands endpoint
+        resp = send_uart_command_raw(device_name, "commands", timeout_ms=timeout_ms)
+        
+        if resp:
+            # Parse response
+            try:
+                parts = resp.split(":")
+                if len(parts) >= 3 and parts[1].lower() == "ok":
+                    # Extract commands from response
+                    for part in parts[2:]:
+                        if part.startswith("commands="):
+                            cmd_list = part.split("=", 1)[1].split(",")
+                            found_devices[device_name] = {
+                                "commands": cmd_list,
+                                "response": resp
+                            }
+                            print(f"  ✓ Found: {device_name} with {len(cmd_list)} commands")
+                            break
+                    else:
+                        print(f"  ✗ Invalid response format from {device_name}")
+                else:
+                    print(f"  ✗ Error response from {device_name}")
+            except Exception as e:
+                print(f"  ✗ Parse error: {e}")
+        else:
+            print(f"  ✗ No response (timeout)")
+        
+        utime.sleep_ms(200)  # Delay between scans to prevent bus collision
+    
+    print("\n" + "=" * 70)
+    print("NETWORK SCAN COMPLETE")
+    print("=" * 70)
+    print(f"Found {len(found_devices)} device(s)")
+    for device, info in found_devices.items():
+        print(f"  • {device}: {', '.join(info['commands'])}")
+    print("=" * 70 + "\n")
+    
+    return {
+        "found_devices": found_devices,
+        "total_scanned": len(device_names),
+        "total_found": len(found_devices)
+    }
 
 def send_device_command(device, cmd, timeout_ms=None):
     """
@@ -98,10 +216,8 @@ def send_device_command(device, cmd, timeout_ms=None):
         uart_slaves.write(full_cmd.encode())
         utime.sleep_ms(20)  # Allow TX to complete
         
-        # Clear RX buffer of echo/garbage from shared bus
+        # Wait for slave to process and respond
         utime.sleep_ms(100)
-        flush_uart_buffer()
-        utime.sleep_ms(50)
         
         # Now read actual slave response until newline or timeout
         response = bytearray()
@@ -129,93 +245,45 @@ def send_device_command(device, cmd, timeout_ms=None):
 
 def initialize_device_registry():
     """
-    Query all configured devices for their available commands.
-    Performs retry logic if devices don't respond initially.
+    Query all configured devices for their available commands using network scan.
     Populates the global device_commands registry.
     
     Returns:
         True if all devices found and registry populated, False otherwise
     """
-    global device_commands, devices_initialized, initialization_attempts
+    global device_commands, devices_initialized
     
     print("\n" + "=" * 70)
-    print("DEVICE DISCOVERY: Querying all devices for available commands")
+    print("DEVICE DISCOVERY: Initializing device registry")
     print("=" * 70)
     
     # Master is always available
     if "master" not in device_commands:
-        device_commands["master"] = ["ping", "status", "commands", "whoami"]
-    print(f"  ✓ master: {len(device_commands['master'])} commands (always available)")
+        device_commands["master"] = ["ping", "status", "commands", "whoami", "rediscover", "scan", "force"]
+    print(f"  ✓ master: {len(device_commands['master'])} commands (always available)\n")
     
-    max_retries = 3
-    attempt = 0
+    # Use network scan to discover devices
+    scan_result = network_scan(DISCOVERABLE_DEVICES, timeout_ms=5000)
     
-    while attempt < max_retries and not devices_initialized:
-        attempt += 1
-        print(f"\nDiscovery Attempt {attempt}/{max_retries}...")
-        
-        found_all = True
-        
-        for device_name in SLAVES.keys():
-            if device_name in device_commands:
-                print(f"  ✓ {device_name}: {len(device_commands[device_name])} commands cached")
-                continue
-            
-            # Query device for commands
-            print(f"  → Querying {device_name}:commands...")
-            resp = send_device_command(device_name, "commands", timeout_ms=5000)
-            utime.sleep_ms(200)  # Increased delay between commands to prevent bus collision
-            
-            if resp:
-                # Parse response format: device:ok:commands=cmd1,cmd2,cmd3,...
-                try:
-                    parts = resp.split(":")
-                    if len(parts) >= 3 and parts[1].lower() == "OK":
-                        # Extract commands from response
-                        for part in parts[2:]:
-                            if part.startswith("commands="):
-                                cmd_list = part.split("=", 1)[1].split(",")
-                                device_commands[device_name] = cmd_list
-                                print(f"    ✓ {device_name}: {len(cmd_list)} commands - {', '.join(cmd_list[:3])}...")
-                                break
-                        else:
-                            print(f"    ✗ {device_name}: Invalid command response format")
-                            found_all = False
-                    else:
-                        print(f"    ✗ {device_name}: Error response received")
-                        found_all = False
-                except Exception as e:
-                    print(f"    ✗ {device_name}: Parse error - {e}")
-                    found_all = False
-            else:
-                print(f"    ✗ {device_name}: No response (timeout)")
-                found_all = False
-        
-        if found_all and len(device_commands) == len(SLAVES) + 1:
-            devices_initialized = True
-            print("\n" + "=" * 70)
-            print("DEVICE DISCOVERY COMPLETE: All devices responded")
-            print("=" * 70)
-            return True
-        else:
-            found_count = len(device_commands) - 1  # Exclude master from count
-            total_count = len(SLAVES)
-            print(f"\n  → Found {found_count}/{total_count} slave devices")
-            if attempt < max_retries:
-                print(f"  → Retrying in 1 second...")
-                utime.sleep_ms(1000)
+    # Populate device_commands from scan results
+    for device_name, device_info in scan_result["found_devices"].items():
+        device_commands[device_name] = device_info["commands"]
     
-    if devices_initialized:
+    # Check if all devices were found
+    if scan_result["total_found"] == len(DISCOVERABLE_DEVICES):
+        devices_initialized = True
+        print("=" * 70)
+        print("DEVICE DISCOVERY COMPLETE: All devices responded")
+        print("=" * 70)
         return True
-    
-    print("\n" + "=" * 70)
-    print("WARNING: Device discovery incomplete!")
-    slave_count = len(device_commands) - 1  # Exclude master
-    print(f"Found {slave_count}/{len(SLAVES)} slave devices (master always available)")
-    print("Master will continue with partial device list")
-    print("Unknown devices will be checked again during operation")
-    print("=" * 70 + "\n")
-    return False
+    else:
+        print("\n" + "=" * 70)
+        print("WARNING: Device discovery incomplete!")
+        print(f"Found {scan_result['total_found']}/{len(DISCOVERABLE_DEVICES)} slave devices (master always available)")
+        print("Master will continue with partial device list")
+        print("=" * 70 + "\n")
+        devices_initialized = (scan_result["total_found"] > 0)
+        return False
 
 def get_device_commands(device_name):
     """
@@ -244,7 +312,7 @@ def get_device_commands(device_name):
         if resp:
             try:
                 parts = resp.split(":")
-                if len(parts) >= 3 and parts[1].lower() == "OK":
+                if len(parts) >= 3 and parts[1].lower() == "ok":
                     for part in parts[2:]:
                         if part.startswith("commands="):
                             cmd_list = part.split("=", 1)[1].split(",")
@@ -356,6 +424,60 @@ def master_status():
         "led": "on"
     }
 
+def master_rediscover():
+    """Reset device registry and perform discovery"""
+    global device_commands, devices_initialized
+    
+    print("\n[REDISCOVERY] Resetting device registry and reconnecting...")
+    
+    # Reset registry (keep master)
+    device_commands = {"master": ["ping", "status", "commands", "whoami", "rediscover", "scan", "force"]}
+    devices_initialized = False
+    
+    # Perform discovery
+    initialize_device_registry()
+    
+    return {
+        "s": "ok",
+        "msg": "Device rediscovery complete",
+        "registry_initialized": devices_initialized,
+        "discovered_devices": len(device_commands) - 1  # Exclude master
+    }
+
+def master_scan():
+    """Scan network for any UART devices"""
+    scan_result = network_scan()
+    
+    return {
+        "s": "ok",
+        "msg": "Network scan complete",
+        "total_scanned": scan_result["total_scanned"],
+        "total_found": scan_result["total_found"],
+        "found_devices": scan_result["found_devices"]
+    }
+
+def master_force(device, cmd_with_args):
+    """Force send any command without validation - for testing/debugging"""
+    print(f"\n[FORCE] Sending raw command to {device}: {cmd_with_args}")
+    
+    resp = send_uart_command_raw(device, cmd_with_args, timeout_ms=5000)
+    
+    if resp:
+        return {
+            "s": "ok",
+            "msg": "Force command successful",
+            "device": device,
+            "command": cmd_with_args,
+            "response": resp
+        }
+    else:
+        return {
+            "s": "error",
+            "msg": "Force command timeout - no response",
+            "device": device,
+            "command": cmd_with_args
+        }
+
 def process_command(line, source='uart'):
     """Process command from server and return response to server
     This function implements the request-response architecture:
@@ -385,10 +507,32 @@ def process_command(line, source='uart'):
         # ========== master commands ==========
         if line == 'master:ping' or line == 'ping':
             response = master_ping()
+        elif line == 'master:rediscover' or line == 'rediscover':
+            response = master_rediscover()
+        elif line == 'master:scan' or line == 'scan':
+            response = master_scan()
+        elif line.startswith('master:force:') or line.startswith('force:'):
+            # Extract force command: force:device:command[:args]
+            if line.startswith('master:force:'):
+                force_cmd = line[13:]  # Remove 'master:force:' prefix
+            else:
+                force_cmd = line[6:]  # Remove 'force:' prefix
+            
+            parts = force_cmd.split(':', 1)
+            if len(parts) >= 2:
+                device_name = parts[0].lower()
+                cmd_with_args = parts[1]
+                response = master_force(device_name, cmd_with_args)
+            else:
+                response = {
+                    "s": "error",
+                    "msg": "Force command format: force:device:command[:args]",
+                    "example": "force:servo:open"
+                }
         elif line == 'master:commands':
             # List all devices and their available commands
             commands_by_device = {
-                "master": ["ping", "whoami", "status", "commands", "help"]
+                "master": ["ping", "whoami", "status", "commands", "help", "rediscover", "scan", "force"]
             }
             if device_commands:
                 # Add all slave device commands
@@ -420,12 +564,12 @@ def process_command(line, source='uart'):
                 device_name = parts[0].lower()
                 cmd_with_args = parts[1]
                 
-                # Check if device exists
-                if device_name not in SLAVES:
+                # Allow devices that are discoverable or in registry (don't require them to be in SLAVES)
+                if device_name not in DISCOVERABLE_DEVICES and device_name not in device_commands and device_name not in SLAVES:
                     response = {
                         "s": "error",
                         "msg": f"Unknown device: {device_name}",
-                        "available_devices": list(SLAVES.keys())
+                        "available_devices": list(set(DISCOVERABLE_DEVICES + list(device_commands.keys())))
                     }
                 else:
                     # Get device's command list

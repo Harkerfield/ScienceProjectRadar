@@ -119,7 +119,7 @@ stepper_settings = {
 device_name = "stepper"
 
 # ============ SUPPORTED COMMANDS ============
-SUPPORTED_COMMANDS = ["ping", "whoami", "status", "position", "home", "move", "rotate", "spin", "stop", "enable", "disable", "speed", "loginterval"]
+SUPPORTED_COMMANDS = ["commands", "ping", "whoami", "status", "position", "home", "move", "rotate", "spin", "stop", "enable", "disable", "speed", "loginterval"]
 
 # Track startup time for uptime reporting
 startup_time = utime.ticks_ms()

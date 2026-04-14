@@ -13,6 +13,7 @@ import utime
 import sys
 import select
 
+
 # Display MicroPython version
 print("=" * 50)
 print(f"MicroPython Version: {sys.version}")
@@ -35,17 +36,23 @@ led.on()
 print("[INIT] LED turned ON")
 
 # ============================================================
+# PIN DEFINITIONS
+# ============================================================
+UART_TX_PIN = 4
+UART_RX_PIN = 5
+
+# ============================================================
 # UART CONFIGURATION
 # ============================================================
-# UART1: Slave communication bus (shared with stepper and radar)
-uart_slaves = UART(1, baudrate=115200, tx=Pin(4), rx=Pin(5))
-print("[STARTUP] UART slave initialized (TX=GPIO4, RX=GPIO5)")
+# UART1: Slave communication bus (shared with servo and stepper)
+uart_slaves = UART(1, baudrate=115200, tx=Pin(UART_TX_PIN), rx=Pin(UART_RX_PIN))
+print(f"[STARTUP] UART slave initialized (TX=GPIO{UART_TX_PIN}, RX=GPIO{UART_RX_PIN})")
 
 # ============ DEVICE IDENTIFICATION ============
 device_name = "servo"
 
 # ============ SUPPORTED COMMANDS ============
-SUPPORTED_COMMANDS = ["ping", "whoami", "status", "open", "close"]
+SUPPORTED_COMMANDS = ["commands", "ping", "whoami", "status", "open", "close"]
 
 # ============================================================
 # servo CONFIGURATION
@@ -79,10 +86,10 @@ def flush_uart_buffer():
 def send_uart_response(status_msg):
     """
     Send device-addressed response via UART.
-    Format: servo:OK:key=val:key=val\n
+    Format: servo:ok:key=val:key=val\n
     
     Args:
-        status_msg: Status message (e.g., "OK:state=open" or "error:invalid_command")
+        status_msg: Status message (e.g., "ok:state=open" or "error:invalid_command")
     """
     # Small delay to let master clear its RX buffer after command transmission
     utime.sleep_ms(50)
@@ -111,9 +118,11 @@ def process_command(cmd_text, source="unknown"):
     """
     global servo_state
     try:
-        cmd_text = cmd_text.strip().lower()
         if not cmd_text:
+            if source == "usb":
+                send_uart_response("error:empty_command")
             return
+        cmd_text = cmd_text.strip().lower()
         
         print(f"[CMD-{source.lower()}] {cmd_text}")
         
@@ -135,7 +144,7 @@ def process_command(cmd_text, source="unknown"):
         cmd = parts[1].lower()
         args = parts[2] if len(parts) > 2 else ""
         
-        # ========== STANDARD COMMANDS ==========
+        # ========== STANDARD COMMANDS ========== 
         if cmd == "commands":
             send_uart_response(f"ok:commands={','.join(SUPPORTED_COMMANDS)}")
         
@@ -150,7 +159,7 @@ def process_command(cmd_text, source="unknown"):
         elif cmd == "status":
             send_uart_response(f"ok:state={servo_state.lower()}:device=servo")
         
-        # ========== CONTROL COMMANDS ==========
+        # ========== CONTROL COMMANDS ========== 
         elif cmd == "open":
             print("[servo] Moving to open position")
             if servo:
@@ -233,7 +242,7 @@ while True:
             if cmd_text:
                 print(f"[UART-RECV] {cmd_text}")
                 process_command(cmd_text, source="uart")
-        else:
+        elif byte:
             uart_buffer += byte
             # Prevent buffer overflow
             if len(uart_buffer) > 256:
