@@ -83,7 +83,7 @@
           <div class="direction-buttons">
             <button
               @click="raiseRadar"
-              :disabled="!canRaise"
+              :disabled="!allConnected"
               :title="isFullyRaised ? 'Already fully raised' : 'Raise to 360°'"
               class="btn btn-success"
             >
@@ -91,7 +91,7 @@
             </button>
             <button
               @click="lowerRadar"
-              :disabled="!canLower"
+              :disabled="!allConnected"
               :title="isFullyLowered ? 'Already fully lowered' : 'Lower to 0°'"
               class="btn btn-success"
             >
@@ -356,25 +356,17 @@ export default {
 
     async raiseRadar() {
       try {
-        // Move stepper first, then open servo
-        await this.raise()
-        // Only open if raise succeeded
-        await this.open()
+        await this.open();
       } catch (error) {
-        console.error('Raise/Open sequence failed:', error)
-        // Error notifications already dispatched by individual actions
+        console.error('Servo open failed:', error);
       }
     },
 
     async lowerRadar() {
       try {
-        // Move stepper first, then close servo
-        await this.lower()
-        // Only close if lower succeeded
-        await this.close()
+        await this.close();
       } catch (error) {
-        console.error('Lower/Close sequence failed:', error)
-        // Error notifications already dispatched by individual actions
+        console.error('Servo close failed:', error);
       }
     },
 

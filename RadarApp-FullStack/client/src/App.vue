@@ -181,11 +181,13 @@ export default {
     },
 
     async loadInitialData() {
-      // Load system status and initial state with shorter timeout for startup
-      // Use allSettled so one failure doesn't block the others
+      // Ping and fetch status for all slaves (stepper, radar, servo)
       await Promise.allSettled([
+        this.$store.dispatch('stepper/ping'),
         this.$store.dispatch('stepper/fetchStatus'),
+        this.$store.dispatch('radar/ping'),
         this.$store.dispatch('radar/fetchStatus'),
+        this.$store.dispatch('servo/ping'),
         this.$store.dispatch('servo/fetchStatus'),
         this.$store.dispatch('system/fetchStatus')
       ])
