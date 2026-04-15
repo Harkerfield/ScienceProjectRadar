@@ -198,17 +198,17 @@ export default {
 
     async controlServo({ dispatch }, action) {
       try {
-        // Map pico action to actuator store methods
+        // Map pico action to servo store methods
         if (action === 'activate' || action === 'open') {
-          return await dispatch('actuator/open', {}, { root: true })
+          return await dispatch('servo/open', {}, { root: true })
         } else if (action === 'deactivate' || action === 'close') {
-          return await dispatch('actuator/close', {}, { root: true })
+          return await dispatch('servo/close', {}, { root: true })
         } else if (typeof action === 'object') {
           // Handle object-based actions if needed
           if (action.type === 'open' || action.type === 'activate') {
-            return await dispatch('actuator/open', {}, { root: true })
+            return await dispatch('servo/open', {}, { root: true })
           } else if (action.type === 'close' || action.type === 'deactivate') {
-            return await dispatch('actuator/close', {}, { root: true })
+            return await dispatch('servo/close', {}, { root: true })
           }
         }
         

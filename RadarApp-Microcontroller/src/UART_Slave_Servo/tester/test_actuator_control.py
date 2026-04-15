@@ -4,13 +4,13 @@ import time
 # ============================================================
 # servo CONTROL - Test Code
 # ============================================================
-# Controls a linear actuator via PWM on GPIO 2
+# Controls a linear servo via PWM on GPIO 2
 # Frequency: 50Hz (standard for servo control)
 # Duty cycle: 6553 (open), 3277 (closed)
 # ============================================================
 
 # Static configuration variables
-GPIO_PIN = 2          # PWM output pin for actuator control
+GPIO_PIN = 2          # PWM output pin for servo control
 FREQUENCY = 50        # PWM frequency in Hz
 open_DUTY = 6553      # Duty cycle for fully open position
 close_DUTY = 3277     # Duty cycle for fully closed position
@@ -21,21 +21,21 @@ motor_pwm.freq(FREQUENCY)
 
 def open_fully():
     """
-    Open actuator to maximum position
+    Open servo to maximum position
     Sets PWM duty to open_DUTY value
     """
     motor_pwm.duty_u16(open_DUTY)
 
 def close_fully():
     """
-    Close actuator to minimum position
+    Close servo to minimum position
     Sets PWM duty to close_DUTY value
     """
     motor_pwm.duty_u16(close_DUTY)
 
 def main_menu():
     """
-    Interactive menu loop for actuator control
+    Interactive menu loop for servo control
     Allows user to open, close, or exit the program
     """
     while True:

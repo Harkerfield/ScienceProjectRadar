@@ -307,7 +307,7 @@ class RadarFullStackServer {
         <div class="endpoint"><a href="/api/device/commands">GET /api/device/commands</a> - All available device commands</div>
         <div class="endpoint"><a href="/api/device/stepper/info">GET /api/device/stepper/info</a> - Stepper commands</div>
         <div class="endpoint"><a href="/api/device/radar/info">GET /api/device/radar/info</a> - Radar commands</div>
-        <div class="endpoint"><a href="/api/device/servo/info">GET /api/device/servo/info</a> - Actuator commands</div>
+        <div class="endpoint"><a href="/api/device/servo/info">GET /api/device/servo/info</a> - Servo commands</div>
         <div class="endpoint">POST /api/device/stepper/START - Send command (requires args in body)</div>
         
         <footer>
@@ -440,8 +440,8 @@ class RadarFullStackServer {
                 }
             });
             
-            // Actuator/Servo control
-            socket.on('actuator:command', async (data) => {
+            // Servo/Servo control
+            socket.on('servo:command', async (data) => {
                 try {
                     logger.info(`Servo command from ${socket.id}:`, data);
                     const { command, args } = data;
@@ -450,10 +450,10 @@ class RadarFullStackServer {
                         : `servo:${command}`;
                     
                     const response = await this.serialComm.sendDeviceCommand(fullCommand);
-                    socket.emit('actuator:response', response);
+                    socket.emit('servo:response', response);
                 } catch (error) {
                     logger.error(`Servo command error: ${error.message}`);
-                    socket.emit('actuator:error', { error: error.message });
+                    socket.emit('servo:error', { error: error.message });
                 }
             });
             

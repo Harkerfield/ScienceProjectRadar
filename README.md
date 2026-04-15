@@ -394,7 +394,7 @@ All detailed documentation is in the `setup/docs/` folder:
 Web UI for:
 - Real-time sensor data
 - Stepper motor control
-- Actuator control (Raspberry Pi only)
+- Servo control (Raspberry Pi only)
 - Radar visualization
 - System status
 
@@ -409,7 +409,7 @@ WebSocket: ws://localhost:3000
 ### 🍓 Raspberry Pi Features (Auto-Enabled)
 - UART communication with Pico Master
 - Stepper motor control
-- Actuator control
+- Servo control
 - Kiosk display mode
 - Auto-start on boot
 

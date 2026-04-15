@@ -1,7 +1,7 @@
 import { createStore } from 'vuex'
 import connection from './modules/connection'
 import stepper from './modules/stepper'
-import actuator from './modules/actuator'
+import servo from './modules/servo'
 import radar from './modules/radar'
 import pico from './modules/pico'
 import system from './modules/system'
@@ -34,7 +34,7 @@ export default createStore({
   modules: {
     connection,
     stepper,
-    actuator,
+    servo,
     radar,
     pico,
     system,

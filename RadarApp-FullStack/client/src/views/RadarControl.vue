@@ -365,11 +365,11 @@ export default {
     },
 
     servoActive() {
-      return this.$store.state.actuator?.status?.isOpen || false
+      return this.$store.state.servo?.status?.isOpen || false
     },
 
     servoPosition() {
-      return this.$store.state.actuator?.status?.position || 90
+      return this.$store.state.servo?.status?.position || 90
     },
 
     targetPosition() {
@@ -414,7 +414,7 @@ export default {
     ...mapActions('radar', [
       'startRadar', 'stopRadar', 'updateConfiguration', 'clearData', 'exportData'
     ]),
-    ...mapActions('actuator', ['open', 'close', 'fetchStatus']),
+    ...mapActions('servo', ['open', 'close', 'fetchStatus']),
     ...mapActions('pico', [
       'sendCommand', 'controlServo', 'requestStatus'
     ]),
@@ -630,7 +630,7 @@ export default {
     async raiseRadar() {
       try {
         await this.$store.dispatch('stepper/raise')
-        await this.$store.dispatch('actuator/open')
+        await this.$store.dispatch('servo/open')
       } catch (error) {
         console.error('Raise failed:', error)
       }
@@ -639,7 +639,7 @@ export default {
     async lowerRadar() {
       try {
         await this.$store.dispatch('stepper/lower')
-        await this.$store.dispatch('actuator/close')
+        await this.$store.dispatch('servo/close')
       } catch (error) {
         console.error('Lower failed:', error)
       }

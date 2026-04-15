@@ -1,6 +1,6 @@
 # v.Final J. 2026-04-13
-# Servo actuator controller code for Raspberry Pi Pico using MicroPython
-# # MicroPython UART Slave - Servo Actuator Controller
+# Servo servo controller code for Raspberry Pi Pico using MicroPython
+# # MicroPython UART Slave - Servo Servo Controller
 # NOTE: This code runs on Raspberry Pi Pico only, not on standard Python
 # Requires MicroPython firmware installed on Pico
 # UART Slave (on shared UART1 bus with device addressing)
@@ -154,7 +154,7 @@ def process_command(cmd_text, source="unknown"):
             send_uart_response(f"ok:msg=alive:uptime={uptime_s}s")
         
         elif cmd == "whoami":
-            send_uart_response(f"ok:device=servo:type=actuator")
+            send_uart_response(f"ok:device=servo:type=servo")
         
         elif cmd == "status":
             send_uart_response(f"ok:state={servo_state.lower()}:device=servo")
@@ -186,7 +186,7 @@ def process_command(cmd_text, source="unknown"):
         send_uart_response(f"error:command_error:{str(e)[:30]}")
 
 print("=" * 50)
-print("Servo Actuator Pico Firmware - UART REST API Compatible")
+print("Servo Servo Pico Firmware - UART REST API Compatible")
 print("=" * 50)
 print(f"[readY] UART Slave ({device_name}) initialized")
 print("[servo] Servo control via PWM on GPIO 2")
@@ -200,8 +200,8 @@ print("Available Commands:")
 print("  ping           - Alive check")
 print("  status         - Get servo status (current state)")
 print("  whoami         - Device identification")
-print("  open           - Extend/open servo actuator")
-print("  close          - Retract/close servo actuator")
+print("  open           - Extend/open servo servo")
+print("  close          - Retract/close servo servo")
 print()
 print("Examples:")
 print("  servo:ping")

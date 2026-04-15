@@ -186,7 +186,7 @@ export default {
       await Promise.allSettled([
         this.$store.dispatch('stepper/fetchStatus'),
         this.$store.dispatch('radar/fetchStatus'),
-        this.$store.dispatch('actuator/fetchStatus'),
+        this.$store.dispatch('servo/fetchStatus'),
         this.$store.dispatch('system/fetchStatus')
       ])
     },

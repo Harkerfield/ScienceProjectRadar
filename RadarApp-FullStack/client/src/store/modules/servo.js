@@ -53,7 +53,7 @@ const actions = {
       })
       return data
     } catch (error) {
-      console.error('Failed to fetch actuator status:', error)
+      console.error('Failed to fetch servo status:', error)
       throw error
     }
   },
@@ -80,8 +80,8 @@ const actions = {
 
       dispatch('notifications/addNotification', {
         type: 'success',
-        title: 'Actuator Opened',
-        message: 'Actuator has been opened/extended'
+        title: 'Servo Opened',
+        message: 'Servo has been opened/extended'
       }, { root: true })
     } catch (error) {
       commit('ADD_HISTORY_ENTRY', {
@@ -117,8 +117,8 @@ const actions = {
 
       dispatch('notifications/addNotification', {
         type: 'success',
-        title: 'Actuator Closed',
-        message: 'Actuator has been closed/retracted'
+        title: 'Servo Closed',
+        message: 'Servo has been closed/retracted'
       }, { root: true })
     } catch (error) {
       commit('ADD_HISTORY_ENTRY', {

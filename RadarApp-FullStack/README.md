@@ -3,7 +3,7 @@
 
 **New Architecture (2026): Modular Pico I2C Master/Slave System**
 
-This project now supports a modular hardware architecture using multiple Raspberry Pi Picos communicating over I2C. Each hardware function (stepper, radar, actuator) is managed by a dedicated Pico (slave), with a master Pico aggregating all data and relaying commands/status to the server via UART/USB. The Node.js backend communicates only with the master Pico, which acts as a bridge to all hardware.
+This project now supports a modular hardware architecture using multiple Raspberry Pi Picos communicating over I2C. Each hardware function (stepper, radar, servo) is managed by a dedicated Pico (slave), with a master Pico aggregating all data and relaying commands/status to the server via UART/USB. The Node.js backend communicates only with the master Pico, which acts as a bridge to all hardware.
 
 
 ## Hardware Requirements (Updated)
@@ -16,7 +16,7 @@ This project now supports a modular hardware architecture using multiple Raspber
   - 1x Master Pico (I2C master, UART/USB to server)
   - 1x Stepper Pico (I2C slave, controls stepper motor)
   - 1x Radar Pico (I2C slave, handles radar sensors)
-  - 1x Actuator Pico (I2C slave, controls actuator/servo)
+  - 1x Servo Pico (I2C slave, controls servo/servo)
 - I2C wiring (SDA/SCL, common GND)
 - Optional: External antenna for better range
 
@@ -24,12 +24,12 @@ This project now supports a modular hardware architecture using multiple Raspber
 
 
 **Communication Flow:**
-Client → Server → Master Pico (UART/I2C) → Slave Picos (Stepper, Actuator via I2C, Radar via UART)
+Client → Server → Master Pico (UART/I2C) → Slave Picos (Stepper, Servo via I2C, Radar via UART)
 
 - **Web Interface** sends hardware commands
 - **Node.js Server** relays commands to Master Pico via UART/USB
 - **Master Pico** acts as I2C master, relays commands to slave Picos and aggregates data
-- **Stepper/Actuator Picos** (I2C Slaves) execute commands and report status via I2C
+- **Stepper/Servo Picos** (I2C Slaves) execute commands and report status via I2C
 - **Radar Pico** (UART Slave) communicates with Master Pico via UART
 - **Real-time Updates** flow back through the same path to update the web interface
 
@@ -37,7 +37,7 @@ Client → Server → Master Pico (UART/I2C) → Slave Picos (Stepper, Actuator 
 ┌────────────────────┐      ┌────────────────────┐      ┌────────────────────┐
 │   Vue.js Client    │◄────┤   Node.js Server   │◄────┤   Hardware Layer    │
 │  • Dashboard       │      │  • Express API     │      │  • Stepper Motor   │
-│  • Real-time UI    │      │  • Socket.IO       │      │  • Actuator        │
+│  • Real-time UI    │      │  • Socket.IO       │      │  • Servo        │
 │  • Controls        │      │  • Controllers     │      │  • Radar (UART)    │
 └────────────────────┘      └────────────────────┘      └────────────────────┘
                                  │
@@ -52,7 +52,7 @@ Client → Server → Master Pico (UART/I2C) → Slave Picos (Stepper, Actuator 
                   ┌───────┘      │      └─────────────┐
                   ▼              ▼                    │
          ┌──────────────┐  ┌──────────────┐           │
-         │ Stepper Pico │  │ Actuator Pico│           │
+         │ Stepper Pico │  │ Servo Pico│           │
          │ (I2C Slave)  │  │ (I2C Slave)  │           │
          └──────────────┘  └──────────────┘           │
                                                       │
@@ -81,7 +81,7 @@ Client → Server → Master Pico (UART/I2C) → Slave Picos (Stepper, Actuator 
 
 
 ### 🔌 Pico Integration (I2C Master/Slave)
-- **All hardware control** (stepper, radar, actuator) is routed through the master Pico
+- **All hardware control** (stepper, radar, servo) is routed through the master Pico
 - **I2C protocol** for robust, scalable hardware communication
 - **Single UART/USB connection** between server and master Pico
 - **Real-time data aggregation** from all slave Picos
@@ -175,7 +175,7 @@ LOG_LEVEL=info
 ┌────────────────────┐      ┌────────────────────┐      ┌────────────────────┐
 │   Vue.js Client    │◄────┤   Node.js Server   │◄────┤   Hardware Layer    │
 │  • Dashboard       │      │  • Express API     │      │  • Stepper Motor   │
-│  • Real-time UI    │      │  • Socket.IO       │      │  • Actuator        │
+│  • Real-time UI    │      │  • Socket.IO       │      │  • Servo        │
 │  • Controls        │      │  • Controllers     │      │  • Radar (UART)    │
 └────────────────────┘      └────────────────────┘      └────────────────────┘
                                  │
@@ -190,7 +190,7 @@ LOG_LEVEL=info
                   ┌───────┘      │      └─────────────┐
                   ▼              ▼                    │
          ┌──────────────┐  ┌──────────────┐           │
-         │ Stepper Pico │  │ Actuator Pico│           │
+         │ Stepper Pico │  │ Servo Pico│           │
          │ (I2C Slave)  │  │ (I2C Slave)  │           │
          └──────────────┘  └──────────────┘           │
                                                       │
@@ -257,7 +257,7 @@ sudo systemctl start radar-system.service
 - `POST /api/pico/request-status` - Request status from master Pico (aggregates from all slaves)
 - `POST /api/pico/stepper/move` - Move stepper via master/slave relay
 - `POST /api/pico/radar/read` - Read radar data via master/slave relay
-- `POST /api/pico/actuator/activate` - Control actuator via master/slave relay
+- `POST /api/pico/servo/activate` - Control servo via master/slave relay
 
 ## WebSocket Events
 
@@ -348,7 +348,7 @@ socket.on('radar:scanStarted', (data) => { ... }) // Local radar
 
 This setup allows you to run both I2C and UART through the slip ring, with a dedicated wire for 5V power and ground. One wire is left over for future expansion or additional signals if needed.
 
-#### Stepper, Radar, Actuator Picos
+#### Stepper, Radar, Servo Picos
 - Each Pico is flashed with its respective `i2c_slave_*.py` firmware and unique I2C address
 
 #### Master Pico

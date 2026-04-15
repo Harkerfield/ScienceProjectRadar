@@ -18,8 +18,8 @@
             <span class="value">{{ currentPosition }}°</span>
           </div>
           <div class="status-item">
-            <span class="label">Actuator Position:</span>
-            <span class="value">{{ actuatorPosition }}°</span>
+            <span class="label">Servo Position:</span>
+            <span class="value">{{ servoPosition }}°</span>
           </div>
           <div class="status-item">
             <span class="label">Target Position:</span>
@@ -30,8 +30,8 @@
             <span class="value" :class="motorStateClass">{{ motorState }}</span>
           </div>
           <div class="status-item">
-            <span class="label">Actuator State:</span>
-            <span class="value" :class="actuatorStateClass">{{ actuatorState }}</span>
+            <span class="label">Servo State:</span>
+            <span class="value" :class="servoStateClass">{{ servoState }}</span>
           </div>
           <div class="status-item">
             <span class="label">Speed:</span>
@@ -248,7 +248,7 @@ export default {
       'currentSpeed',
       'isMoving'
     ]),
-    ...mapGetters('actuator', [
+    ...mapGetters('servo', [
       'state',
       'position'
     ]),
@@ -269,19 +269,19 @@ export default {
       }
     },
 
-    actuatorState() {
+    servoState() {
       return this.state || 'unknown'
     },
 
-    actuatorPosition() {
+    servoPosition() {
       return this.position || 0
     },
 
-    actuatorStateClass() {
+    servoStateClass() {
       return {
-        'state-open': this.actuatorState === 'open',
-        'state-closed': this.actuatorState === 'closed',
-        'state-unknown': this.actuatorState === 'unknown'
+        'state-open': this.servoState === 'open',
+        'state-closed': this.servoState === 'closed',
+        'state-unknown': this.servoState === 'unknown'
       }
     },
 
@@ -312,7 +312,7 @@ export default {
       'raise',
       'lower'
     ]),
-    ...mapActions('actuator', [
+    ...mapActions('servo', [
       'open',
       'close'
     ]),
@@ -356,7 +356,7 @@ export default {
 
     async raiseRadar() {
       try {
-        // Move stepper first, then open actuator
+        // Move stepper first, then open servo
         await this.raise()
         // Only open if raise succeeded
         await this.open()
@@ -368,7 +368,7 @@ export default {
 
     async lowerRadar() {
       try {
-        // Move stepper first, then close actuator
+        // Move stepper first, then close servo
         await this.lower()
         // Only close if lower succeeded
         await this.close()

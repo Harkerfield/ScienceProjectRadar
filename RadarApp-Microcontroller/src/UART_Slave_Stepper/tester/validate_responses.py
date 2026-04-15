@@ -24,8 +24,8 @@ def validate_json_response():
         device_name = "Stepper (0x10)"
     except:
         try:
-            from src.i2c_Slave_Actuator.main import json_response
-            device_name = "Actuator (0x12)"
+            from src.i2c_Slave_Servo.main import json_response
+            device_name = "Servo (0x12)"
         except Exception as import_err:
             print(f"[error] Could not import json_response: {import_err}")
             print("[error] Make sure this script is run from the device directory")
@@ -172,7 +172,7 @@ def test_json_parsing():
         from src.i2c_Slave_Stepper.main import json_response
     except:
         try:
-            from src.i2c_Slave_Actuator.main import json_response
+            from src.i2c_Slave_Servo.main import json_response
         except:
             print("[SKIP] Could not import json_response")
             return

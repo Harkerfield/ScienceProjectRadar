@@ -30,7 +30,7 @@ Complete master and endpoint communication pinouts for the Radar Project system.
 │                       │  │  GPIO20: home_SENSOR      │   │ │        │
 │                       │  └───────────────────────────────┘ │        │
 │                       │                                    │        │
-│                       │  ┌─── Actuator Pico──────────┐     │        │
+│                       │  ┌─── Servo Pico──────────┐     │        │
 │                       └──┤ I2C Slave 0x12 (GPIO0/1)    ────┤────────│
 │                          │  GPIO2: PWM (Servo)         │   │        │
 │                          └─────────────────────────────┘   │        │
@@ -114,7 +114,7 @@ Complete master and endpoint communication pinouts for the Radar Project system.
 | GND | Ground | Master GND | - |
 
 **Protocol:** Binary or JSON-based command/response
-- **Commands:** Motor position, actuator control, system queries
+- **Commands:** Motor position, servo control, system queries
 - **Responses:** Sensor readings, firmware status, motion complete events
 
 ### Network Interface
@@ -205,13 +205,13 @@ Complete master and endpoint communication pinouts for the Radar Project system.
 
 ---
 
-## Actuator Pico (I2C Slave - Servo/Retract Controller)
+## Servo Pico (I2C Slave - Servo/Retract Controller)
 
-**Location:** `src/i2c_Slave_Actuator/main.py`
+**Location:** `src/i2c_Slave_Servo/main.py`
 
 **I2C Address:** `0x12` (configurable in code)
 
-**Function:** Controls servo/retractable mechanism (3-wire actuator)
+**Function:** Controls servo/retractable mechanism (3-wire servo)
 
 ### I2C Interface
 
@@ -223,7 +223,7 @@ Complete master and endpoint communication pinouts for the Radar Project system.
 
 **Note:** Uses default I2C0 on Pico (no explicit configuration needed)
 
-### Actuator Control
+### Servo Control
 
 | Pin | GPIO | Type | Function | Details |
 |-----|------|------|----------|---------|
@@ -321,7 +321,7 @@ Example outputs:
     │                   │
     ├─────┬─────────────┤
     │     │             │
-Stepper  Actuator      GND
+Stepper  Servo      GND
  0x10     0x12
 
 (All devices share GPIO0 SDA and GPIO1 SCL)
@@ -417,8 +417,8 @@ GPIO13 ─│20                                 21 │── GND
 | Physical Pin | GPIO | Function | Device           | Purpose |
 |--------------|------|----------|------------------|---------|
 | 1            | -    | GND      | System           | Ground reference |
-| 2            | 0    | I2C0 SDA | Stepper/Actuator | I2C Data line |
-| 3            | 1    | I2C0 SCL | Stepper/Actuator | I2C Clock line |
+| 2            | 0    | I2C0 SDA | Stepper/Servo | I2C Data line |
+| 3            | 1    | I2C0 SCL | Stepper/Servo | I2C Clock line |
 | 7            | 4    | UART1 TX | Radar            | Serial Transmit |
 | 8            | 5    | UART1 RX | Radar            | Serial Receive |
 | 25           | 16   | UART0 TX | Pi 4 Server      | High-speed server comm (460800) |
@@ -452,7 +452,7 @@ GPIO13 ─│20                                 21 │── GND
 - Blue wire → GND (Pin 1 or Pin 6)
 - Black wire → GPIO20 (Pin 31)
 
-### Actuator Pico Connections
+### Servo Pico Connections
 
 | Physical Pin | GPIO | Function | Peripheral | Details |
 |--------------|------|----------|-----------|---------|
@@ -483,7 +483,7 @@ GPIO13 ─│20                                 21 │── GND
 ## I2C Bus Wiring (Physical Connections)
 
 ```
-Master Pico               Stepper Pico              Actuator Pico
+Master Pico               Stepper Pico              Servo Pico
 Pin 2 (GPIO0/SDA) ───┬─→ Pin 2 (GPIO0/SDA) ───┐
                      │                         │
 Pin 3 (GPIO1/SCL) ───┼─→ Pin 3 (GPIO1/SCL) ───→ Pin 3 (GPIO1/SCL)
@@ -537,7 +537,7 @@ Common ground between:
 ```
 Red wire (5V) ──────────→ External 5V or Pin 40 (VBUS)
 Brown/Black wire (GND) ──→ Pico Pin 1 or Pin 6 (GND)
-Yellow wire (Signal) ────→ Actuator Pico Pin 4 (GPIO2)
+Yellow wire (Signal) ────→ Servo Pico Pin 4 (GPIO2)
 ```
 
 ---
@@ -549,7 +549,7 @@ External 5V PSU
     │
     ├──→ Master Pico Pin 40 (VBUS)
     ├──→ Stepper Pico Pin 40 (VBUS)
-    ├──→ Actuator Pico Pin 40 (VBUS)
+    ├──→ Servo Pico Pin 40 (VBUS)
     ├──→ Radar Pico Pin 40 (VBUS)
     ├──→ Stepper Motor Driver VCC
     ├──→ Servo Motor Power (Red wire)
@@ -571,13 +571,13 @@ External GND
 |----------|------|--------------|------|
 | I2C Master SDA | Master | 2 | 0 |
 | I2C Master SCL | Master | 3 | 1 |
-| I2C Slave SDA | Stepper/Actuator | 2 | 0 |
-| I2C Slave SCL | Stepper/Actuator | 3 | 1 |
+| I2C Slave SDA | Stepper/Servo | 2 | 0 |
+| I2C Slave SCL | Stepper/Servo | 3 | 1 |
 | Stepper PUL | Stepper | 8 | 5 |
 | Stepper DIR | Stepper | 10 | 6 |
 | Stepper ENA | Stepper | 11 | 7 |
 | Home Sensor | Stepper | 31 | 20 |
-| Servo PWM | Actuator | 4 | 2 |
+| Servo PWM | Servo | 4 | 2 |
 | UART0 TX (Pi 4) | Master | 25 | 16 |
 | UART0 RX (Pi 4) | Master | 26 | 17 |
 | UART1 TX (Radar) | Master | 7 | 4 |
@@ -591,11 +591,11 @@ External GND
 ## Connection Checklist
 
 ### I2C Bus Setup (Critical)
-- [ ] Master GPIO0 (SDA) connected to: Stepper GPIO0, Actuator GPIO0, GND side of pull-up
-- [ ] Master GPIO1 (SCL) connected to: Stepper GPIO1, Actuator GPIO1, GND side of pull-up
+- [ ] Master GPIO0 (SDA) connected to: Stepper GPIO0, Servo GPIO0, GND side of pull-up
+- [ ] Master GPIO1 (SCL) connected to: Stepper GPIO1, Servo GPIO1, GND side of pull-up
 - [ ] 4.7kΩ pull-up resistors on both SDA and SCL
-- [ ] All ground connections common (Master GND = Stepper GND = Actuator GND)
-- [ ] I2C addresses verified (Stepper 0x10, Actuator 0x12)
+- [ ] All ground connections common (Master GND = Stepper GND = Servo GND)
+- [ ] I2C addresses verified (Stepper 0x10, Servo 0x12)
 
 ### UART Connections
 
@@ -635,7 +635,7 @@ External GND
 |---------|-----|--------|--------|
 | 0x08 | 7-bit addressing | Reserved | - |
 | 0x10 | Stepper Motor | Active |
-| 0x12 | Servo/Actuator | Active |
+| 0x12 | Servo/Servo | Active |
 | 0x48 | Optional | Available |
 | 0x68 | Optional | Available |
 | 0x70 | Optional | Available |
@@ -649,7 +649,7 @@ External GND
 2. Check 4.7kΩ pull-up resistors present
 3. Verify GND common between all devices
 4. Test with `i2cdetect -y 1` command
-5. Check I2C address matches (0x10 for stepper, 0x12 for actuator)
+5. Check I2C address matches (0x10 for stepper, 0x12 for servo)
 
 ### Motor Not Responding
 1. Check PUL/DIR/ENA wired to GPIO5/6/7

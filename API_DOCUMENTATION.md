@@ -54,8 +54,8 @@ DEVICE:COMMAND[:ARGS]
 | ping | none | `servo:ping` | 2s | Alive check |
 | whoami | none | `servo:whoami` | 2s | Device identification |
 | status | none | `servo:status` | 2s | Get current state (open/closed) |
-| open | none | `servo:open` | 8s | Extend/open actuator |
-| close | none | `servo:close` | 8s | Retract/close actuator |
+| open | none | `servo:open` | 8s | Extend/open servo |
+| close | none | `servo:close` | 8s | Retract/close servo |
 
 **Coordination:**
 - Raise button triggers: `stepper:move:360` + `servo:open` (sequentially)
@@ -150,11 +150,11 @@ dispatch('stepper/homePosition')
 dispatch('stepper/fetchStatus')
 ```
 
-### Actuator Module (`store/modules/actuator.js`)
+### Servo Module (`store/modules/servo.js`)
 ```javascript
-dispatch('actuator/open')    // Extends servo
-dispatch('actuator/close')   // Retracts servo
-dispatch('actuator/fetchStatus')
+dispatch('servo/open')    // Extends servo
+dispatch('servo/close')   // Retracts servo
+dispatch('servo/fetchStatus')
 ```
 
 ### Radar Module (`store/modules/radar.js`)

@@ -95,11 +95,11 @@
       "responseFormat": "ok:state=X"
     },
     "open": {
-      "description": "Extend/open servo actuator",
+      "description": "Extend/open servo servo",
       "notes": "Takes ~6 seconds to complete"
     },
     "close": {
-      "description": "Retract/close servo actuator",
+      "description": "Retract/close servo servo",
       "notes": "Takes ~6 seconds to complete"
     }
   }

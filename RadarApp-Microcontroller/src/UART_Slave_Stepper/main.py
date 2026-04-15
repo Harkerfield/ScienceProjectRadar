@@ -159,18 +159,6 @@ def simple_response(cmd, status, **kwargs):
         parts.append(f"{k}={v}")
     return ":".join(parts)
 
-# I2C Command Protocol (LEGACY - replaced by UART)
-# FORMAT: [COMMAND_BYTE][SETTING_ID][VALUE_BYTES...]
-# COMMAND_BYTE:
-#   0x01 = SET setting (followed by setting_id and value)
-#   0x02 = GET setting (followed by setting_id)
-#   0x03 = GET status (returns all settings)
-#   0x04 = ACTION (move, home, etc.)
-#
-# ACTION IDs (for command 0x04):
-#   0x01 = FIND home
-#   0x02 = move to angle
-
 # ============================================================
 # HELPER FUNCTIONS
 # ============================================================
@@ -253,8 +241,8 @@ def rotate_stepper_relative(delta_angle):
     print(f"[stepper] Rotated to {stepper_position:.1f}°")
     return True
 
-def move_stepper_direct(angle):
-    """Move stepper to target angle - tracks position by counting pulses from home"""
+def _stepper_direct(angle):
+    """ stepper to target angle - tracks position by counting pulses from home"""
     global stepper_position, stepper_at_home, current_speed_us
     
     if not home_calibrated:

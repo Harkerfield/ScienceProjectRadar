@@ -194,14 +194,14 @@ class UARTSlaveTester:
             if data:
                 print(f"       Status data: {data}")
 
-        print("  Opening actuator (up to 12 s) …")
+        print("  Opening servo (up to 12 s) …")
         r = self.send_command("servo:open", timeout=12.0)
         self._assert_response("servo", "servo:open", r)
 
         r = self.send_command("servo:status")
         self._assert_response("servo", "servo:status (after open)", r)
 
-        print("  Closing actuator (up to 12 s) …")
+        print("  Closing servo (up to 12 s) …")
         r = self.send_command("servo:close", timeout=12.0)
         self._assert_response("servo", "servo:close", r)
 
