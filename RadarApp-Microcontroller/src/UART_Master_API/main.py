@@ -61,7 +61,7 @@ def flush_uart_buffer():
     """Clear any stale data in UART buffer"""
     while uart_slaves.any():
         uart_slaves.read()
-    utime.sleep_ms(50)
+    utime.sleep_ms(5)  # Reduced
 
 def send_uart_command_raw(device, cmd, timeout_ms=3000):
     """
@@ -76,15 +76,15 @@ def send_uart_command_raw(device, cmd, timeout_ms=3000):
     try:
         # Flush buffer before sending to clear any stale data
         flush_uart_buffer()
-        utime.sleep_ms(50)
+        utime.sleep_ms(5)  # Reduced
         
         # Send command
         print(f"[SCAN-SEND] {device}:{cmd}")
         uart_slaves.write(full_cmd.encode())
-        utime.sleep_ms(20)  # Allow TX to complete
+        utime.sleep_ms(2)  # Allow TX to complete (reduced)
         
         # Wait for slave to process and respond
-        utime.sleep_ms(100)
+        utime.sleep_ms(10)  # Reduced
         
         # Read actual slave response until newline or timeout
         response = bytearray()
@@ -102,7 +102,7 @@ def send_uart_command_raw(device, cmd, timeout_ms=3000):
                 elif byte:
                     response += byte
             else:
-                utime.sleep_ms(5)
+                utime.sleep_ms(1)  # Reduced
         
         return None
         
@@ -209,15 +209,15 @@ def send_device_command(device, cmd, timeout_ms=None):
     try:
         # Flush buffer before sending
         flush_uart_buffer()
-        utime.sleep_ms(50)
+        utime.sleep_ms(5)  # Reduced
         
         # Send command
         print(f"[UART-SEND] {device}:{cmd}")
         uart_slaves.write(full_cmd.encode())
-        utime.sleep_ms(20)  # Allow TX to complete
+        utime.sleep_ms(2)  # Allow TX to complete (reduced)
         
         # Wait for slave to process and respond
-        utime.sleep_ms(100)
+        utime.sleep_ms(10)  # Reduced
         
         # Now read actual slave response until newline or timeout
         response = bytearray()
@@ -234,7 +234,7 @@ def send_device_command(device, cmd, timeout_ms=None):
                 elif byte:
                     response += byte
             else:
-                utime.sleep_ms(5)
+                utime.sleep_ms(1)  # Reduced
         
         print(f"[UART-TIMEOUT] No response from {device} after {timeout_ms}ms")
         return None
