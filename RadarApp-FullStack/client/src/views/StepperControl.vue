@@ -358,7 +358,7 @@ export default {
       try {
         await this.open()
       } catch (error) {
-        console.error('Servo open failed:', error)
+        console.error('Raise (Extend for Scanning) failed:', error)
       }
     },
 
@@ -366,7 +366,7 @@ export default {
       try {
         await this.close()
       } catch (error) {
-        console.error('Servo close failed:', error)
+        console.error('Lower (Retract for Storage) failed:', error)
       }
     },
 

@@ -186,7 +186,7 @@
                   :disabled="!allConnected"
                 >
                   <i class="fas fa-arrow-right me-1"></i>
-                  Open
+                  Raise (Extend for Scanning)
                 </button>
                 <button
                   @click="closeServo"
@@ -194,7 +194,7 @@
                   :disabled="!allConnected"
                 >
                   <i class="fas fa-arrow-left me-1"></i>
-                  Close
+                  Lower (Retract for Storage)
                 </button>
               </div>
 
@@ -227,7 +227,7 @@
                   :title="isFullyRaised ? 'Already fully raised' : 'Raise to 360°'"
                 >
                   <i class="fas fa-arrow-up me-1"></i>
-                  Raise {{ isFullyRaised ? '(MAX)' : '' }}
+                  Raise (Extend for Scanning) {{ isFullyRaised ? '(MAX)' : '' }}
                 </button>
                 <button
                   @click="lowerRadar"
@@ -236,7 +236,7 @@
                   :title="isFullyLowered ? 'Already fully lowered' : 'Lower to 0°'"
                 >
                   <i class="fas fa-arrow-down me-1"></i>
-                  Lower {{ isFullyLowered ? '(MIN)' : '' }}
+                  Lower (Retract for Storage) {{ isFullyLowered ? '(MIN)' : '' }}
                 </button>
               </div>
             </div>
