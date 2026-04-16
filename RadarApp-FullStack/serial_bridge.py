@@ -28,8 +28,8 @@ logger = logging.getLogger(__name__)
 # Configuration
 SERIAL_PORT = '/dev/ttyAMA0'           # Raspberry Pi UART port
 BAUD_RATE = 460800                     # Pico Master UART0 speed
-TIMEOUT = 0.5                          # Serial read timeout
-COMMAND_TIMEOUT = 10.0                 # Command response timeout (seconds)
+TIMEOUT = 0.2                          # Serial read timeout (reduced)
+COMMAND_TIMEOUT = 2.0                  # Command response timeout (seconds, reduced)
 
 # Global state
 ser = None
@@ -45,7 +45,7 @@ def connect_serial():
     try:
         logger.info(f"Connecting to {SERIAL_PORT} at {BAUD_RATE} baud...")
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=TIMEOUT)
-        time.sleep(0.5)  # Let port settle
+        time.sleep(0.1)  # Let port settle (reduced)
         logger.info("Serial connection established")
         return True
     except serial.SerialException as e:
@@ -77,7 +77,7 @@ def listen_to_serial():
                             response_buffer.append(line)
                         logger.debug(f"Received from Pico: {line}")
             else:
-                time.sleep(0.01)  # Prevent CPU spinning
+                time.sleep(0.001)  # Prevent CPU spinning (reduced)
                 
         except Exception as e:
             logger.error(f"Error in serial listener: {e}")
@@ -131,33 +131,37 @@ def handle_command(cmd_data):
             command = cmd_data.get('command')
             if not command:
                 return {'status': 'error', 'message': 'No command provided'}
-            
             # Clear response buffer before sending
             with lock:
                 response_buffer.clear()
-            
+            # Profiling: log send start time
+            send_time = time.time()
+            logger.info(f"[PROFILE] Send start: {command}, t={send_time}")
             # Send command to serial
             success = send_to_serial(command)
             if not success:
                 return {'status': 'error', 'message': 'Failed to send command'}
-            
             logger.info(f"Command sent: {command}")
-            
             # Wait for response from Pico Master
-            start_time = time.time()
-            while (time.time() - start_time) < COMMAND_TIMEOUT:
+            while (time.time() - send_time) < COMMAND_TIMEOUT:
                 with lock:
                     if response_buffer:
                         response = response_buffer.pop(0)
+                        recv_time = time.time()
+                        logger.info(f"[PROFILE] Response for {command} at t={recv_time}, round-trip={recv_time-send_time:.4f}s")
                         logger.info(f"Response received: {response}")
                         return {
                             'status': 'ok',
                             'command': command,
                             'response': response,
-                            'sent': True
+                            'sent': True,
+                            'profile': {
+                                'send_time': send_time,
+                                'recv_time': recv_time,
+                                'round_trip': recv_time-send_time
+                            }
                         }
-                time.sleep(0.05)  # Small sleep to reduce CPU usage
-            
+                time.sleep(0.005)  # Small sleep to reduce CPU usage (reduced)
             logger.warning(f"No response from Pico for command: {command}")
             return {
                 'status': 'timeout',
