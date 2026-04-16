@@ -356,17 +356,17 @@ export default {
 
     async raiseRadar() {
       try {
-        await this.open();
+        await this.open()
       } catch (error) {
-        console.error('Servo open failed:', error);
+        console.error('Servo open failed:', error)
       }
     },
 
     async lowerRadar() {
       try {
-        await this.close();
+        await this.close()
       } catch (error) {
-        console.error('Servo close failed:', error);
+        console.error('Servo close failed:', error)
       }
     },
 
