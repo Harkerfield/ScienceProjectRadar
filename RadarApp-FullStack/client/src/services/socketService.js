@@ -103,6 +103,28 @@ class SocketService {
       }
     })
 
+    // Listen for settings update broadcast from server
+    this.socket.on('config:settings-updated', (data) => {
+      if (this.store && data && data.settings) {
+        // Dispatch to system module to update all settings
+        this.store.dispatch('system/updateSettings', data.settings)
+        // Only show notification if this was not triggered by the local user
+        // (Assume a flag or context can be set for local changes; otherwise, always silent)
+        // Remove notification for normal updates
+      }
+    })
+
+    // Emergency/critical notification example
+    this.socket.on('system:emergency', (data) => {
+      if (this.store) {
+        this.store.dispatch('notifications/addNotification', {
+          type: 'error',
+          title: 'EMERGENCY STOP',
+          message: data && data.message ? data.message : 'Emergency stop triggered!'
+        })
+      }
+    })
+
     this.socket.on('reconnect', (attemptNumber) => {
       console.log('Socket reconnected after', attemptNumber, 'attempts')
       this.reconnectAttempts = 0
