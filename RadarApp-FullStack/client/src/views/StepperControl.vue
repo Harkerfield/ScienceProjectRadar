@@ -87,7 +87,7 @@
               :title="isFullyRaised ? 'Already fully raised' : 'Raise to 360°'"
               class="btn btn-success"
             >
-              ⬆️ Raise {{ isFullyRaised ? '(MAX)' : '' }}
+              ⬆️ Raise (Extend for Scanning) {{ isFullyRaised ? '(MAX)' : '' }}
             </button>
             <button
               @click="lowerRadar"
@@ -95,7 +95,7 @@
               :title="isFullyLowered ? 'Already fully lowered' : 'Lower to 0°'"
               class="btn btn-success"
             >
-              ⬇️ Lower {{ isFullyLowered ? '(MIN)' : '' }}
+              ⬇️ Lower (Retract for Storage) {{ isFullyLowered ? '(MIN)' : '' }}
             </button>
             <button
               @click="rotateClockwise"
