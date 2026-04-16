@@ -651,13 +651,36 @@ print("\n" + "=" * 70)
 print("Master Ready - Waiting for server commands...")
 print("=" * 70 + "\n")
 
+import time
+
 while True:
     # ========== REQUEST FROM SERVER via UART ==========
     # Main communication channel: Server sends request, Master processes, responds
     led.on()  # Turn on LED while processing to indicate activity
     if uart_server.any():
         try:
+            t_start = utime.ticks_us()
             raw_line = uart_server.readline()
+            t_recv = utime.ticks_us()
+            if raw_line:
+                #cmd_line = raw_line.decode().strip()
+                cmd_line = raw_line.decode().strip() if isinstance(raw_line, bytes) else raw_line.strip()
+                print(f"[PROFILE] Received command: '{cmd_line}' at {t_recv} us (delta={utime.ticks_diff(t_recv, t_start)} us)")
+                t_proc_start = utime.ticks_us()
+                response = process_command(cmd_line, source='uart')
+                t_proc_end = utime.ticks_us()
+                print(f"[PROFILE] Command processed in {utime.ticks_diff(t_proc_end, t_proc_start)} us")
+                # Send response back to server if needed
+                if response:
+                    try:
+                        resp_json = str(response)
+                        uart_server.write((resp_json + '\n').encode())
+                        t_sent = utime.ticks_us()
+                        print(f"[PROFILE] Response sent at {t_sent} us (total round-trip={utime.ticks_diff(t_sent, t_start)} us)")
+                    except Exception as e:
+                        print(f"[PROFILE-ERR] Failed to send response: {e}")
+        except Exception as e:
+            print(f"[PROFILE-ERR] Exception in main loop: {e}")
             line = raw_line.decode().strip() if isinstance(raw_line, bytes) else raw_line.strip()
             # Process command and get response
             resp = process_command(line, source='uart')

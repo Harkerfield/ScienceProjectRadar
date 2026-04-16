@@ -1,3 +1,19 @@
+  SET_ALL_SETTINGS(state, settings) {
+    // Merge all settings into state; adjust as needed for your structure
+    if (settings.systemInfo) {
+      state.systemInfo = { ...state.systemInfo, ...settings.systemInfo }
+    }
+    if (settings.uptime !== undefined) {
+      state.uptime = settings.uptime
+    }
+    if (settings.systemStatus) {
+      state.systemStatus = settings.systemStatus
+    }
+    // Add more fields as needed for your app
+  },
+  updateSettings({ commit }, settings) {
+    commit('SET_ALL_SETTINGS', settings)
+  },
 const state = {
   systemStatus: 'idle', // idle, running, error, maintenance
   uptime: 0,

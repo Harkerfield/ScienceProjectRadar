@@ -1,0 +1,29 @@
+#!/bin/bash
+# View logs for radar-server and radar-client
+
+echo "Select logs to view:"
+echo "1) radar-server"
+echo "2) radar-client"
+echo "3) both"
+echo "4) exit"
+read -p "Enter choice [1-4]: " choice
+
+case $choice in
+	1)
+		sudo journalctl -u radar-server -f
+		;;
+	2)
+		sudo journalctl -u radar-client -f
+		;;
+	3)
+		echo "--- radar-server logs ---"
+		sudo journalctl -u radar-server -f &
+		SERVER_PID=$!
+		echo "--- radar-client logs ---"
+		sudo journalctl -u radar-client -f
+		kill $SERVER_PID
+		;;
+	*)
+		echo "Exiting."
+		;;
+esac
